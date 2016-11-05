@@ -4,8 +4,8 @@
 // mutex, condition and list
 //
 
-#ifndef META_META_QUEUE_HPP
-#define META_META_QUEUE_HPP
+#ifndef META_QUEUE_HPP
+#define META_QUEUE_HPP
 
 #include <condition_variable>
 #include <list>
@@ -145,6 +145,6 @@ namespace meta
     return m_holder.empty ();
   }
   
-} // namespace util
+} // namespace meta
 
 #endif
