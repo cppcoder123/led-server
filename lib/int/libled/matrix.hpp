@@ -29,7 +29,10 @@ namespace libled
     void dump () const;         // for debugging
 
     std::size_t size () const {return m_vector.size ();}
-    
+    bool empty () const {return m_vector.empty ();}
+
+    const column_t& get_column (std::size_t i) const {return m_vector[i];}
+
     void add (const column_t &column);
     void add (const matrix_t &arg, std::size_t start, std::size_t size);
     void add (const matrix_t &arg);

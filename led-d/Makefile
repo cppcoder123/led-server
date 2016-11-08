@@ -21,7 +21,8 @@ OBJECT_LIST = led-d.o arg.o daemon.o display.o font.o font-dir.o hex-font.o \
 #
 COMPILE_FLAGS = -I$(INCLUDE_INT) -I$(INCLUDE_EXT) -std=c++11 -Wall -pedantic -g
 
-LINK_FLAGS = $(LIB_DAEMON) -lpthread
+LIB_HW = $(ROOT_INT)/ledhw/src/libledhw.a
+LINK_FLAGS = $(LIB_HW) $(LIB_DAEMON) -lpthread
 
 #
 #

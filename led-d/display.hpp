@@ -10,9 +10,10 @@
 #include <mutex>
 #include <string>
 
-#include "libled/driver.hpp"
 #include "libled/request.hpp"
 #include "libled/response.hpp"
+
+#include "ledhw/hw.hpp"
 
 #include "arg.hpp"
 #include "render.hpp"
@@ -61,8 +62,8 @@ namespace led_d
 
     render_t m_render;
 
-    typedef std::unique_ptr<libled::driver_t> driver_ptr_t;
-    driver_ptr_t m_driver_ptr;
+    typedef std::unique_ptr<ledhw::hw_t> hw_ptr_t;
+    hw_ptr_t m_hw_ptr;
 
   };
 } // namespace led_d
