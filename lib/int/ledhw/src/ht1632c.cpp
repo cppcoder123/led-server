@@ -26,7 +26,7 @@ namespace ledhw
   bool ht1632c_t::start ()
   {
     m_thread = std::thread (&ht1632c_t::load, this);
-
+    // fixme: add chip init
     return true;
   }
   
@@ -35,6 +35,7 @@ namespace ledhw
     m_go_ahead = false;
     m_condition.notify_one ();
     m_thread.join ();
+    // fixme : chip uninit shut off leds
   }
   
   bool ht1632c_t::render (const libled::matrix_t &matrix)

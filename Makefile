@@ -12,24 +12,31 @@ export INCLUDE_INT = $(ROOT_INT)
 
 export LIB_DAEMON = $(ROOT_EXT)/lib/libdaemon.a
 
-LEDHW = $(ROOT_INT)/ledhw/src
 
 #
 #
 #
-EXE_LIST = $(LEDHW) led-d led-info-d led
+LIB_LEDHW = $(ROOT_INT)/ledhw/src/libledhw.a
 
-ALL: $(EXE_LIST)
-	for exe in $(EXE_LIST); do \
-		cd $$exe && make && cd $(ROOT); \
-	done
+LED_D = led-d/led-d
+LED_INFO_D = led-info-d/led-info-d 
+LED = led/led
+
+TARGET_LIST = $(LED_D) $(LED_INFO_D) $(LED)
+
+ALL: $(TARGET_LIST)
+
+led%: $(LIB_LEDHW)
+	cd $(dir $@) && make && cd $(ROOT)
+
+$(LIB_LEDHW):
+	cd $(dir $@) && make && cd $(ROOT)
 
 clean:
-	for exe in $(EXE_LIST); do \
-		cd $$exe && make clean && cd $(ROOT); \
-	done
+	-rm $(wildcard $(dir $(LED_D))*.o)
+	-rm $(wildcard $(dir $(LED_INFO_D))*.o)
+	-rm $(wildcard $(dir $(LED))*.o)
+	-rm $(wildcard $(dir $(LIB_LEDHW))*.o)
+	-rm $(TARGET_LIST) $(LIB_LEDHW)
 
-tar:
-	tar cfvz led-all.tar.gz Makefile led led-d led-info-d lib/int
-
-.PHONY: clean tar
+.PHONY: clean

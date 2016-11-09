@@ -3,6 +3,7 @@
 //
 
 #include <chrono>
+#include <stdexcept>
 #include <thread>
 
 #include "libled/matrix.hpp"
@@ -19,19 +20,21 @@ namespace led_d
   display_t::display_t ()
     : m_go_ahead (true),
       m_request_iterator (m_request_map.end ()),
-      //m_hw_ptr (std::unique_ptr<ledhw::hw_t> (new cout::driver_t ()))
       m_hw_ptr (new ledhw::ht1632c_t ())
   {
   }
 
   void display_t::start (const arg_t &arg)
   {
-    if (m_hw_ptr->start () == false)
-      // hw should complain
+    if (m_hw_ptr->start () == false) {
+      log_t::error ("Failed to start hardware driver");
       return;
-    if (m_render.init (arg) == false)
-      // render should complain
+    }
+    
+    if (m_render.init (arg) == false) {
+      log_t::error ("Failed to init render-er");
       return;
+    }
 
     m_arg = arg;
     //
