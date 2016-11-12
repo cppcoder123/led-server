@@ -20,7 +20,7 @@ namespace ledhw
     virtual void stop () = 0;
     
     virtual bool render (const libled::matrix_t &info) = 0;
-    virtual bool brigtness (int level) = 0;
+    virtual bool brightness (int level) = 0;
     
   };
   

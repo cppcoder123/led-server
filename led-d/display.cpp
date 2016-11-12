@@ -8,7 +8,7 @@
 
 #include "libled/matrix.hpp"
 
-#include "ledhw/ht1632c.hpp"
+#include "ledhw/spi.hpp"
 
 #include "display.hpp"
 #include "idle-request.hpp"
@@ -20,7 +20,7 @@ namespace led_d
   display_t::display_t ()
     : m_go_ahead (true),
       m_request_iterator (m_request_map.end ()),
-      m_hw_ptr (new ledhw::ht1632c_t ())
+      m_hw_ptr (new ledhw::spi_t ())
   {
   }
 
