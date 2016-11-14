@@ -28,24 +28,26 @@ namespace ledhw
 
   private:
 
-    typedef unsigned char uchar;
-    typedef std::vector<uchar> vector_t;
+    typedef unsigned char uchar_t;
+    typedef std::vector<uchar_t> vector_t;
 
     typedef libled::matrix_t::column_t column_t;
 
     typedef std::vector<std::string> name_list_t;
 
     
-    static uchar get_char (const column_t &column);
+    static uchar_t get_char (const column_t &column);
 
     static name_list_t get_name_list ();
     
     bool status_send (const vector_t &msg); // doesn't throw
     void send (const vector_t &msg);        // throws
 
-    bool write (const vector_t &msg);
-    bool read ();
-    
+    void write (const vector_t &msg);
+    void read ();
+
+    std::string get_error (uchar_t err_id);
+    name_list_t get_error_list ();
   };
   
 } // namespace ledhw

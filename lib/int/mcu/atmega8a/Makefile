@@ -15,11 +15,14 @@ MCU = atmega8a
 #AVRSIZE = avr-size
 #AVRDUDE = avrdude
 
-CFLAGS = -mmcu=$(MCU) -Os -std=gnu99 -Wall 
-LDFLAGS = -mmcu=$(MCU)
+CFLAGS_OPT = -I../../ -mmcu=$(MCU) -Os -std=gnu99 -Wall 
+LDFLAGS_OPT = -mmcu=$(MCU)
 
 CFLAGS_DEBUG = $(CFLAGS) -g
-LDFLAGS_DEBBUG = $(LDFLAGS) -g
+LDFLAGS_DEBUG = $(LDFLAGS) -g
+
+CFLAGS = $(CFLAGS_OPT)
+LDFLAGS = $(LDFLAGS_OPT)
 
 ALL: $(TARGET)
 

@@ -1,5 +1,5 @@
 //
-//
+// Not used
 //
 #ifndef LEDHW_WINDOW_HPP
 #define LEDHW_WINDOW_HPP

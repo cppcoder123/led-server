@@ -1,80 +1,303 @@
-/*
- * Handle two ht1632c controllers with led-matrices attached
- * Receive info by SPI interface
- */
+//
+// Handle two ht1632c controllers with led-matrices attached
+// Receive info by SPI interface
+//
 
+// it should be before includes
+#define F_CPU 16000000UL
+
+#include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <util/delay.h>
 
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "libled/spi-message.h"
 
-#define F_CPU 16000000UL
+// state bits
+//#define STATE_SPI_EYE_CATCHED           (1 << 0)
+#define STATE_SPI_READING               (1 << 1)
+#define STATE_SPI_WRITING               (1 << 2)
+#define STATE_SPI_BYTE_READ             (1 << 3)
+#define STATE_MATRIX_TRANSFER_STARTED   (1 << 4)
+#define STATE_MATRIX_RENDERED           (1 << 5)
+#define STATE_BRIGHTNESS                (1 << 6)
 
-/*state bits*/
-#define STATE_IDLE          (1 << 0)
-#define STATE_DATA_ARRIVED  (1 << 1)     /* data has arrived */
-#define STATE_DATA_READY    (1 << 2)     /* new data is ready */
-#define STATE_BRIGHTNESS    (1 << 3)
 
 // max data array size
-#define DATA_CAPACITY 128       /* fixme: can we increase this value? */
+#define MATRIX_CAPACITY SPI_MATRIX_CAPACITY
 
 // display size
 #define DISPLAY_HALF_CAPACITY 32
-#define DISPLAY_CAPACITY  (DISPLAY_HALF_CAPACITY * 2)
+#define DISPLAY_CAPACITY (DISPLAY_HALF_CAPACITY * 2)
 
 //
 volatile uint8_t state_flag = 0;
 //
-volatile uint8_t *led_data = 0;
-volatile uint16_t led_data_size = 0;
+volatile uint8_t *matrix = 0;
+volatile uint16_t matrix_size = 0;
 //
-volatile uint8_t *led_data_buffer = 0;
-volatile uint16_t led_data_buffer_size = 0;
 //
-volatile uint8_t led_brightness = 0;
+volatile uint8_t brightness = 0;
 //
-volatile uint8_t led_scroll_shift_delay = 0;
+volatile uint8_t scroll_shift_delay = 0;
+//
+//
+volatile uint8_t parse_message_id = 0;
+volatile uint16_t parse_step = 0;
+volatile uint8_t parse_byte = 0;
 
-void initialize ()
+//
+// Interrupt handling
+//
+
+ISR(SPI_STC_vect)
 {
-  state_flag = STATE_IDLE;
+  if (state_flag & STATE_SPI_WRITING) {
+    state_flag &= ~STATE_SPI_WRITING;
+    // end of writing => we can read
+    state_flag |= STATE_SPI_READING;
+    // ingore end of send
+    return;
+  }
   //
-  led_data = (uint8_t*) calloc (DATA_CAPACITY, sizeof (uint8_t));
-  led_data_buffer = (uint8_t*) calloc (DATA_CAPACITY, sizeof (uint8_t));
-  //
-  led_data_size = led_data_buffer_size = 0;
-  //
-  led_brightness = 16;
-  //
-  led_scroll_shift_delay = 10;        /* fixme : ? */
+  if (!(state_flag & STATE_SPI_READING))
+    return;
+
+  //  if (!(state_flag & STATE_SPI_EYE_CATCHED)) {
+  //  if (SPDR == SPI_SLAVE_EYE_CATCH) {
+  //    state_flag &= ~STATE_SPI_READING;
+  //    state_flag |= STATE_SPI_EYE_CATCHED;
+  //  }
+  //  // ignore everything except eye-catch
+  //  return;
+  //}
+  
+  // we want to receive something
+  parse_byte = SPDR;
+  // ignore everything while parsing byte
+  state_flag &= ~STATE_SPI_READING;
+  state_flag |= STATE_SPI_BYTE_READ;
 }
 
-void idle_delay ()
+//
+// Handle incoming messages
+//
+
+uint8_t handle_start ()
 {
-  /*fixme : sleep a lot*/
+  // fixme
+  return SPI_STATUS_OK;
+}
+
+uint8_t handle_stop ()
+{
+  // fixme
+  return SPI_STATUS_OK;
+}
+
+// message parse is complete
+void parse_complete ()
+{
+  parse_message_id = SPI_MESSAGE_EMPTY;
+  parse_step = 0;
+  //state_flag &= ~STATE_SPI_EYE_CATCHED;
+}
+
+uint8_t parse_matrix (uint8_t data)
+{
+  uint16_t index = 0;
+  
+  state_flag |= STATE_MATRIX_TRANSFER_STARTED;
+  switch (++parse_step) {
+  case 2:
+    matrix_size = data;
+    break;
+  case 3:
+    matrix_size += 255 * data;
+    break;
+  case 4:
+    if (data != SPI_MATRIX_ARRAY_START)
+      return SPI_STATUS_NO_ARRAY_START;
+    break;
+  default:
+    index = parse_step - 5;
+    if (index > SPI_MATRIX_CAPACITY)
+      return SPI_STATUS_TOO_LONG_MATRIX;
+    if (index == matrix_size) {
+      if (data != SPI_MATRIX_ARRAY_FINISH)
+        return SPI_STATUS_NO_ARRAY_FINISH;
+      // message receive is completed
+      state_flag &= ~STATE_MATRIX_TRANSFER_STARTED;
+      parse_complete ();
+    } else {
+      matrix[index] = data;
+    }
+    break;
+  }
+
+  return SPI_STATUS_OK;
+}
+
+uint8_t parse_delay (uint8_t data)
+{
+  parse_step++;
+  if (parse_step == 2) {
+    if (data != SPI_DELAY_SCROLL_SHIFT)
+      return SPI_STATUS_UNKNOWN_DELAY_ID;
+  } else if (parse_step == 3) {
+    scroll_shift_delay = data;
+    parse_complete ();
+  }
+
+  return SPI_STATUS_OK;
+}
+
+uint8_t parse_brightness (uint8_t data)
+{
+  // 2 steps parse, so data should be brightness
+  if ((data < SPI_BRIGHTNESS_MIN)
+      || (data > SPI_BRIGHTNESS_MAX))
+    return SPI_STATUS_BRIGHTNESS_OUT_OF_RANGE;
+
+  brightness = data;
+  state_flag |= STATE_BRIGHTNESS;
+  
+  parse_complete ();
+
+  return SPI_STATUS_OK;
+}
+
+uint8_t spi_read (uint8_t data)
+{
+  uint8_t status = SPI_STATUS_OK;
+  if (parse_message_id == SPI_MESSAGE_EMPTY) {
+    if ((data >= SPI_MESSAGE_MIN)
+        && (data < SPI_MESSAGE_MAX)) {
+      // handle one byte messages right here
+      switch (data) {
+      case SPI_MESSAGE_START:
+        status = handle_start ();
+        break;
+      case SPI_MESSAGE_STOP:
+        status = handle_stop ();
+        break;
+      case SPI_MESSAGE_HANDSHAKE:
+        // status initialized with OK
+        break;
+      default:
+        parse_message_id = data;
+        parse_step = 1;
+        break;
+      }
+    } else {
+      status = SPI_STATUS_MESSAGE_ID_UNKNOWN;
+    }
+
+    parse_complete ();
+    return status;
+  }
+
+  // not a first step in message parsing
+  switch (parse_message_id) {
+  case SPI_MESSAGE_MATRIX:
+    status = parse_matrix (data);
+    break;
+  case SPI_MESSAGE_DELAY:
+    status = parse_delay (data);
+    break;
+  case SPI_MESSAGE_BRIGHTNESS:
+    status = parse_brightness (data);
+    break;
+  default:
+    // ! we should not reach this point
+    status = SPI_STATUS_LONG_MESSAGE_ID_UNKNOWN;
+    break;
+  }
+
+  return status;
+}
+
+void spi_write (uint8_t data)
+{
+  state_flag &= ~STATE_SPI_BYTE_READ;
+  state_flag |= STATE_SPI_WRITING;
+  SPDR = data;
+}
+
+//
+// Init code
+//
+
+void hw_init ()
+{
+  // Set pin directions
+  
+  // a. port D - 0-4 for debug - output
+  DDRD |= (1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3) | (1 << PD4);
+  // b. port C - communicate with ht1632 - output
+  //    3 wires per each ht1632
+  DDRC |= (1 << PC0) | (1 << PC1) | (1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5);
+  // c. port B - SPI interface - slave - pb2,3,5 - input, pb4 - output
+  DDRB |= (1 << PB4);
+  DDRB &= ~((1 << PB2) | (1 << PB3) | (1 << PB5));
+
+  // Configure SPI as slave
+
+  // spi interrupt enable, spi enable, lsb first
+  SPCR |= ((1 << SPIE) | (1 << SPE) | (1 << DORD));
+  // the same set of (CPOL, CPHA) sould be used for master
+  // slave, SCK low => idle, leading edge sampling (fixme?)
+  SPCR &= ~((1 << MSTR) | (1 << CPOL) | (1 << CPHA));
+  // clock rate selection is not required for slave
+
+  // clear spi data
+  SPDR = 0;
+
+  // Enable inerrupts globally
+  sei ();
+  //
+  //
+}
+
+void sw_init ()
+{
+  state_flag = 0;
+  //
+  matrix = (uint8_t*) calloc (MATRIX_CAPACITY, sizeof (uint8_t));
+  //
+  matrix_size = 0;
+  //
+  brightness = SPI_BRIGHTNESS_MAX;
+  //
+  scroll_shift_delay = 10;      /* fixme : ? */
+  //
+  //
+  parse_message_id = SPI_MESSAGE_EMPTY;
+  parse_step = 0;
+  parse_byte = 0;
+}
+
+//
+// Handle led displays
+//
+
+void scroll_shift_sleep ()
+{
+  // fixme: sleep time should depend on 'led_scroll_shift_delay'
+}
+
+void scroll_cycle_sleep ()
+{
+  // fixme: do we need to sleep longer?
+  // 10? times more than scroll_shift_sleep
+  scroll_shift_sleep ();
 }
 
 void change_brightness ()
 {
   /* fixme: change brigtness*/
-}
-
-void handle_incoming ()
-{
-  if (state_flag & STATE_DATA_ARRIVED) {
-    for (uint16_t i = 0; i < led_data_buffer_size; ++i)
-      led_data[i] = led_data_buffer[i];
-    led_data_size = led_data_buffer_size;
-    //
-    state_flag &= ~STATE_DATA_ARRIVED;
-    state_flag |= STATE_DATA_READY;
-  }
-  if (state_flag & STATE_BRIGHTNESS) {
-    change_brightness ();
-    state_flag &= ~STATE_BRIGHTNESS;
-  }
 }
 
 void display_data (uint8_t index, uint8_t left_data, uint8_t right_data)
@@ -84,83 +307,132 @@ void display_data (uint8_t index, uint8_t left_data, uint8_t right_data)
 
 void clear ()
 {
-  // fixme: clear display
+  for (uint8_t i = 0; i < DISPLAY_HALF_CAPACITY; i++)
+    display_data (i, 0, 0);
 }
 
-uint8_t get_data (uint16_t index)
+uint8_t is_matrix_consistent ()
 {
-  if (index >= led_data_size)
+  return (state_flag & STATE_MATRIX_TRANSFER_STARTED) ? 0 : 1;
+}
+
+uint8_t get_column (uint16_t index)
+{
+  if ((!is_matrix_consistent ())
+      || (index >= matrix_size))
     return 0;
-
-  return led_data[index];
+  
+  return matrix[index];
 }
 
-void handle_data_fixed ()
+void render_matrix_fixed ()
 {
+  if (state_flag & STATE_MATRIX_RENDERED)
+    return;
+  
   clear ();
   //
-  for (uint8_t index = 0; index < DISPLAY_HALF_CAPACITY; ++index) 
+  for (uint8_t index = 0; index < DISPLAY_HALF_CAPACITY; ++index) {
+    if (!is_matrix_consistent ())
+      return;
     display_data (index,
-                  get_data (index), get_data (index + DISPLAY_HALF_CAPACITY));
+                  get_column (index),
+                  get_column (index + DISPLAY_HALF_CAPACITY));
+  }
 
   // don't refresh static info
-  state_flag &= ~STATE_DATA_READY;
+  state_flag |= STATE_MATRIX_RENDERED;
 }
 
-void scroll_shift_delay ()
-{
-  // fixme: sleep time should depend on 'led_scroll_shift_delay'
-}
-
-void handle_data_scroll ()
+void render_matrix_scroll ()
 {
   clear ();
   
   // imagine DISPLAY_CAPACITY columns before and after data
-  uint16_t scroll_max_index = DISPLAY_CAPACITY + led_data_size;
+  uint16_t scroll_max = DISPLAY_CAPACITY + matrix_size;
 
-  for (uint16_t scroll_index = 0; scroll_index < scroll_max_index; ++scroll_index) {
-    for (uint8_t display_index = 0;
-         display_index < DISPLAY_HALF_CAPACITY; ++display_index) {
-      uint16_t column_index = scroll_index + display_index;
-      uint16_t left_data_index = (column_index >= DISPLAY_CAPACITY)
-        ? column_index - DISPLAY_CAPACITY : DATA_CAPACITY;
-      uint16_t right_data_index = (column_index + DISPLAY_HALF_CAPACITY >= DISPLAY_CAPACITY)
-        ? column_index + DISPLAY_HALF_CAPACITY - DISPLAY_CAPACITY : DATA_CAPACITY;
-      display_data (display_index,
-                    get_data (left_data_index), get_data (right_data_index));
+  for (uint16_t scroll = 0; scroll < scroll_max; ++scroll) {
+    for (uint8_t display = 0; display < DISPLAY_HALF_CAPACITY; ++display) {
+      if (!is_matrix_consistent ())
+        return;
+      uint16_t column = scroll + display;
+      uint16_t left_index = (column >= DISPLAY_CAPACITY)
+        ? column - DISPLAY_CAPACITY : MATRIX_CAPACITY;
+      uint16_t right_index = (column + DISPLAY_HALF_CAPACITY >= DISPLAY_CAPACITY)
+        ? column + DISPLAY_HALF_CAPACITY - DISPLAY_CAPACITY : MATRIX_CAPACITY;
+      display_data (display, get_column (left_index), get_column (right_index));
     }
-    scroll_shift_delay ();
+    scroll_shift_sleep ();
   }
+  scroll_cycle_sleep ();
 
-  // do not remove 'DATA_READY' flag, we want to launch scroll again
+  // do not remove 'MATRIX_RENDERED' flag, we want to launch scroll again
 }
 
-void handle_outcoming ()
+//
+// Test debugging leds
+//
+void debug_sleep ()
 {
-  if (state_flag & STATE_DATA_READY) {
-    if (led_data_size <= DISPLAY_CAPACITY)
-      handle_data_fixed ();
-    else
-      handle_data_scroll ();
+  _delay_ms (500);
+}
+
+void debug_test_led (uint8_t leg)
+{
+  PORTD |= (1 << leg);
+  debug_sleep ();
+  PORTD &= ~(1 << leg);
+  debug_sleep ();
+}
+
+void debug_test ()
+{
+  PORTD &= ~((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3) | (1 << PD4));
+
+  debug_sleep ();
+  
+  for (uint8_t i = 0; i < 5; i++) {
+    debug_test_led (PD0);
+    debug_test_led (PD1);
+    debug_test_led (PD2);
+    debug_test_led (PD3);
+    debug_test_led (PD4);
   }
 }
+
+//
+// Main
+//
 
 int main ()
 {
-  // fixme: add hardware init here
+  hw_init ();
   
-  initialize ();
+  sw_init ();
+
+  debug_test ();
   
   while (1) {
-    if (state_flag & STATE_IDLE) {
-      idle_delay ();
-      continue;
+    //
+    //if (state_flag & STATE_SPI_EYE_CATCHED) {
+    //  spi_write (SPI_STATUS_OK);
+    //}
+    if (state_flag & STATE_SPI_BYTE_READ) {
+      spi_write (spi_read (parse_byte));
+      state_flag &= ~STATE_SPI_BYTE_READ;
     }
     //
-    handle_incoming ();              /* handle incoming spi info */
+    if (state_flag & STATE_BRIGHTNESS) {
+      change_brightness ();
+      state_flag &= ~STATE_BRIGHTNESS;
+    }
     //
-    handle_outcoming ();             /* push info to led controllers */
+    if (is_matrix_consistent ()) {
+      if (matrix_size < DISPLAY_CAPACITY)
+        render_matrix_fixed ();
+      else
+        render_matrix_scroll ();
+    }
   }
   
   return 0;

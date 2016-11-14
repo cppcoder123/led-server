@@ -1,5 +1,5 @@
 //
-//
+// Not used
 //
 #ifndef LEDHW_HT1632C_HPP
 #define LEDHW_HT1632C_HPP

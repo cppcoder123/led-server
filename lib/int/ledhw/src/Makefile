@@ -3,8 +3,8 @@
 #
 TARGET = libledhw.a
 
-HEADER_LIST = ../hw.hpp ../cout.hpp ../ht1632c.hpp ../spi.hpp window.hpp
-OBJECT_LIST = ht1632c.o spi.o window.o
+HEADER_LIST = ../hw.hpp ../cout.hpp ../spi.hpp spi-io.hpp 
+OBJECT_LIST = spi.o spi-io.o
 
 
 COMPILE_FLAGS = -I./ -I$(INCLUDE_INT) -std=c++11 -Wall -pedantic -g
