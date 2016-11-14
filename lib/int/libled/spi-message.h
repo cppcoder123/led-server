@@ -20,6 +20,7 @@ enum {                          /* status is the only msg from mcu */
   SPI_MESSAGE_BRIGHTNESS,       /* <id><brightness-data> */
   /* SPI_MESSAGE_,*/
   SPI_MESSAGE_MAX,              /* msg id limit */
+  SPI_MESSAGE_MAX_LENGTH = 31,  /* except matrix */
   SPI_MESSAGE_SLAVE_START = 247, /* start of message directed to slave */
   SPI_MESSAGE_SLAVE_FINISH,     /* finish of the message directed to slavle */
   SPI_MESSAGE_MASTER_START,     /* start of message directed to master */
@@ -29,6 +30,7 @@ enum {                          /* status is the only msg from mcu */
 enum {
   SPI_STATUS_RESERVED = 6,
   SPI_STATUS_OK,
+  SPI_STATUS_NO_FINISH,
   SPI_STATUS_MESSAGE_ID_UNKNOWN,
   SPI_STATUS_LONG_MESSAGE_ID_UNKNOWN,
   SPI_STATUS_PARSE_ERROR,

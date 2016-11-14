@@ -30,10 +30,21 @@ namespace ledhw
     try {
       m_io.start ();
       //
-      send ({SPI_MESSAGE_HANDSHAKE});
-      send ({SPI_MESSAGE_DELAY, SPI_DELAY_SCROLL_SHIFT, 100}); // fixme ?
-      send ({SPI_MESSAGE_BRIGHTNESS, SPI_BRIGHTNESS_MAX});
-      send ({SPI_MESSAGE_START});
+      m_io.message_start ();
+      m_io.message_add ({SPI_MESSAGE_HANDSHAKE});
+      send (m_io.message_finish ());
+      //
+      m_io.message_start ();
+      m_io.message_add ({SPI_MESSAGE_DELAY, SPI_DELAY_SCROLL_SHIFT, 30}); // fixme ?
+      send (m_io.message_finish ());
+
+      m_io.message_start ();
+      m_io.message_add ({SPI_MESSAGE_BRIGHTNESS, SPI_BRIGHTNESS_MAX});
+      send (m_io.message_finish ());
+
+      m_io.message_start ();
+      m_io.message_add ({SPI_MESSAGE_START});
+      send (m_io.message_finish ());
     }
 
     catch (std::exception &e) {
@@ -50,7 +61,9 @@ namespace ledhw
   {
     // fixme : put mcu (and leds) in low-consumption mode
     try {
-      send ({SPI_MESSAGE_STOP});
+      m_io.message_start ();
+      m_io.message_add ({SPI_MESSAGE_STOP});
+      send (m_io.message_finish ());
       //
       m_io.stop ();
     }
@@ -69,17 +82,17 @@ namespace ledhw
     //
     // <msg-id><size-lsb><size-msb><array-start><data-0><data-1>...<array-finish>
     //
-    vector_t msg;
-
-    msg.push_back (SPI_MESSAGE_MATRIX);
-    msg.push_back (matrix.size () % std::numeric_limits<uchar_t>::max ());
-    msg.push_back (matrix.size () / std::numeric_limits<uchar_t>::max ());
-    msg.push_back (SPI_MATRIX_ARRAY_START);
+    m_io.message_start ();
+    m_io.message_add ({SPI_MESSAGE_MATRIX,
+          static_cast<uchar_t>
+          (matrix.size () % std::numeric_limits<uchar_t>::max ()), //lsb
+          static_cast<uchar_t>
+          (matrix.size () / std::numeric_limits<uchar_t>::max ()), // msb
+          SPI_MATRIX_ARRAY_START});
     for (std::size_t i = 0; i < matrix.size (); ++i)
-      msg.push_back (get_char (matrix.get_column (i)));
-    msg.push_back (SPI_MATRIX_ARRAY_FINISH);
-    
-    return status_send (msg);
+      m_io.message_add (get_char (matrix.get_column (i)));
+    m_io.message_add (SPI_MATRIX_ARRAY_FINISH);
+    return status_send (m_io.message_finish ());
   }
 
   bool spi_t::brightness (int level)
@@ -89,7 +102,10 @@ namespace ledhw
       return false;
 
     // <msg-id><brightness-level>
-    return status_send ({SPI_MESSAGE_BRIGHTNESS, static_cast<uchar_t>(level)});
+    m_io.message_start ();
+    m_io.message_add ({SPI_MESSAGE_BRIGHTNESS, static_cast<uchar_t>(level)});
+
+    return status_send (m_io.message_finish ());
   }
 
   spi_t::uchar_t spi_t::get_char (const column_t &column)
@@ -106,6 +122,33 @@ namespace ledhw
     return res;
   }
 
+  std::string spi_t::get_error (uchar_t err_id)
+  {
+    static const name_list_t error_list (get_error_list ());
+
+    if (err_id >= error_list.size ())
+      return "Unknown error during spi read";
+
+    return error_list[err_id];
+  }
+
+  spi_t::name_list_t spi_t::get_error_list ()
+  {
+    name_list_t error_list (SPI_STATUS_MAX, "Unknown error");
+
+    error_list[SPI_STATUS_OK] = "No-error";
+    error_list[SPI_STATUS_MESSAGE_ID_UNKNOWN] = "Message id is unknown";
+    error_list[SPI_STATUS_LONG_MESSAGE_ID_UNKNOWN] = "Long message id is unknown";
+    error_list[SPI_STATUS_PARSE_ERROR] = "Parse error";
+    error_list[SPI_STATUS_NO_ARRAY_START] = "There is no array start";
+    error_list[SPI_STATUS_NO_ARRAY_FINISH] = "There is no array finish";
+    error_list[SPI_STATUS_TOO_LONG_MATRIX] = "Matrix is too long";
+    error_list[SPI_STATUS_UNKNOWN_DELAY_ID] = "Delay id is unknown";
+    error_list[SPI_STATUS_BRIGHTNESS_OUT_OF_RANGE] = "Brightness is out of range";
+
+    return error_list;
+  }
+  
   spi_t::name_list_t spi_t::get_name_list ()
   {
     name_list_t result (SPI_MESSAGE_MAX, "Unknown");
@@ -137,10 +180,12 @@ namespace ledhw
     static const name_list_t name_list (get_name_list ());
 
     try {
-      write (msg);
+      m_io.write (msg);
       // delay reading to let mcu handle the message
       std::this_thread::sleep_for (std::chrono::milliseconds (1)); // fixme ? 
-      read ();
+      uchar_t status = m_io.read ();
+      if (status != SPI_STATUS_OK)
+        throw std::logic_error (get_error (status));
     }
     catch (std::exception &e) {
       // add message name to exception
@@ -151,43 +196,4 @@ namespace ledhw
     }
   }
 
-  void spi_t::write (const vector_t &msg)
-  {
-    m_io.write (msg);
-  }
-
-  void spi_t::read ()
-  {
-    uchar_t info = m_io.read ();
-    if (info != SPI_STATUS_OK)
-      throw std::logic_error (get_error (info));
-  }
-
-  std::string spi_t::get_error (uchar_t err_id)
-  {
-    static const name_list_t error_list (get_error_list ());
-
-    if (err_id >= error_list.size ())
-      return "Unknown error during spi read";
-
-    return error_list[err_id];
-  }
-
-  spi_t::name_list_t spi_t::get_error_list ()
-  {
-    name_list_t error_list (SPI_STATUS_MAX, "Unknown error");
-
-    error_list[SPI_STATUS_OK] = "No-error";
-    error_list[SPI_STATUS_MESSAGE_ID_UNKNOWN] = "Message id is unknown";
-    error_list[SPI_STATUS_LONG_MESSAGE_ID_UNKNOWN] = "Long message id is unknown";
-    error_list[SPI_STATUS_PARSE_ERROR] = "Parse error";
-    error_list[SPI_STATUS_NO_ARRAY_START] = "There is no array start";
-    error_list[SPI_STATUS_NO_ARRAY_FINISH] = "There is no array finish";
-    error_list[SPI_STATUS_TOO_LONG_MATRIX] = "Matrix is too long";
-    error_list[SPI_STATUS_UNKNOWN_DELAY_ID] = "Delay id is unknown";
-    error_list[SPI_STATUS_BRIGHTNESS_OUT_OF_RANGE] = "Brightness is out of range";
-
-    return error_list;
-  }
-  
 } // namespace ledhw

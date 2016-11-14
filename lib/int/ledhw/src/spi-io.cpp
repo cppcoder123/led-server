@@ -51,6 +51,29 @@ namespace ledhw
     m_fd = -1;
   }
 
+  void spi_io::message_start ()
+  {
+    m_message.clear ();
+    m_message.push_back (SPI_MESSAGE_SLAVE_START);
+  }
+
+  void spi_io::message_add (const unsigned char msg_body)
+  {
+    m_message.push_back (msg_body);
+  }
+
+  void spi_io::message_add (const vector_t &msg_body)
+  {
+    m_message.insert (m_message.end (), msg_body.begin (), msg_body.end ());
+  }
+
+  const spi_io::vector_t& spi_io::message_finish ()
+  {
+    m_message.push_back (SPI_MESSAGE_SLAVE_FINISH);
+
+    return m_message;
+  }
+
   void spi_io::write (const vector_t &msg)
   {
     if (m_fd < 0)

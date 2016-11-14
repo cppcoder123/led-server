@@ -38,16 +38,13 @@ namespace ledhw
     
     static uchar_t get_char (const column_t &column);
 
+    static std::string get_error (uchar_t err_id);
+    static name_list_t get_error_list ();
+
     static name_list_t get_name_list ();
     
-    bool status_send (const vector_t &msg); // doesn't throw
-    void send (const vector_t &msg);        // throws
-
-    void write (const vector_t &msg);
-    void read ();
-
-    std::string get_error (uchar_t err_id);
-    name_list_t get_error_list ();
+    static bool status_send (const vector_t &msg); // doesn't throw
+    static void send (const vector_t &msg);        // throws
   };
   
 } // namespace ledhw

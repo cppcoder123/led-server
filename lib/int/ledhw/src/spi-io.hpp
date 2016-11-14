@@ -20,8 +20,14 @@ namespace ledhw
     void start ();              // open device ...
     void stop ();               // close
 
-    // both functions throw
     typedef std::vector<unsigned char> vector_t;
+    
+    void message_start ();
+    void message_add (const unsigned char msg_body);
+    void message_add (const vector_t &msg_body);
+    const vector_t& message_finish ();
+    
+    // both functions throw
     void write (const vector_t &msg);
     unsigned char read ();
 
@@ -29,6 +35,8 @@ namespace ledhw
 
     const std::string m_devname;
     int m_fd;
+
+    vector_t m_message;
   };
 } // namespace ledhw
 
