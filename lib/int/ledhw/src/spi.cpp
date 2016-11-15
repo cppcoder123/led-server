@@ -2,10 +2,8 @@
 //
 //
 
-#include <chrono>
 #include <limits>
 #include <stdexcept>
-#include <thread>
 #include <vector>
 
 #include "libled/log.hpp"
@@ -31,19 +29,19 @@ namespace ledhw
       m_io.start ();
       //
       m_io.message_start ();
-      m_io.message_add ({SPI_MESSAGE_HANDSHAKE});
+      m_io.message_add ({SPI_SLAVE_MSG_HANDSHAKE});
       send (m_io.message_finish ());
       //
       m_io.message_start ();
-      m_io.message_add ({SPI_MESSAGE_DELAY, SPI_DELAY_SCROLL_SHIFT, 30}); // fixme ?
+      m_io.message_add ({SPI_SLAVE_MSG_DELAY, SPI_DELAY_SCROLL_SHIFT, 30}); // fixme ?
       send (m_io.message_finish ());
 
       m_io.message_start ();
-      m_io.message_add ({SPI_MESSAGE_BRIGHTNESS, SPI_BRIGHTNESS_MAX});
+      m_io.message_add ({SPI_SLAVE_MSG_BRIGHTNESS, SPI_BRIGHTNESS_MAX});
       send (m_io.message_finish ());
 
       m_io.message_start ();
-      m_io.message_add ({SPI_MESSAGE_START});
+      m_io.message_add ({SPI_SLAVE_MSG_START});
       send (m_io.message_finish ());
     }
 
@@ -62,7 +60,7 @@ namespace ledhw
     // fixme : put mcu (and leds) in low-consumption mode
     try {
       m_io.message_start ();
-      m_io.message_add ({SPI_MESSAGE_STOP});
+      m_io.message_add ({SPI_SLAVE_MSG_STOP});
       send (m_io.message_finish ());
       //
       m_io.stop ();
@@ -83,7 +81,7 @@ namespace ledhw
     // <msg-id><size-lsb><size-msb><array-start><data-0><data-1>...<array-finish>
     //
     m_io.message_start ();
-    m_io.message_add ({SPI_MESSAGE_MATRIX,
+    m_io.message_add ({SPI_SLAVE_MSG_MATRIX,
           static_cast<uchar_t>
           (matrix.size () % std::numeric_limits<uchar_t>::max ()), //lsb
           static_cast<uchar_t>
@@ -103,7 +101,7 @@ namespace ledhw
 
     // <msg-id><brightness-level>
     m_io.message_start ();
-    m_io.message_add ({SPI_MESSAGE_BRIGHTNESS, static_cast<uchar_t>(level)});
+    m_io.message_add ({SPI_SLAVE_MSG_BRIGHTNESS, static_cast<uchar_t>(level)});
 
     return status_send (m_io.message_finish ());
   }
@@ -151,13 +149,14 @@ namespace ledhw
   
   spi_t::name_list_t spi_t::get_name_list ()
   {
-    name_list_t result (SPI_MESSAGE_MAX, "Unknown");
+    name_list_t result (SPI_SLAVE_MSG_MAX, "Unknown");
 
-    result[SPI_MESSAGE_STATUS] = "Status";
-    result[SPI_MESSAGE_HANDSHAKE] = "Handshake";
-    result[SPI_MESSAGE_MATRIX] = "Matrix";
-    result[SPI_MESSAGE_DELAY] = "Delay";
-    result[SPI_MESSAGE_BRIGHTNESS] = "Brightness";
+    result[SPI_SLAVE_MSG_START] = "Start";
+    result[SPI_SLAVE_MSG_STOP] = "Stop";
+    result[SPI_SLAVE_MSG_HANDSHAKE] = "Handshake";
+    result[SPI_SLAVE_MSG_MATRIX] = "Matrix";
+    result[SPI_SLAVE_MSG_DELAY] = "Delay";
+    result[SPI_SLAVE_MSG_BRIGHTNESS] = "Brightness";
 
     return result;
   }
@@ -181,8 +180,6 @@ namespace ledhw
 
     try {
       m_io.write (msg);
-      // delay reading to let mcu handle the message
-      std::this_thread::sleep_for (std::chrono::milliseconds (1)); // fixme ? 
       uchar_t status = m_io.read ();
       if (status != SPI_STATUS_OK)
         throw std::logic_error (get_error (status));

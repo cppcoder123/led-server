@@ -54,7 +54,7 @@ namespace ledhw
   void spi_io::message_start ()
   {
     m_message.clear ();
-    m_message.push_back (SPI_MESSAGE_SLAVE_START);
+    m_message.push_back (SPI_SLAVE_START);
   }
 
   void spi_io::message_add (const unsigned char msg_body)
@@ -69,7 +69,7 @@ namespace ledhw
 
   const spi_io::vector_t& spi_io::message_finish ()
   {
-    m_message.push_back (SPI_MESSAGE_SLAVE_FINISH);
+    m_message.push_back (SPI_SLAVE_FINISH);
 
     return m_message;
   }
@@ -79,17 +79,10 @@ namespace ledhw
     if (m_fd < 0)
       throw std::domain_error ("Can't write, device is not opened");
 
-    // wrap message by slave-start & slave-finish
-    vector_t raw_msg (msg.size () + 2, 0);
-    raw_msg[0] = SPI_MESSAGE_SLAVE_START;
-    for (std::size_t i = 0; i < msg.size (); i++)
-      raw_msg[i + 1] = msg[i];
-    raw_msg[msg.size () + 2] = SPI_MESSAGE_SLAVE_FINISH;
-    
-    if (::write (m_fd, raw_msg.data (), raw_msg.size ())
-        != static_cast<ssize_t>(raw_msg.size ())) {
+    if (::write (m_fd, msg.data (), msg.size ())
+        != static_cast<ssize_t>(msg.size ())) {
       buffer_t buf;
-      buf << "Failed to write \"" << raw_msg.size () << "\" bytes to spi";
+      buf << "Failed to write \"" << msg.size () << "\" bytes to spi";
       throw std::domain_error (buf.str ());
     }
   }
@@ -98,7 +91,8 @@ namespace ledhw
   {
     if (m_fd < 0) 
       throw std::domain_error ("Can't read, device is not opened");
-    
+
+    // fixme : 15 bytes : is it enough?
     static const std::size_t read_buffer_size = 15;
     vector_t raw_msg (read_buffer_size, 0);
 
@@ -112,8 +106,8 @@ namespace ledhw
     }
 
     for (std::size_t i = 0; i < raw_msg.size () - 2; i++)
-      if ((raw_msg[i] == SPI_MESSAGE_MASTER_START)
-          && (raw_msg[i + 2] == SPI_MESSAGE_MASTER_FINISH))
+      if ((raw_msg[i] == SPI_MASTER_START)
+          && (raw_msg[i + 2] == SPI_MASTER_FINISH))
         return raw_msg[i + 1];
 
     throw std::runtime_error ("Failed to find reply during spi read");

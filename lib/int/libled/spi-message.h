@@ -5,26 +5,27 @@
 #ifndef LIBLED_SPI_MESSAGE_H
 #define LIBLED_SPI_MESSAGE_H
 
-/*#define SPI_SLAVE_EYE_CATCH 0xF1
-  #define SPI_MASTER_EYE_CATCH 0xF7*/
+/* messages directed to master */
+enum {
+  SPI_MASTER_MSG_STATUS = 15,
+  SPI_MASTER_START = 230, /* Note: It should not be equal to SLAVE_START */
+  SPI_MASTER_FINISH,
+};
 
-enum {                          /* status is the only msg from mcu */
-  SPI_MESSAGE_EMPTY,
-  SPI_MESSAGE_STATUS,           /* <error-code> */
-  SPI_MESSAGE_MIN,              /* for mcu incoming messages */
-  SPI_MESSAGE_START = SPI_MESSAGE_MIN, /* <id> */
-  SPI_MESSAGE_STOP,             /* <id> */
-  SPI_MESSAGE_HANDSHAKE,        /* <id> */
-  SPI_MESSAGE_MATRIX,   /* <id><size-lsb><size-msb><arr-start><data-1>..<arr-fin> */
-  SPI_MESSAGE_DELAY,            /* <id><delay-id><delay-data> */
-  SPI_MESSAGE_BRIGHTNESS,       /* <id><brightness-data> */
-  /* SPI_MESSAGE_,*/
-  SPI_MESSAGE_MAX,              /* msg id limit */
-  SPI_MESSAGE_MAX_LENGTH = 31,  /* except matrix */
-  SPI_MESSAGE_SLAVE_START = 247, /* start of message directed to slave */
-  SPI_MESSAGE_SLAVE_FINISH,     /* finish of the message directed to slavle */
-  SPI_MESSAGE_MASTER_START,     /* start of message directed to master */
-  SPI_MESSAGE_MASTER_FINISH,    /* finish of the message directed to master */
+/* messages directed to slave */
+enum {
+  SPI_SLAVE_MSG_EMPTY = 100,
+  SPI_SLAVE_MSG_MIN,
+  SPI_SLAVE_MSG_START = SPI_SLAVE_MSG_MIN, /* <id> */
+  SPI_SLAVE_MSG_STOP,                      /* <id> */
+  SPI_SLAVE_MSG_HANDSHAKE,                 /* <id> */
+  SPI_SLAVE_MSG_MATRIX, /* <id><size-lsb><size-msb><arr-start><data-1>..<arr-fin> */
+  SPI_SLAVE_MSG_DELAY,  /* <id><delay-id><delay-data> */
+  SPI_SLAVE_MSG_BRIGHTNESS,     /* <id><brightness-data> */
+  SPI_SLAVE_MSG_MAX,            /* msg id limit */
+  SPI_SLAVE_MAX_MSG_LENGTH = 31, /* except matrix */
+  SPI_SLAVE_START = 240, /* Note:  It should not be equal to MASTER_START */
+  SPI_SLAVE_FINISH,
 };
 
 enum {
