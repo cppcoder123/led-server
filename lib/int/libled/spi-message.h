@@ -5,6 +5,14 @@
 #ifndef LIBLED_SPI_MESSAGE_H
 #define LIBLED_SPI_MESSAGE_H
 
+/*
+ * Master message wrapped by 'SPI_MASTER_START' and 'SPI_MASTER_FINISH'
+ *  e.g. : <SPI_MASTER_START><SPI_STATUS_x><SPI_MASTER_FINISH>
+ *
+ * Slave message wrapped by 'SPI_SLAVE_START' and 'SPI_SLAVE_FINISH'
+ *  e.g. : <SPI_SLAVE_START><SPI_SLAVE_MSG_BRIGHTNESS><brightness-value><SPI_SLAVE_FINISH>
+ */
+
 /* messages directed to master */
 enum {
   SPI_MASTER_MSG_STATUS = 15,
@@ -40,8 +48,7 @@ enum {
   SPI_STATUS_TOO_LONG_MATRIX,
   SPI_STATUS_UNKNOWN_DELAY_ID,
   SPI_STATUS_BRIGHTNESS_OUT_OF_RANGE,
-  //  SPI_STATUS_MASTER_PARSE_ERROR,
-  //
+  /**/
   SPI_STATUS_MAX
 };
 
@@ -50,12 +57,6 @@ enum {                          /* data to render */
   SPI_MATRIX_ARRAY_FINISH,
   SPI_MATRIX_CAPACITY = 600     /* max that mcu can handle fixme: increase ?*/
 };
-
-/*enum {
-  SPI_CAPACITY_MATRIX_MAX,*/      /* max buffer capacity, 2*capacity < 1024 - <extra> 
-                                     where <extra> is memory required by mcu, 
-                                     lets say ~200 bytes */
-/*};*/
 
 enum {
   SPI_DELAY_SCROLL_SHIFT,       /* scroll step delay */

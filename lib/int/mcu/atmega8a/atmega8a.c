@@ -7,8 +7,6 @@
 #define F_CPU 16000000UL
 
 #include <avr/interrupt.h>
-#include <avr/sleep.h>
-#include <util/delay.h>
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -28,6 +26,9 @@
 // display size
 #define DISPLAY_HALF_CAPACITY 32
 #define DISPLAY_CAPACITY (DISPLAY_HALF_CAPACITY * 2)
+
+// timer0 clock factor
+#define TIMER0_FACTOR 15
 
 //
 volatile uint8_t transfer_flag = 0;
@@ -261,7 +262,8 @@ void hw_init ()
 
   // Configure timer
 
-  // max prescaler => new freq ~ 1 millisecond
+  // max prescaler 1024 => Timer-0 freq = 16 Mhz / 1024 ~ 15kHz,
+  //  tick interval 1/15 ms (~10E-4 sec)
   TCCR0 |= ((1 << CS00) | (1 << CS02));
   TCCR0 &= ~(1 << CS01);
   // we don't need an interrupt for timer since we are doing busy-wait
@@ -299,20 +301,22 @@ uint8_t is_matrix_consistent ()
   return (transfer_flag & TRANSFER_MATRIX_STARTED) ? 0 : 1;
 }
 
-// clock freq ~ 1 millisecond
+// clock freq ~ 1/15 ms
 void busy_wait (uint8_t ms, uint8_t factor)
 {
-  for (uint8_t i = 0; i < factor; ++i) {
-    // timer increments its value, so
-    TCNT0 = 255 - ms;
-    // clear overflow flag
-    TIFR &= ~(1 << TOV0);
-    while (!(TIFR & (1 << TOV0)))
-      // if matrix is inconsistent => stop waiting
-      // we can't render it
-      if (!is_matrix_consistent ())
-        return;
-  }
+  for (uint8_t j = 0; j < TIMER0_FACTOR; j++) {
+    for (uint8_t i = 0; i < factor; ++i) {
+      // timer increments its value, so
+      TCNT0 = 255 - ms;
+      // clear overflow flag
+      TIFR &= ~(1 << TOV0);
+      while (!(TIFR & (1 << TOV0)))
+        // if matrix is inconsistent => stop waiting
+        // we can't render it
+        if (!is_matrix_consistent ())
+          return;
+    } // i
+  } // j
 }
 
 void scroll_shift_sleep ()
@@ -409,15 +413,19 @@ void render_matrix_scroll ()
 //
 void debug_sleep ()
 {
-  _delay_ms (500);
+  // it should be equal ~1 sec
+  busy_wait (100, 10);
 }
 
-void debug_test_led (uint8_t leg)
+void debug_test_led (uint8_t leg, uint8_t on)
 {
-  PORTD |= (1 << leg);
-  debug_sleep ();
-  PORTD &= ~(1 << leg);
-  debug_sleep ();
+  if (on) {
+    PORTD |= (1 << leg);
+    debug_sleep ();
+  } else {
+    PORTD &= ~(1 << leg);
+    debug_sleep ();
+  }
 }
 
 void debug_test ()
@@ -426,12 +434,18 @@ void debug_test ()
 
   debug_sleep ();
   
-  for (uint8_t i = 0; i < 5; i++) {
-    debug_test_led (PD0);
-    debug_test_led (PD1);
-    debug_test_led (PD2);
-    debug_test_led (PD3);
-    debug_test_led (PD4);
+  for (uint8_t i = 0; i < 3; i++) {
+    debug_test_led (PD0, 1);
+    debug_test_led (PD1, 1);
+    debug_test_led (PD2, 1);
+    debug_test_led (PD3, 1);
+    debug_test_led (PD4, 1);
+    //
+    debug_test_led (PD0, 0);
+    debug_test_led (PD1, 0);
+    debug_test_led (PD2, 0);
+    debug_test_led (PD3, 0);
+    debug_test_led (PD4, 0);
   }
 }
 
