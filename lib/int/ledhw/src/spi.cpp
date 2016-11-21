@@ -106,6 +106,16 @@ namespace ledhw
     return status_send (m_io.message_finish ());
   }
 
+  bool spi_t::switch_relay (bool on)
+  {
+    unsigned char state = static_cast<unsigned char>((on == true) ? 1 : 0);
+
+    m_io.message_start ();
+    m_io.message_add ({SPI_SLAVE_MSG_SWITCH_RELAY, state});
+    
+    return status_send (m_io.message_finish ());
+  }
+
   spi_t::uchar_t spi_t::get_char (const column_t &column)
   {
     static const std::size_t bits_per_column = 8;

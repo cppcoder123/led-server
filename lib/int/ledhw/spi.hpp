@@ -26,6 +26,8 @@ namespace ledhw
     bool render (const libled::matrix_t &matrix);
     bool brightness (int level);
 
+    bool switch_relay (bool on);
+    
   private:
 
     typedef unsigned char uchar_t;

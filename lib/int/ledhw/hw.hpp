@@ -21,7 +21,9 @@ namespace ledhw
     
     virtual bool render (const libled::matrix_t &info) = 0;
     virtual bool brightness (int level) = 0;
-    
+
+    // control power relay
+    virtual bool switch_relay (bool on) = 0;
   };
   
 } // namespace ledhw

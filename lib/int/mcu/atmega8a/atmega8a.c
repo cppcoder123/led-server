@@ -161,6 +161,29 @@ void spi_read_brightness (uint8_t info)
     spi_read_complete
       ((info == SPI_SLAVE_FINISH)
        ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
+    break;
+  }
+}
+
+void switch_relay (uint8_t state)
+{
+  if (state != 0)
+    PORTD |= (1 << PD7);
+  else
+    PORTD &= ~(1 << PD7);
+}
+
+void spi_read_switch_relay (uint8_t info)
+{
+  switch (transfer_buffer_size++) {
+  case 2:
+    transfer_buffer[2] = info;
+    break;
+  default:
+    switch_relay (transfer_buffer[2]);
+    spi_read_complete
+      ((info == SPI_SLAVE_FINISH) ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
+    break;
   }
 }
 
@@ -196,6 +219,9 @@ void spi_read (uint8_t info)
       break;
     case SPI_SLAVE_MSG_BRIGHTNESS:
       spi_read_brightness (info);
+      break;
+    case SPI_SLAVE_MSG_SWITCH_RELAY:
+      spi_read_switch_relay (info);
       break;
     default:
       // we shouldn't reach this point
@@ -239,11 +265,11 @@ void hw_init ()
 {
   // Set pin directions
   
-  // a. port D - 0-4 for debug - output
-  DDRD |= (1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3) | (1 << PD4);
+  // a. port D - 0-4 for debug - output, 7 - relay
+  DDRD |= ((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3) | (1 << PD4) | (1 << PD7));
   // b. port C - communicate with ht1632 - output
   //    3 wires per each ht1632
-  DDRC |= (1 << PC0) | (1 << PC1) | (1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5);
+  DDRC |= ((1 << PC0) | (1 << PC1) | (1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
   // c. port B - SPI interface - slave - pb2,3,5 - input, pb4 - output
   DDRB |= (1 << PB4);
   DDRB &= ~((1 << PB2) | (1 << PB3) | (1 << PB5));
@@ -430,6 +456,12 @@ void debug_test_led (uint8_t leg, uint8_t on)
 
 void debug_test ()
 {
+  // test miso voltage level
+  PORTB |= (1 << PB4);
+  
+  // test relay
+  switch_relay (0);
+  
   PORTD &= ~((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3) | (1 << PD4));
 
   debug_sleep ();
@@ -447,6 +479,13 @@ void debug_test ()
     debug_test_led (PD3, 0);
     debug_test_led (PD4, 0);
   }
+
+  // turn relay off
+  switch_relay (1);
+
+  // turn miso off
+  PORTB &= ~(1 << PB4);
+
 }
 
 //

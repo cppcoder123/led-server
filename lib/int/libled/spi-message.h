@@ -30,6 +30,7 @@ enum {
   SPI_SLAVE_MSG_MATRIX, /* <id><size-lsb><size-msb><arr-start><data-1>..<arr-fin> */
   SPI_SLAVE_MSG_DELAY,  /* <id><delay-id><delay-data> */
   SPI_SLAVE_MSG_BRIGHTNESS,     /* <id><brightness-data> */
+  SPI_SLAVE_MSG_SWITCH_RELAY,
   SPI_SLAVE_MSG_MAX,            /* msg id limit */
   SPI_SLAVE_MAX_MSG_LENGTH = 31, /* except matrix */
   SPI_SLAVE_START = 240, /* Note:  It should not be equal to MASTER_START */
