@@ -6,6 +6,8 @@
 // it should be before includes
 #define F_CPU 16000000UL
 
+#include <util/delay.h>
+
 #include <avr/interrupt.h>
 
 #include <stdint.h>
@@ -265,12 +267,13 @@ void hw_init ()
 {
   // Set pin directions
   
-  // a. port D - 0-4 for debug - output, 7 - relay
-  DDRD |= ((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3) | (1 << PD4) | (1 << PD7));
+  // a. port D - 0-2 for debug - output, 7 - relay
+  DDRD |= ((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD7));
   // b. port C - communicate with ht1632 - output
   //    3 wires per each ht1632
   DDRC |= ((1 << PC0) | (1 << PC1) | (1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
   // c. port B - SPI interface - slave - pb2,3,5 - input, pb4 - output
+  // fixme: this code is not required, init by SPI logic
   DDRB |= (1 << PB4);
   DDRB &= ~((1 << PB2) | (1 << PB3) | (1 << PB5));
 
@@ -286,14 +289,6 @@ void hw_init ()
   // clear spi data
   SPDR = 0;
 
-  // Configure timer
-
-  // max prescaler 1024 => Timer-0 freq = 16 Mhz / 1024 ~ 15kHz,
-  //  tick interval 1/15 ms (~10E-4 sec)
-  TCCR0 |= ((1 << CS00) | (1 << CS02));
-  TCCR0 &= ~(1 << CS01);
-  // we don't need an interrupt for timer since we are doing busy-wait
-  
   // Enable inerrupts globally
   sei ();
   //
@@ -327,22 +322,15 @@ uint8_t is_matrix_consistent ()
   return (transfer_flag & TRANSFER_MATRIX_STARTED) ? 0 : 1;
 }
 
-// clock freq ~ 1/15 ms
 void busy_wait (uint8_t ms, uint8_t factor)
 {
-  for (uint8_t j = 0; j < TIMER0_FACTOR; j++) {
-    for (uint8_t i = 0; i < factor; ++i) {
-      // timer increments its value, so
-      TCNT0 = 255 - ms;
-      // clear overflow flag
-      TIFR &= ~(1 << TOV0);
-      while (!(TIFR & (1 << TOV0)))
-        // if matrix is inconsistent => stop waiting
-        // we can't render it
+  for (uint8_t i = 0; i < factor; ++i) {
+    for (uint8_t j = 0; j < ms; ++j) {
+      _delay_ms (1);
         if (!is_matrix_consistent ())
           return;
-    } // i
-  } // j
+    } // j
+  } // i
 }
 
 void scroll_shift_sleep ()
@@ -439,8 +427,9 @@ void render_matrix_scroll ()
 //
 void debug_sleep ()
 {
-  // it should be equal ~1 sec
-  busy_wait (100, 10);
+  // it should be equal ~0.5 sec
+  busy_wait (50, 10);
+  
 }
 
 void debug_test_led (uint8_t leg, uint8_t on)
@@ -460,28 +449,26 @@ void debug_test ()
   PORTB |= (1 << PB4);
   
   // test relay
-  switch_relay (0);
+  switch_relay (1);
   
-  PORTD &= ~((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3) | (1 << PD4));
+  PORTD &= ~((1 << PD0) | (1 << PD1) | (1 << PD2));
 
   debug_sleep ();
-  
-  for (uint8_t i = 0; i < 3; i++) {
+
+  for (uint8_t i = 0; i < 10; i++) {
+    //
     debug_test_led (PD0, 1);
     debug_test_led (PD1, 1);
     debug_test_led (PD2, 1);
-    debug_test_led (PD3, 1);
-    debug_test_led (PD4, 1);
     //
     debug_test_led (PD0, 0);
     debug_test_led (PD1, 0);
     debug_test_led (PD2, 0);
-    debug_test_led (PD3, 0);
-    debug_test_led (PD4, 0);
+    //
   }
 
   // turn relay off
-  switch_relay (1);
+  switch_relay (0);
 
   // turn miso off
   PORTB &= ~(1 << PB4);

@@ -108,7 +108,7 @@ namespace ledhw
 
   bool spi_t::switch_relay (bool on)
   {
-    unsigned char state = static_cast<unsigned char>((on == true) ? 1 : 0);
+    uchar_t state = static_cast<uchar_t>((on == true) ? 1 : 0);
 
     m_io.message_start ();
     m_io.message_add ({SPI_SLAVE_MSG_SWITCH_RELAY, state});
