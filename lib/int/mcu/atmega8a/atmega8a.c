@@ -77,14 +77,18 @@ void spi_read_complete (uint8_t status)
   // start writing
   transfer_flag &= ~(TRANSFER_IDLE | TRANSFER_READING);
 }
- 
+
+uint8_t spi_check_finish (uint8_t info)
+{
+  return (info == SPI_SLAVE_FINISH) ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH;
+}
+
 void spi_read_start (uint8_t info)
 {
   if (transfer_buffer_size++ == 2) {
     // fixme : init ht1632c here
     ht1632c_start ();
-    spi_read_complete
-      ((info == SPI_SLAVE_FINISH) ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
+    spi_read_complete (spi_check_finish (info));
   }
 }
 
@@ -93,8 +97,7 @@ void spi_read_stop (uint8_t info)
   if (transfer_buffer_size++ == 2) {
     // fixme : stop ht1632c here
     ht1632c_stop ();
-    spi_read_complete
-      ((info == SPI_SLAVE_FINISH) ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
+    spi_read_complete (spi_check_finish (info));
   }
 }
 
@@ -102,14 +105,15 @@ void spi_read_handshake (uint8_t info)
 {
   if (transfer_buffer_size++ == 2) {
     // just send reply
-    spi_read_complete
-      ((info == SPI_SLAVE_FINISH) ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
+    spi_read_complete (spi_check_finish (info));
   }
 }
 
 void spi_read_matrix (uint8_t info)
 {
   transfer_flag |= TRANSFER_MATRIX_STARTED;
+  transfer_flag &= ~TRANSFER_MATRIX_RENDERED;
+  //
   switch (transfer_buffer_size) {
   case 2:
     matrix_size = info;
@@ -120,20 +124,19 @@ void spi_read_matrix (uint8_t info)
     ++transfer_buffer_size;
     break;
   case 4:
-    if (info != SPI_MATRIX_ARRAY_START) {
-      spi_read_complete (SPI_STATUS_NO_ARRAY_START);
-    } else {
-      transfer_index = 0;
-      ++transfer_buffer_size;
-    }
+    // we can't properly handle 'info' here
+    //if (info != SPI_MATRIX_ARRAY_START) {
+    //spi_read_complete (SPI_STATUS_NO_ARRAY_START);
+    //} else {
+    transfer_index = 0;
+    ++transfer_buffer_size;
+    //}
     break;
   default:
     if (transfer_index < matrix_size) {
       matrix[transfer_index++] = info;
     } else {
-      spi_read_complete
-        ((info == SPI_SLAVE_FINISH)
-         ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
+      spi_read_complete (spi_check_finish (info));
       transfer_flag &= ~TRANSFER_MATRIX_STARTED;
     }
   }
@@ -143,17 +146,15 @@ void spi_read_delay (uint8_t info)
 {
   switch (transfer_buffer_size++) {
   case 2:
-    if (info != SPI_DELAY_SCROLL_SHIFT)
-      spi_read_complete (SPI_STATUS_UNKNOWN_DELAY_ID);
+    //if (info != SPI_DELAY_SCROLL_SHIFT)
+    // spi_read_complete (SPI_STATUS_UNKNOWN_DELAY_ID);
     break;
   case 3:
     scroll_shift_delay = info;
     break;
   default:
-    spi_read_complete
-      ((info == SPI_SLAVE_FINISH)
-       ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
-      break;
+    spi_read_complete (spi_check_finish (info));
+    break;
   }
 }
 
@@ -169,9 +170,7 @@ void spi_read_brightness (uint8_t info)
       spi_read_complete (SPI_STATUS_BRIGHTNESS_OUT_OF_RANGE);
     // fixme : send brightness to ht1632c here
     ht1632c_brightness (transfer_buffer[2]);
-    spi_read_complete
-      ((info == SPI_SLAVE_FINISH)
-       ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
+    spi_read_complete (spi_check_finish (info));
     break;
   }
 }
@@ -192,8 +191,7 @@ void spi_read_switch_relay (uint8_t info)
     break;
   default:
     switch_relay (transfer_buffer[2]);
-    spi_read_complete
-      ((info == SPI_SLAVE_FINISH) ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
+    spi_read_complete (spi_check_finish (info));
     break;
   }
 }
@@ -205,12 +203,12 @@ void spi_read (uint8_t info)
       transfer_buffer[transfer_buffer_size++] = SPI_SLAVE_START;
   } else if (transfer_buffer_size == 1) {
     // we expect msg id now
-    if ((info < SPI_SLAVE_MSG_MIN)
-        || (info >= SPI_SLAVE_MSG_MAX)) {
-      spi_read_complete (SPI_STATUS_MESSAGE_ID_UNKNOWN);
-    } else {
-      transfer_buffer[transfer_buffer_size++] = info;
-    }
+    //if ((info < SPI_SLAVE_MSG_MIN)
+    //    || (info >= SPI_SLAVE_MSG_MAX)) {
+    //  spi_read_complete (SPI_STATUS_MESSAGE_ID_UNKNOWN);
+    //} else {
+    transfer_buffer[transfer_buffer_size++] = info;
+    //}
   } else {
     switch (transfer_buffer[1]) {
     case SPI_SLAVE_MSG_START:
@@ -235,8 +233,9 @@ void spi_read (uint8_t info)
       spi_read_switch_relay (info);
       break;
     default:
-      // we shouldn't reach this point
-      spi_read_complete (SPI_STATUS_LONG_MESSAGE_ID_UNKNOWN);
+      // wait for message end then try to reply
+      if (info == SPI_SLAVE_FINISH)
+        spi_read_complete (SPI_STATUS_MESSAGE_ID_UNKNOWN);
       break;
     }
   }
