@@ -59,11 +59,12 @@
 // LED related data should be written in low-high bit order,
 // everything else (command, address, ...) in high-low order :(
 //
+
 #define WRITE_DATA(matrix, data, start, finish)                 \
   {                                                             \
     uint8_t mask = 1 << start;                                  \
     uint8_t finish_mask = 1 << finish;                          \
-    do {                                                        \
+    while (1) {                                                 \
       CLOCK_LOW (matrix);                                       \
       if (data & mask)                                          \
         DATA_HIGH (matrix);                                     \
@@ -72,13 +73,15 @@
       DATA_HOLD;                                                \
       CLOCK_HIGH (matrix);                                      \
       DATA_HOLD;                                                \
+      if (mask == finish_mask)                                  \
+        break;                                                  \
       if (start < finish)                                       \
         mask <<= 1;                                             \
       else  if (start > finish)                                 \
         mask >>= 1;                                             \
       else                                                      \
         break;                                                  \
-    } while (mask != finish_mask);                              \
+    };                                                          \
   }
 
 // write prefix : command or data
@@ -101,7 +104,7 @@
 
 // 0b100
 #define COMMAND_PREFIX 0x4
-//0b101
+// 0b101
 #define DATA_PREFIX 0x5 
 
 //
