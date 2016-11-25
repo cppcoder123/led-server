@@ -30,10 +30,13 @@ $(TARGET): atmega8a.elf
 	avr-objcopy -j .text -j .data -O ihex $< $@
 	avr-size $@
 
-atmega8a.elf: atmega8a.o
-	avr-gcc $(LDFLAGS) -o $@ $<
+atmega8a.elf: atmega8a.o ht1632c.o
+	avr-gcc $(LDFLAGS) -o $@ $^
 
 atmega8a.o: atmega8a.c
+	avr-gcc $(CFLAGS) -c $<
+
+ht1632c.o: ht1632c.c
 	avr-gcc $(CFLAGS) -c $<
 
 clean:

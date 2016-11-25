@@ -3,8 +3,10 @@
 // Receive info by SPI interface
 //
 
+#include "frequency.h"
+
 // it should be before includes
-#define F_CPU 16000000UL
+#define F_CPU FREQUENCY
 
 #include <util/delay.h>
 
@@ -15,6 +17,11 @@
 
 #include "libled/spi-message.h"
 
+#include "ht1632c.h"
+
+//
+// Openwrt communication macros
+//
 
 // transfer state flags
 #define TRANSFER_IDLE            (1 << 0)
@@ -33,6 +40,8 @@
 #define TIMER0_FACTOR 15
 
 //
+// Openwrt variables
+//
 volatile uint8_t transfer_flag = 0;
 //
 //
@@ -42,8 +51,6 @@ volatile uint16_t transfer_index = 0;
 //
 volatile uint8_t *matrix = 0;
 volatile uint16_t matrix_size = 0;
-//
-volatile uint8_t brightness = 0;
 //
 volatile uint8_t scroll_shift_delay = 0;
 //
@@ -75,6 +82,7 @@ void spi_read_start (uint8_t info)
 {
   if (transfer_buffer_size++ == 2) {
     // fixme : init ht1632c here
+    ht1632c_start ();
     spi_read_complete
       ((info == SPI_SLAVE_FINISH) ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
   }
@@ -84,6 +92,7 @@ void spi_read_stop (uint8_t info)
 {
   if (transfer_buffer_size++ == 2) {
     // fixme : stop ht1632c here
+    ht1632c_stop ();
     spi_read_complete
       ((info == SPI_SLAVE_FINISH) ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
   }
@@ -158,8 +167,8 @@ void spi_read_brightness (uint8_t info)
     if ((transfer_buffer[2] < SPI_BRIGHTNESS_MIN)
         || (transfer_buffer[2] > SPI_BRIGHTNESS_MAX))
       spi_read_complete (SPI_STATUS_BRIGHTNESS_OUT_OF_RANGE);
-    brightness = transfer_buffer[2];
     // fixme : send brightness to ht1632c here
+    ht1632c_brightness (transfer_buffer[2]);
     spi_read_complete
       ((info == SPI_SLAVE_FINISH)
        ? SPI_STATUS_OK : SPI_STATUS_NO_FINISH);
@@ -274,8 +283,8 @@ void hw_init ()
   DDRC |= ((1 << PC0) | (1 << PC1) | (1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
   // c. port B - SPI interface - slave - pb2,3,5 - input, pb4 - output
   // fixme: this code is not required, init by SPI logic
-  DDRB |= (1 << PB4);
-  DDRB &= ~((1 << PB2) | (1 << PB3) | (1 << PB5));
+  //DDRB |= (1 << PB4);
+  //DDRB &= ~((1 << PB2) | (1 << PB3) | (1 << PB5));
 
   // Configure SPI as slave
 
@@ -307,8 +316,6 @@ void sw_init ()
   //
   matrix = (uint8_t*) calloc (MATRIX_CAPACITY, sizeof (uint8_t));
   matrix_size = 0;
-  //
-  brightness = SPI_BRIGHTNESS_MAX;
   //
   scroll_shift_delay = 30;      /* fixme : ? */
 }
@@ -345,14 +352,9 @@ void scroll_cycle_sleep ()
   scroll_shift_sleep ();
 }
 
-void change_brightness ()
-{
-  /* fixme: change brigtness*/
-}
-
 void display_data (uint8_t index, uint8_t left_data, uint8_t right_data)
 {
-  // fixme
+  ht1632c_data (index, left_data, right_data);
 }
 
 void clear ()
