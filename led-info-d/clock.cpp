@@ -9,6 +9,8 @@
 #include <functional>
 #include <iostream>
 
+#include "libled/patch.hpp"
+
 #include "clock.hpp"
 #include "daemon.hpp"
 #include "delay.hpp"
@@ -42,8 +44,8 @@ namespace led_info_d
 
     request.action = libled::request_t::action_insert;
     request.tag = time_tag;
-    request.info = time_prefix + std::to_string (tm_.tm_hour) + '-'
-      + std::to_string (tm_.tm_min);
+    request.info = time_prefix + libled::patch::to_string (tm_.tm_hour) + '-'
+      + libled::patch::to_string (tm_.tm_min);
 
     m_daemon.info (priority_t::medium, request);
     
@@ -58,7 +60,7 @@ namespace led_info_d
     static const string_vector_t month_vector =
       {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    std::string info (date_prefix + std::to_string (tm_.tm_mday)
+    std::string info (date_prefix + libled::patch::to_string (tm_.tm_mday)
                       + ' ' + month_vector[tm_.tm_mon]);
 
     libled::request_t request;

@@ -10,19 +10,18 @@ HEADER_LIST = arg.hpp clock.hpp daemon.hpp delay.hpp init.hpp log-wrapper.hpp
 OBJECT_LIST = led-info-d.o arg.o clock.o daemon.o init.o log-wrapper.o schedule.o
 
 
-COMPILE_FLAGS = -I$(INCLUDE_INT) -I$(INCLUDE_EXT) -std=c++11 -Wall -pedantic -g
-
-LINK_FLAGS = $(LIB_DAEMON) -lpthread
+#COMPILE_FLAGS = -I$(INCLUDE_INT) -I$(INCLUDE_EXT) -std=c++11 -Wall -pedantic -g
+#LINK_FLAGS = $(LIB_DAEMON) -lpthread
 
 
 ALL: $(TARGET)
 
 $(TARGET): $(OBJECT_LIST)
-	g++ -o $@ $^ $(LINK_FLAGS)
+	$(CXX) -o $@ $^ $(LDFLAGS) -ldaemon -lpthread
 
 
 %.o: %.cpp $(HEADER_LIST)
-	g++ $(COMPILE_FLAGS) -c $<
+	$(CXX) $(CPPFLAGS) -c $<
 
 
 .PHONY: clean tar

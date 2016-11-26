@@ -32,6 +32,11 @@ led%: $(LIB_LEDHW)
 $(LIB_LEDHW):
 	cd $(dir $@) && make && cd $(ROOT)
 
+install:
+	cp led-d/led-d $(DESTDIR)
+	cp led-info-d/led-info-d $(DESTDIR)
+	cp led/led $(DESTDIR)
+
 clean:
 	-rm $(wildcard $(dir $(LED_D))*.o)
 	-rm $(wildcard $(dir $(LED_INFO_D))*.o)

@@ -279,6 +279,7 @@ void hw_init ()
   DDRD |= ((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD7));
   // b. port C - communicate with ht1632 - output
   //    3 wires per each ht1632
+  // fixme: should we move next line to ht1632c ?
   DDRC |= ((1 << PC0) | (1 << PC1) | (1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
   // c. port B - SPI interface - slave - pb2,3,5 - input, pb4 - output
   // fixme: this code is not required, init by SPI logic

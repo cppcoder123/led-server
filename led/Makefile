@@ -15,9 +15,8 @@ OBJECT_LIST = led.o arg.o
 #
 #
 #
-COMPILE_FLAGS = -I$(INCLUDE_INT) -I$(INCLUDE_EXT) -std=c++11 -pedantic -g
-
-LINK_FLAGS = -lpthread
+#COMPILE_FLAGS = -I$(INCLUDE_INT) -I$(INCLUDE_EXT) -std=c++11 -pedantic -g
+#LINK_FLAGS = -lpthread
 
 #
 #
@@ -25,11 +24,11 @@ LINK_FLAGS = -lpthread
 ALL: $(TARGET)
 
 $(TARGET): $(OBJECT_LIST)
-	g++ -o $@ $^ $(LINK_FLAGS)
+	$(CXX) -o $@ $^ $(LDFLAGS) -lpthread
 
 
 %.o: %.cpp $(HEADER_LIST)
-	g++ $(COMPILE_FLAGS) -c $<
+	$(CXX) $(CPPFLAGS) -c $<
 
 
 .PHONY: clean tar

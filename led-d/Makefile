@@ -19,10 +19,14 @@ OBJECT_LIST = led-d.o arg.o daemon.o display.o font.o font-dir.o hex-font.o \
 #
 #
 #
-COMPILE_FLAGS = -I$(INCLUDE_INT) -I$(INCLUDE_EXT) -std=c++11 -Wall -pedantic -g
+#CPPFLAGS += -I$(INCLUDE_INT) -I$(INCLUDE_EXT) -DASIO_STANDALONE 
+#CPPFLAGS += -I$(INCLUDE_INT) -I$(INCLUDE_EXT) \
+  -std=c++11 -Wall -pedantic -g
 
 LIB_HW = $(ROOT_INT)/ledhw/src/libledhw.a
-LINK_FLAGS = $(LIB_HW) $(LIB_DAEMON) -lpthread
+#LINK_FLAGS = $(LIB_HW) $(LIB_DAEMON) -lpthread
+
+#LDFLAGS += ldaemon
 
 #
 #
@@ -30,11 +34,11 @@ LINK_FLAGS = $(LIB_HW) $(LIB_DAEMON) -lpthread
 ALL: $(TARGET)
 
 $(TARGET): $(OBJECT_LIST)
-	g++ -o $@ $^ $(LINK_FLAGS)
+	$(CXX) -o $@ $^ $(LIB_HW) $(LDFLAGS) -ldaemon -lpthread
 
 
 %.o: %.cpp $(HEADER_LIST)
-	g++ $(COMPILE_FLAGS) -c $<
+	$(CXX) $(CPPFLAGS) -c $<
 
 
 .PHONY: clean tar

@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "patch.hpp"
 #include "token.hpp"
 
 
@@ -96,7 +97,7 @@ namespace libled
     
     std::string prefix
       ((tmp.size () < 10) ? "00" : (tmp.size () < 100) ? "0" : "");
-    dst = prefix + std::to_string (tmp.size ()) + refsymbol_t::value + tmp;
+    dst = prefix + patch::to_string (tmp.size ()) + refsymbol_t::value + tmp;
 
     return true;
   }

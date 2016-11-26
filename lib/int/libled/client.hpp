@@ -10,6 +10,7 @@
 
 #include "libled/codec.hpp"
 #include "libled/log.hpp"
+#include "libled/patch.hpp"
 #include "libled/port.hpp"
 #include "libled/refsymbol.hpp"
 #include "libled/request.hpp"
@@ -45,7 +46,7 @@ namespace libled
     asio::io_service io_service;
 
     asio::ip::tcp::resolver resolver (io_service);
-    std::string port_string (std::to_string (m_port));
+    std::string port_string (patch::to_string (m_port));
     asio::ip::tcp::resolver::query
       query (asio::ip::tcp::v4 (), m_host, port_string);
     asio::ip::tcp::resolver::iterator iterator = resolver.resolve (query);

@@ -11,10 +11,10 @@ COMPILE_FLAGS = -I./ -I$(INCLUDE_INT) -std=c++11 -Wall -pedantic -g
 LINK_FLAGS = -lpthread
 
 $(TARGET): $(OBJECT_LIST)
-	ar rcs $@ $^
+	$(AR) rcs $@ $^
 
 %.o: %.cpp $(HEADER_LIST)
-	g++ $(COMPILE_FLAGS) -c $<
+	$(CXX) $(COMPILE_FLAGS) -c $<
 
 .PHONY: clean
 

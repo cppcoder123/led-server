@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+#include "patch.hpp"
+
 namespace libled
 {
 
@@ -124,7 +126,10 @@ namespace libled
   template <typename info_t>
   std::string token_t::encode (const info_t &src)
   {
-    return std::to_string (src);
+    // std::ostringstream stream;
+    // stream << src;
+    // return stream.str ();// std::to_string (src);
+    return patch::to_string (src);
   }
 
   template <>

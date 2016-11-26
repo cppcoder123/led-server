@@ -1,9 +1,6 @@
 //
 //
 //
-#define FREQUENCY 16000000UL
-#define F_CPU FREQUENCY
-
 #include "frequency.h"
 
 #define F_CPU FREQUENCY
