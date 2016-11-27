@@ -9,6 +9,8 @@
 
 #include "ledhw/hw.hpp"
 
+#include "src/spi-io.hpp"
+
 namespace ledhw
 {
 
@@ -17,7 +19,7 @@ namespace ledhw
 
   public:
 
-    spi_t ();
+    spi_t (const std::string &spi_device);
     ~spi_t () {}
 
     bool start ();
@@ -45,8 +47,10 @@ namespace ledhw
 
     static name_list_t get_name_list ();
     
-    static bool status_send (const vector_t &msg); // doesn't throw
-    static void send (const vector_t &msg);        // throws
+    bool status_send (const vector_t &msg); // doesn't throw
+    void send (const vector_t &msg);        // throws
+
+    spi_io_t m_io;
   };
   
 } // namespace ledhw

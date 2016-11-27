@@ -16,11 +16,9 @@ namespace ledhw
 {
   typedef libled::log_t log_t;
 
-  static spi_io m_io ("/dev/spi-dev-name-fixme");
-  
-  spi_t::spi_t ()
+  spi_t::spi_t (const std::string &spi_device)
+    : m_io (spi_device)
   {
-    // fixme
   }
 
   bool spi_t::start ()

@@ -32,6 +32,7 @@ namespace led_d
     //std::size_t stable_delay, rolling_delay, rolling_repeat;
     //std::string font_path, default_font;
     std::string default_font;
+    std::string spi_device;
   };
 } // namespace led_d
 

@@ -35,23 +35,12 @@ namespace led_d
       //
       //
       //
-      // TCLAP::ValueArg<std::size_t>
-      //   stable_delay_arg ("s", "stable_delay", "Stable info display delay",
-      //                     false, 5000, "unsigned", parser);
-      // TCLAP::ValueArg<std::size_t>
-      //   rolling_delay_arg ("r", "rolling_delay", "Rolling info display delay",
-      //                      false, 500, "unsigned", parser);
-      // TCLAP::ValueArg<std::size_t>
-      //   rolling_repeat_arg ("e", "rolling_repeat", "Rolling rEpeat number",
-      //                       false, 3, "unsigned", parser);
-      // TCLAP::ValueArg<std::string>
-      //   font_path ("o", "font-path", "Directory with fonts",
-      //              true, "", "directory path", parser);
       TCLAP::ValueArg<std::string>
         default_font ("d", "default-font", "Default font to use",
                       false, "", "font name", parser);
-        
-
+      TCLAP::ValueArg<std::string>
+        spi_device ("s", "spi-device", "SPI device, e.g \"/dev/spi1.0\"",
+                    true, "", "dev-name", parser);
       
       parser.parse (argc, argv);
 
@@ -59,12 +48,8 @@ namespace led_d
       arg.foreground = foreground.getValue ();
       arg.kill = kill.getValue ();
       //
-      //arg.font_path = font_path.getValue ();
       arg.default_font = default_font.getValue ();
-      //arg.size = size_arg.getValue ();
-      //arg.stable_delay = stable_delay_arg.getValue ();
-      //arg.rolling_delay = rolling_delay_arg.getValue ();
-      //arg.rolling_repeat = rolling_repeat_arg.getValue ();
+      arg.spi_device = spi_device.getValue ();
     }
 
     catch (TCLAP::ArgException &e) {

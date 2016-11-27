@@ -19,13 +19,15 @@ namespace led_d
 {
   display_t::display_t ()
     : m_go_ahead (true),
-      m_request_iterator (m_request_map.end ()),
-      m_hw_ptr (new ledhw::spi_t ())
+      m_request_iterator (m_request_map.end ())
   {
   }
 
   void display_t::start (const arg_t &arg)
   {
+    //
+    m_hw_ptr = hw_ptr_t (new ledhw::spi_t (arg.spi_device));
+    //
     if (m_hw_ptr->start () == false) {
       log_t::error ("Failed to start hardware driver");
       return;

@@ -12,6 +12,10 @@ export INCLUDE_INT = $(ROOT_INT)
 
 export LIB_DAEMON = $(ROOT_EXT)/lib/libdaemon.a
 
+CPPFLAGS ?= -std=c++11 -Wall -pedantic -g \
+	-I$(INCLUDE_INT) -I$(INCLUDE_EXT)
+
+LDFLAGS ?= -L$(ROOT_EXT)/lib
 
 #
 #
@@ -27,10 +31,14 @@ TARGET_LIST = $(LED_D) $(LED_INFO_D) $(LED)
 ALL: $(TARGET_LIST)
 
 led%: $(LIB_LEDHW)
-	cd $(dir $@) && make && cd $(ROOT)
+	cd $(dir $@) && \
+	make CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" && \
+	cd $(ROOT)
 
 $(LIB_LEDHW):
-	cd $(dir $@) && make && cd $(ROOT)
+	cd $(dir $@) && \
+	make CPPFLAGS="$(CPPFLAGS)" \
+	&& cd $(ROOT)
 
 install:
 	cp led-d/led-d $(DESTDIR)

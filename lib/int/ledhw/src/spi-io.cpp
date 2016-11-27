@@ -6,7 +6,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-//#include <algorithm>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -21,13 +20,13 @@ namespace ledhw
   typedef libled::log_t::buffer_t buffer_t;
   typedef std::vector<unsigned char> vector_t;
   
-  spi_io::spi_io (const std::string &devname)
+  spi_io_t::spi_io_t (const std::string &devname)
     : m_devname (devname),
       m_fd (-1)
   {
   }
 
-  void spi_io::start ()
+  void spi_io_t::start ()
   {
     m_fd = open (m_devname.c_str (), O_RDWR);
     if (m_fd < 0) {
@@ -37,7 +36,7 @@ namespace ledhw
     }
   }
 
-  void spi_io::stop ()
+  void spi_io_t::stop ()
   {
     if (m_fd < 0)
       return;
@@ -51,30 +50,30 @@ namespace ledhw
     m_fd = -1;
   }
 
-  void spi_io::message_start ()
+  void spi_io_t::message_start ()
   {
     m_message.clear ();
     m_message.push_back (SPI_SLAVE_START);
   }
 
-  void spi_io::message_add (const unsigned char msg_body)
+  void spi_io_t::message_add (const unsigned char msg_body)
   {
     m_message.push_back (msg_body);
   }
 
-  void spi_io::message_add (const vector_t &msg_body)
+  void spi_io_t::message_add (const vector_t &msg_body)
   {
     m_message.insert (m_message.end (), msg_body.begin (), msg_body.end ());
   }
 
-  const spi_io::vector_t& spi_io::message_finish ()
+  const spi_io_t::vector_t& spi_io_t::message_finish ()
   {
     m_message.push_back (SPI_SLAVE_FINISH);
 
     return m_message;
   }
 
-  void spi_io::write (const vector_t &msg)
+  void spi_io_t::write (const vector_t &msg)
   {
     if (m_fd < 0)
       throw std::domain_error ("Can't write, device is not opened");
@@ -87,7 +86,7 @@ namespace ledhw
     }
   }
 
-  unsigned char spi_io::read ()
+  unsigned char spi_io_t::read ()
   {
     if (m_fd < 0) 
       throw std::domain_error ("Can't read, device is not opened");

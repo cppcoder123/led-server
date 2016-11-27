@@ -8,14 +8,16 @@
 
 namespace ledhw
 {
-  class spi_io
+  class spi_io_t
   {
     
   public:
 
-    spi_io (const std::string &devname);
-    ~spi_io () {}
+    spi_io_t (const std::string &devname);
+    ~spi_io_t () {}
 
+    //void device (const std::string &device_name);
+    
     // throws
     void start ();              // open device ...
     void stop ();               // close
