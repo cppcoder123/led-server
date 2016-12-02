@@ -186,19 +186,19 @@ namespace ledhw
   {
     static const name_list_t name_list (get_name_list ());
 
-    try {
-      m_io.write (msg);
-      uchar_t status = m_io.read ();
-      if (status != SPI_STATUS_OK)
-        throw std::logic_error (get_error (status));
-    }
-    catch (std::exception &e) {
-      // add message name to exception
-      const std::string name (name_list[msg[0]]);
-      log_t::buffer_t buf;
-      buf << name << ": " << e.what ();
-      throw std::domain_error (buf.str ());
-    }
+    //try {
+    m_io.write (msg);
+    uchar_t status = m_io.read ();
+    if (status != SPI_STATUS_OK)
+      throw std::logic_error (get_error (status));
+    //}
+    //catch (std::exception &e) {
+    // add message name to exception
+    //  const std::string name (name_list[msg[0]]);
+    //  log_t::buffer_t buf;
+    //  buf << name << ": " << e.what ();
+    // throw std::domain_error (buf.str ());
+    //}
   }
 
 } // namespace ledhw

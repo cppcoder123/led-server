@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -53,22 +54,30 @@ namespace ledhw
   void spi_io_t::message_start ()
   {
     m_message.clear ();
-    m_message.push_back (SPI_SLAVE_START);
+    unsigned char tmp = SPI_SLAVE_START;
+    m_message.push_back (~tmp);
   }
 
   void spi_io_t::message_add (const unsigned char msg_body)
   {
-    m_message.push_back (msg_body);
+    // we need to negate message
+    m_message.push_back (~msg_body);
   }
 
   void spi_io_t::message_add (const vector_t &msg_body)
   {
-    m_message.insert (m_message.end (), msg_body.begin (), msg_body.end ());
+    //m_message.insert (m_message.end (), msg_body.begin (), msg_body.end ());
+    std::for_each (msg_body.begin (), msg_body.end (),
+                   [this] (unsigned char msg_byte)
+                   {
+                     m_message.push_back (~msg_byte);
+                   });
   }
 
   const spi_io_t::vector_t& spi_io_t::message_finish ()
   {
-    m_message.push_back (SPI_SLAVE_FINISH);
+    unsigned char tmp = SPI_SLAVE_FINISH;
+    m_message.push_back (~tmp);
 
     return m_message;
   }

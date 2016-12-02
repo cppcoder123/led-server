@@ -39,6 +39,11 @@
 // timer0 clock factor
 #define TIMER0_FACTOR 15
 
+// debug
+#define DEBUG_LED_1 PD1
+#define DEBUG_LED_2 PD2
+#define DEBUG_LED_3 PD3
+
 //
 // Openwrt variables
 //
@@ -56,6 +61,20 @@ volatile uint8_t scroll_shift_delay = 0;
 //
 //
 
+// debug procedures (1,2,3 as argument)
+void debug_toggle_led (uint8_t leg)
+{
+  PORTD ^= (1 << leg);
+}
+
+void debug_switch_led (uint8_t leg, uint8_t on)
+{
+  if (on != 0)
+    PORTD |= (1 << leg);
+  else
+    PORTD &= ~(1 << leg);
+}
+
 //
 // Handle incoming messages
 //
@@ -68,7 +87,7 @@ void spi_read_complete (uint8_t status)
   // fill reply buffer
   transfer_buffer[0] = SPI_MASTER_START;
   transfer_buffer[1] = status;
-  transfer_buffer[3] = SPI_MASTER_FINISH;
+  transfer_buffer[2] = SPI_MASTER_FINISH;
   transfer_buffer_size = 3;
   //
   SPDR = transfer_buffer[0];
@@ -76,6 +95,16 @@ void spi_read_complete (uint8_t status)
 
   // start writing
   transfer_flag &= ~(TRANSFER_IDLE | TRANSFER_READING);
+}
+
+void spi_write_complete ()
+{
+  transfer_flag |= TRANSFER_IDLE;
+  transfer_buffer_size = 0;
+  transfer_index = 0;
+  //
+  transfer_flag &= ~TRANSFER_IDLE;
+  transfer_flag |= TRANSFER_READING;
 }
 
 uint8_t spi_check_finish (uint8_t info)
@@ -135,6 +164,9 @@ void spi_read_matrix (uint8_t info)
   default:
     if (transfer_index < matrix_size) {
       matrix[transfer_index++] = info;
+    } else if (transfer_index == matrix_size) {
+      // info should be equal to SPI_MATRIX_ARRAY_FINISH here
+      ++transfer_index;
     } else {
       spi_read_complete (spi_check_finish (info));
       transfer_flag &= ~TRANSFER_MATRIX_STARTED;
@@ -178,9 +210,9 @@ void spi_read_brightness (uint8_t info)
 void switch_relay (uint8_t state)
 {
   if (state != 0)
-    PORTD |= (1 << PD7);
+    PORTD |= (1 << PD0);
   else
-    PORTD &= ~(1 << PD7);
+    PORTD &= ~(1 << PD0);
 }
 
 void spi_read_switch_relay (uint8_t info)
@@ -199,14 +231,11 @@ void spi_read_switch_relay (uint8_t info)
 void spi_read (uint8_t info)
 {
   if (transfer_buffer_size == 0) {
-    if (info == SPI_SLAVE_START)
+    if (info == SPI_SLAVE_START) {
       transfer_buffer[transfer_buffer_size++] = SPI_SLAVE_START;
+    }
   } else if (transfer_buffer_size == 1) {
     // we expect msg id now
-    //if ((info < SPI_SLAVE_MSG_MIN)
-    //    || (info >= SPI_SLAVE_MSG_MAX)) {
-    //  spi_read_complete (SPI_STATUS_MESSAGE_ID_UNKNOWN);
-    //} else {
     transfer_buffer[transfer_buffer_size++] = info;
     //}
   } else {
@@ -247,6 +276,9 @@ void spi_read (uint8_t info)
 
 ISR(SPI_STC_vect)
 {
+  // 
+  debug_toggle_led (DEBUG_LED_1);
+  
   if (transfer_flag & TRANSFER_IDLE)
     return;
 
@@ -255,14 +287,13 @@ ISR(SPI_STC_vect)
     // don't send junk to master
     SPDR = 0;
     spi_read (info);
-    //transfer_flag |= TRANSFER_BYTE_READY;
   } else {
     ++transfer_index;
     if (transfer_index < transfer_buffer_size)
       SPDR = transfer_buffer[transfer_index];
     else {
-      // write completed => start reading
-      transfer_flag |= TRANSFER_READING;
+      // write completed
+      spi_write_complete ();
     }
   }
 }
@@ -275,24 +306,28 @@ void hw_init ()
 {
   // Set pin directions
   
-  // a. port D - 0-2 for debug - output, 7 - relay
-  DDRD |= ((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD7));
+  // a. port D - 0-relay, 1,2,3 - debug leds
+  DDRD |= ((1 << PD0) | (1 << PD1) | (1 << PD2) | (1 << PD3));
   // b. port C - communicate with ht1632 - output
   //    3 wires per each ht1632
   // fixme: should we move next line to ht1632c ?
-  DDRC |= ((1 << PC0) | (1 << PC1) | (1 << PC2) | (1 << PC3) | (1 << PC4) | (1 << PC5));
+  DDRC |= ((1 << PC0) | (1 << PC1) | (1 << PC2)
+           | (1 << PC3) | (1 << PC4) | (1 << PC5));
   // c. port B - SPI interface - slave - pb2,3,5 - input, pb4 - output
-  // fixme: this code is not required, init by SPI logic
-  //DDRB |= (1 << PB4);
+  DDRB |= (1 << PB4);
   //DDRB &= ~((1 << PB2) | (1 << PB3) | (1 << PB5));
+  //DDR_SPI = (1 << DD_MISO);
 
   // Configure SPI as slave
 
-  // spi interrupt enable, spi enable, lsb first
-  SPCR |= ((1 << SPIE) | (1 << SPE) | (1 << DORD));
+  // spi interrupt enable, spi enable
+  SPCR |= ((1 << SPIE) | (1 << SPE));
   // the same set of (CPOL, CPHA) sould be used for master
-  // slave, SCK low => idle, leading edge sampling (fixme?)
-  SPCR &= ~((1 << MSTR) | (1 << CPOL) | (1 << CPHA));
+  // slave, SCK low => idle, leading edge sampling
+  // all spi signals are negated except of ss, so negate
+  // clock polarity at master
+  // SPCR &= ~((1 << MSTR) | (1 << CPOL) | (1 << CPHA));
+  //
   // clock rate selection is not required for slave
 
   // clear spi data
@@ -434,47 +469,35 @@ void debug_sleep ()
   
 }
 
-void debug_test_led (uint8_t leg, uint8_t on)
-{
-  if (on) {
-    PORTD |= (1 << leg);
-    debug_sleep ();
-  } else {
-    PORTD &= ~(1 << leg);
-    debug_sleep ();
-  }
-}
-
 void debug_test ()
 {
-  // test miso voltage level
-  PORTB |= (1 << PB4);
-  
   // test relay
   switch_relay (1);
   
-  PORTD &= ~((1 << PD0) | (1 << PD1) | (1 << PD2));
+  PORTD &= ~((1 << DEBUG_LED_1) | (1 << DEBUG_LED_2) | (1 << DEBUG_LED_3));
 
   debug_sleep ();
 
-  for (uint8_t i = 0; i < 10; i++) {
+  for (uint8_t i = 0; i < 5; i++) {
     //
-    debug_test_led (PD0, 1);
-    debug_test_led (PD1, 1);
-    debug_test_led (PD2, 1);
+    debug_switch_led (DEBUG_LED_1, 1);
+    debug_sleep ();
+    debug_switch_led (DEBUG_LED_2, 1);
+    debug_sleep ();
+    debug_switch_led (DEBUG_LED_3, 1);
+    debug_sleep ();
     //
-    debug_test_led (PD0, 0);
-    debug_test_led (PD1, 0);
-    debug_test_led (PD2, 0);
+    debug_switch_led (DEBUG_LED_1, 0);
+    debug_sleep ();
+    debug_switch_led (DEBUG_LED_2, 0);
+    debug_sleep ();
+    debug_switch_led (DEBUG_LED_3, 0);
+    debug_sleep ();
     //
   }
 
   // turn relay off
   switch_relay (0);
-
-  // turn miso off
-  PORTB &= ~(1 << PB4);
-
 }
 
 //
