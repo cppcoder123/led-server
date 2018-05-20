@@ -16,9 +16,6 @@ namespace render
 
     virtual ~device_t () {}
 
-    virtual bool start () = 0;
-    virtual void stop () = 0;
-
     virtual bool render (const core::matrix_t &info) = 0;
     virtual bool brightness (int level) = 0;
   };

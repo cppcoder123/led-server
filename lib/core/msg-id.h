@@ -25,13 +25,12 @@ enum {
 enum {
   MSG_ID_SLAVE_EMPTY = 100,
   MSG_ID_SLAVE_MIN,
-  MSG_ID_SLAVE_START = MSG_ID_SLAVE_MIN, /* <id> */
+  MSG_ID_SLAVE_INIT = MSG_ID_SLAVE_MIN, /* <id> */
   MSG_ID_SLAVE_STOP,                         /* <id> */
   MSG_ID_SLAVE_HANDSHAKE,                    /* <id> */
   MSG_ID_SLAVE_MATRIX, /* <id><size-lsb><size-msb><arr-start><data-1>..<arr-fin> */
-  MSG_ID_SLAVE_DELAY,  /* <id><delay-id><delay-data> */
+  MSG_ID_SLAVE_SHIFT,  /* <id><delay-id><delay-data> */
   MSG_ID_SLAVE_BRIGHTNESS,      /* <id><brightness-data> */
-  MSG_ID_SLAVE_SWITCH_RELAY,
   MSG_ID_SLAVE_MAX,             /* msg id limit */
   MSG_ID_SLAVE_MAX_LENGTH = 31, /* except matrix */
   MSG_ID_SLAVE_START = 240, /* Note:  It should not be equal to MASTER_START */
@@ -52,6 +51,11 @@ enum {
   MSG_ID_STATUS_BRIGHTNESS_OUT_OF_RANGE,
   /**/
   MSG_ID_STATUS_MAX
+};
+
+enum {
+  MSG_ID_SHIFT_DELAY,           /* 1-pixel shift delay */
+  MSG_ID_SHIFT_PAUSE            /* whole phrase delay */
 };
 
 enum {                          /* data to render */
@@ -82,7 +86,7 @@ enum {
   MSG_ID_BRIGHTNESS_13,
   MSG_ID_BRIGHTNESS_14,
   MSG_ID_BRIGHTNESS_15,            /* max level */
-  MSG_ID_BRIGHTNESS_MAX = MSG_BRIGHTNESS_15,
+  MSG_ID_BRIGHTNESS_MAX = MSG_ID_BRIGHTNESS_15,
 };
 
 #endif

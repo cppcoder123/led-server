@@ -26,7 +26,7 @@ namespace led_d
   public:
 
     display_t ();
-    ~display_t () {}
+    ~display_t ();
 
     void start (const arg_t &arg);
     void stop ();

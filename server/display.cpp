@@ -23,16 +23,23 @@ namespace led_d
   {
   }
 
+  display_t::~display_t ()
+  {
+    // render device closes itself
+  }
+
   void display_t::start (const arg_t &arg)
   {
     //
-    m_device_ptr = std::make_unique<render::uart_t>(arg.device);
-    //
-    if (m_device_ptr->start () == false) {
-      log_t::error ("Failed to start hardware driver");
-      return;
+    try {
+      m_device_ptr = std::make_unique<render::uart_t>(arg.device);
     }
-    
+    catch (std::exception &e) {
+      log_t::buffer_t msg ("Failed to create render device : ");
+      msg << e.what ();
+      log_t::error (msg);
+    }
+
     if (m_render.init (arg) == false) {
       log_t::error ("Failed to init render-er");
       return;
@@ -60,8 +67,6 @@ namespace led_d
   {
     m_go_ahead = false;
     m_condition.notify_one ();
-    //
-    m_device_ptr->stop ();
   }
 
   void display_t::update (const request_t &request, response_t &response)
