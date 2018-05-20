@@ -25,7 +25,7 @@ namespace led_d
 
     bool init (const arg_t &arg);
     
-    typedef libled::matrix_t matrix_t;
+    typedef core::matrix_t matrix_t;
     bool pixelize (matrix_t &dst,
                    const std::string &text, const std::string &format) const;
 
@@ -33,7 +33,7 @@ namespace led_d
 
   private:
 
-    typedef libled::format_t format_t;
+    typedef core::format_t format_t;
     bool pixelize (matrix_t &matrix,
                    const std::string &text, const format_t &format) const;
 

@@ -16,7 +16,7 @@ namespace led_d
   public:
 
     network_t (asio::io_service &io_service,
-               libled::port_t::value_t port);
+               core::port_t::value_t port);
     ~network_t () {};
 
   private:

@@ -1,10 +1,10 @@
 //
 //
 //
-#ifndef LIBLED_FORMAT_ENTRY_HPP
-#define LIBLED_FORMAT_ENTRY_HPP
+#ifndef CORE_FORMAT_ENTRY_HPP
+#define CORE_FORMAT_ENTRY_HPP
 
-namespace libled
+namespace core
 {
   namespace format
   {
@@ -27,6 +27,6 @@ namespace libled
     };
     
   } // namespace format
-} // namespace libled
+} // namespace core
 
 #endif

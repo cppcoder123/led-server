@@ -1,8 +1,8 @@
 //
 // launch daemon in background or foreground mode
 //
-#ifndef LIBLED_LAUNCH_HPP
-#define LIBLED_LAUNCH_HPP
+#ifndef CORE_LAUNCH_HPP
+#define CORE_LAUNCH_HPP
 
 #include <errno.h>
 #include <signal.h>
@@ -18,7 +18,7 @@
 #include "log.hpp"
 
 
-namespace libled
+namespace core
 {
 
   class launch_t
@@ -194,6 +194,6 @@ namespace libled
   }
 
     
-} // namespace libled
+} // namespace core
 
 #endif

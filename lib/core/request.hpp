@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef LIBLED_REQUEST_HPP
-#define LIBLED_REQUEST_HPP
+#ifndef CORE_REQUEST_HPP
+#define CORE_REQUEST_HPP
 
 #include <sstream>
 #include <string>
@@ -11,7 +11,7 @@
 #include "format.hpp"
 #include "token.hpp"
 
-namespace libled
+namespace core
 {
 
   struct request_t
@@ -65,6 +65,6 @@ namespace libled
   }
 
   
-} // namespace libled
+} // namespace core
 
 #endif

@@ -1,12 +1,12 @@
 //
 //
 //
-#ifndef LIBLED_PATCH_HPP
-#define LIBLED_PATCH_HPP
+#ifndef CORE_PATCH_HPP
+#define CORE_PATCH_HPP
 
 #include <sstream>
 
-namespace libled
+namespace core
 {
   namespace patch
   {
@@ -20,6 +20,6 @@ namespace libled
     }
     
   } // namespace patch
-} // namespace libled
+} // namespace core
 
 #endif

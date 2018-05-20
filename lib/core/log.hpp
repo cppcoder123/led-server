@@ -1,15 +1,15 @@
 //
 //
 //
-#ifndef LIBLED_LOG_HPP
-#define LIBLED_LOG_HPP
+#ifndef CORE_LOG_HPP
+#define CORE_LOG_HPP
 
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-namespace libled
+namespace core
 {
   class log_t
   {

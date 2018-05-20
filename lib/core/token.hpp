@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef LIBLED_TOKEN_HPP
-#define LIBLED_TOKEN_HPP
+#ifndef CORE_TOKEN_HPP
+#define CORE_TOKEN_HPP
 
 #include <string>
 #include <utility>
@@ -10,7 +10,7 @@
 
 #include "patch.hpp"
 
-namespace libled
+namespace core
 {
 
   class token_t
@@ -160,6 +160,6 @@ namespace libled
     return true;
   }
   
-} // namespace libled
+} // namespace core
 
 #endif

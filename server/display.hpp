@@ -13,7 +13,7 @@
 #include "request.hpp"
 #include "response.hpp"
 
-#include "hw.hpp"
+#include "device.hpp"
 
 #include "arg.hpp"
 #include "render.hpp"
@@ -31,8 +31,8 @@ namespace led_d
     void start (const arg_t &arg);
     void stop ();
 
-    typedef libled::request_t request_t;
-    typedef libled::response_t response_t;
+    typedef core::request_t request_t;
+    typedef core::response_t response_t;
     
     void update (const request_t &request, response_t &response);
     
@@ -62,9 +62,7 @@ namespace led_d
 
     render_t m_render;
 
-    typedef std::unique_ptr<ledhw::hw_t> hw_ptr_t;
-    hw_ptr_t m_hw_ptr;
-
+    std::unique_ptr<render::device_t> m_device_ptr;
   };
 } // namespace led_d
 

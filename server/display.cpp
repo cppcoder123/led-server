@@ -8,7 +8,7 @@
 
 #include "matrix.hpp"
 
-#include "spi.hpp"
+#include "uart.hpp"
 
 #include "display.hpp"
 #include "idle-request.hpp"
@@ -26,9 +26,9 @@ namespace led_d
   void display_t::start (const arg_t &arg)
   {
     //
-    m_hw_ptr = hw_ptr_t (new ledhw::spi_t (arg.spi_device));
+    m_device_ptr = std::make_unique<render::uart_t>(arg.device);
     //
-    if (m_hw_ptr->start () == false) {
+    if (m_device_ptr->start () == false) {
       log_t::error ("Failed to start hardware driver");
       return;
     }
@@ -61,7 +61,7 @@ namespace led_d
     m_go_ahead = false;
     m_condition.notify_one ();
     //
-    m_hw_ptr->stop ();
+    m_device_ptr->stop ();
   }
 
   void display_t::update (const request_t &request, response_t &response)
@@ -133,7 +133,7 @@ namespace led_d
 
   void display_t::show (const request_t &request) const
   {
-    libled::matrix_t matrix;
+    core::matrix_t matrix;
     if (m_render.pixelize (matrix, request.info, request.format) == false) {
       log_t::buffer_t buf;
       buf << "Failed to pixelize info related to \"" << request.tag << "\"";
@@ -141,7 +141,7 @@ namespace led_d
       return;
     }
 
-    if (m_hw_ptr->render (matrix) == false) {
+    if (m_device_ptr->render (matrix) == false) {
       log_t::buffer_t buf;
       buf << "Driver failed to render info related to \"" << request.tag << "\"";
       log_t::error (buf);

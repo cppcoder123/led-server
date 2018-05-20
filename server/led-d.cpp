@@ -39,7 +39,7 @@ int main (int argc, char **argv)
   led_d::log_t::info (buf);
 
   led_d::daemon_t daemon;
-  libled::launch_t launch
+  core::launch_t launch
     (std::bind (&led_d::daemon_t::start, &daemon, std::ref(arg)),
      std::bind (&led_d::daemon_t::stop, &daemon));
   

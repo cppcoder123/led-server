@@ -1,15 +1,15 @@
 //
 //
 //
-#ifndef LEDHW_COUT_HPP
-#define LEDHW_COUT_HPP
+#ifndef RENDER_COUT_HPP
+#define RENDER_COUT_HPP
 
-#include "ledhw/hw.hpp"
+#include "device.hpp"
 
-namespace ledhw
+namespace render
 {
 
-  class cout_t : public hw_t
+  class cout_t : public device_t
   {
 
   public:
@@ -24,6 +24,6 @@ namespace ledhw
     
   };
   
-} // namespace ledhw
+} // namespace render
 
 #endif

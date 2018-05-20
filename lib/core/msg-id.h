@@ -2,8 +2,8 @@
  * Message ids to communicate with mcu
  *
  */
-#ifndef LIBLED_MSG_ID_H
-#define LIBLED_MSG_ID_H
+#ifndef CORE_MSG_ID_H
+#define CORE_MSG_ID_H
 
 /*
  * Master message wrapped by 'MSG_ID_MASTER_START' and 'MSG_ID_MASTER_FINISH'

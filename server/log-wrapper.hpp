@@ -17,7 +17,7 @@ namespace led_d
     static void init (bool foreground, char *argv0);
   };
 
-  typedef libled::log_t log_t;
+  typedef core::log_t log_t;
   
   
 } // namespace led_d

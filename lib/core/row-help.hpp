@@ -1,10 +1,10 @@
 //
 //
 //
-#ifndef LIBLED_ROW_HELP_HPP
-#define LIBLED_ROW_HELP_HPP
+#ifndef CORE_ROW_HELP_HPP
+#define CORE_ROW_HELP_HPP
 
-namespace libled
+namespace core
 {
   namespace row
   {
@@ -26,6 +26,6 @@ namespace libled
     // };
 
   } // namespace row
-} // namespace libled
+} // namespace core
 
 #endif

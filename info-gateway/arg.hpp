@@ -24,7 +24,7 @@ namespace led_info_d
     bool foreground;
     bool kill;
 
-    libled::port_t::value_t port;
+    core::port_t::value_t port;
     std::string host;
   };
 

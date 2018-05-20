@@ -1,13 +1,13 @@
 //
 //
 //
-#ifndef LIBLED_FONT_NAME
-#define LIBLED_FONT_NAME
+#ifndef CORE_FONT_NAME
+#define CORE_FONT_NAME
 
 #include <string>
 #include <vector>
 
-namespace libled
+namespace core
 {
   class font_name_t
   {
@@ -71,6 +71,6 @@ namespace libled
     return result;
   }
   
-} // namespace libled
+} // namespace core
 
 #endif

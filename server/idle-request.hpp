@@ -9,7 +9,7 @@
 namespace led_d
 {
 
-  struct idle_request_t : public libled::request_t
+  struct idle_request_t : public core::request_t
   {
     idle_request_t ();
     ~idle_request_t () {}

@@ -37,7 +37,7 @@ namespace led_d
 
     font_ptr_t m_default_font;
 
-    typedef libled::font_name_t font_name_t;
+    typedef core::font_name_t font_name_t;
     
   };
 

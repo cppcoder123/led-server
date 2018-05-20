@@ -1,14 +1,14 @@
 //
 //
 //
-#ifndef LIBLED_RESPONSE_HPP
-#define LIBLED_RESPONSE_HPP
+#ifndef CORE_RESPONSE_HPP
+#define CORE_RESPONSE_HPP
 
 #include <string>
 
 #include "token.hpp"
 
-namespace libled
+namespace core
 {
 
   struct response_t
@@ -51,6 +51,6 @@ namespace libled
     return msg;
   }
   
-} // namespace libled
+} // namespace core
 
 #endif

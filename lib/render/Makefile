@@ -4,8 +4,8 @@
 TARGET = src/librender.a
 
 
-HEADER_LIST = cout.hpp  ht1632c.hpp  hw.hpp  spi.hpp spi-io.hpp
-OBJECT_LIST = ht1632c.o  spi-io.o  spi.o  window.o
+HEADER_LIST = cout.hpp  uart.hpp  hw.hpp
+OBJECT_LIST = uart.o
 
 HEADER_SRC_LIST = $(foreach file, $(HEADER_LIST), include/$(file))
 OBJECT_SRC_LIST = $(foreach file, $(OBJECT_LIST), src/$(file))

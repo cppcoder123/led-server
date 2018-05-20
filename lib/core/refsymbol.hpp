@@ -1,12 +1,12 @@
 //
 //
 //
-#ifndef LIBLED_REFSYMBOL_HPP
-#define LIBLED_REFSYMBOL_HPP
+#ifndef CORE_REFSYMBOL_HPP
+#define CORE_REFSYMBOL_HPP
 
 #include <string>
 
-namespace libled
+namespace core
 {
 
   struct refsymbol_t
@@ -33,7 +33,7 @@ namespace libled
   }
 
   
-} // namespace libled
+} // namespace core
 
 
 #endif

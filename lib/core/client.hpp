@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef LIBLED_CLIENT_HPP
-#define LIBLED_CLIENT_HPP
+#ifndef CORE_CLIENT_HPP
+#define CORE_CLIENT_HPP
 
 #include <string>
 
@@ -16,7 +16,7 @@
 #include "request.hpp"
 #include "response.hpp"
 
-namespace libled
+namespace core
 {
 
   class client_t
@@ -106,6 +106,6 @@ namespace libled
       return true;
   }
   
-}// namespace libled
+}// namespace core
 
 #endif

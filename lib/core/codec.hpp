@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef LIBLED_CODEC_HPP
-#define LIBLED_CODEC_HPP
+#ifndef CORE_CODEC_HPP
+#define CORE_CODEC_HPP
 
 #include <sstream>
 #include <string>
@@ -12,7 +12,7 @@
 #include "token.hpp"
 
 
-namespace libled
+namespace core
 {
 
   template <typename refsymbol_t, typename info_t>
@@ -102,6 +102,6 @@ namespace libled
     return true;
   }
 
-} // namespace libled
+} // namespace core
 
 #endif

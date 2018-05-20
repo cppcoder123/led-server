@@ -19,7 +19,8 @@ namespace led_d
   void font_t::add_symbol (char s, const matrix_t &matrix)
   {
     m_vector[get_symbol_index (s)]
-      = symbol_t (libled::matrix_t::size (), matrix.size ());
+      // base object call
+      = symbol_t (core::matrix_t::size (), matrix.size ());
     add (matrix);
   }
 

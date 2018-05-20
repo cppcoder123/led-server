@@ -33,15 +33,15 @@ namespace led_info_d
     
     void schedule (const delay_t &delay, callback_t cb);
     void info (priority_id_t prio,
-               const libled::request_t &request);
+               const core::request_t &request);
 
   private:
 
     schedule_t m_schedule;
 
-    libled::client_t m_client;
+    core::client_t m_client;
 
-    typedef std::shared_ptr<libled::request_t> request_ptr_t;
+    typedef std::shared_ptr<core::request_t> request_ptr_t;
     typedef std::map<std::string/*tag*/, request_ptr_t> map_t;
     map_t m_map;
     

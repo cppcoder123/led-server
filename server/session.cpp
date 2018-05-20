@@ -42,7 +42,7 @@ namespace led_d
 
   void session_t::do_read ()
   {
-    typedef libled::codec_t<libled::refsymbol_t, libled::request_t> codec_t;
+    typedef core::codec_t<core::refsymbol_t, core::request_t> codec_t;
     
     session_ptr_t session_ptr (shared_from_this ());
     m_socket.async_read_some

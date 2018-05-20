@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef LIBLED_MATRIX_HPP
-#define LIBLED_MATRIX_HPP
+#ifndef CORE_MATRIX_HPP
+#define CORE_MATRIX_HPP
 
 #include <algorithm>
 #include <bitset>
@@ -12,7 +12,7 @@
 
 #include "row-help.hpp"
 
-namespace libled
+namespace core
 {
 
   class matrix_t
@@ -124,6 +124,6 @@ namespace libled
                    });
   }
   
-} // namespace libled
+} // namespace core
 
 #endif

@@ -16,7 +16,7 @@ int main (int argc, char **argv)
     return 1;
   }
 
-  libled::client_t client (arg.port, arg.host);
+  core::client_t client (arg.port, arg.host);
   
   return (client.send (arg.m_request) == true) ? 0 : 2;
 }

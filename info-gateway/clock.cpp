@@ -40,12 +40,12 @@ namespace led_info_d
     struct tm tm_;
     localtime (tm_);
 
-    libled::request_t request;
+    core::request_t request;
 
-    request.action = libled::request_t::action_insert;
+    request.action = core::request_t::action_insert;
     request.tag = time_tag;
-    request.info = time_prefix + libled::patch::to_string (tm_.tm_hour) + '-'
-      + libled::patch::to_string (tm_.tm_min);
+    request.info = time_prefix + core::patch::to_string (tm_.tm_hour) + '-'
+      + core::patch::to_string (tm_.tm_min);
 
     m_daemon.info (priority_t::medium, request);
     
@@ -60,11 +60,11 @@ namespace led_info_d
     static const string_vector_t month_vector =
       {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    std::string info (date_prefix + libled::patch::to_string (tm_.tm_mday)
+    std::string info (date_prefix + core::patch::to_string (tm_.tm_mday)
                       + ' ' + month_vector[tm_.tm_mon]);
 
-    libled::request_t request;
-    request.action = libled::request_t::action_insert;
+    core::request_t request;
+    request.action = core::request_t::action_insert;
     request.tag = date_tag;
     request.info = info;
 
@@ -81,8 +81,8 @@ namespace led_info_d
       {"Sunday", "Monday", "Tuesday",
        "Wednesday", "Thursday", "Friday", "Saturday"};
 
-    libled::request_t request;
-    request.action = libled::request_t::action_insert;
+    core::request_t request;
+    request.action = core::request_t::action_insert;
     request.tag = day_tag;
     request.info = day_vector[tm_.tm_wday];
 

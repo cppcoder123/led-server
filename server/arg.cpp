@@ -26,7 +26,7 @@ namespace led_d
 
       TCLAP::ValueArg<port_t::value_t>
         port ("p", "port", "Port to listen",
-                  false, libled::port_t::default_port (), "integer", parser);
+                  false, core::port_t::default_port (), "integer", parser);
       TCLAP::SwitchArg
         foreground
         ("f", "foreground", "Run daemon in foreground", parser, false);
@@ -39,7 +39,7 @@ namespace led_d
         default_font ("d", "default-font", "Default font to use",
                       false, "", "font name", parser);
       TCLAP::ValueArg<std::string>
-        spi_device ("s", "spi-device", "SPI device, e.g \"/dev/spi1.0\"",
+        device ("s", "device", "Render device, e.g \"/dev/ttyXXX\"",
                     true, "", "dev-name", parser);
       
       parser.parse (argc, argv);
@@ -49,7 +49,7 @@ namespace led_d
       arg.kill = kill.getValue ();
       //
       arg.default_font = default_font.getValue ();
-      arg.spi_device = spi_device.getValue ();
+      arg.device = device.getValue ();
     }
 
     catch (TCLAP::ArgException &e) {

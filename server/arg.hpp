@@ -17,7 +17,7 @@ namespace led_d
 
   public:
 
-    typedef libled::port_t port_t;
+    typedef core::port_t port_t;
 
     arg_t ();
     ~arg_t () {};
@@ -32,7 +32,7 @@ namespace led_d
     //std::size_t stable_delay, rolling_delay, rolling_repeat;
     //std::string font_path, default_font;
     std::string default_font;
-    std::string spi_device;
+    std::string device;
   };
 } // namespace led_d
 

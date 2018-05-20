@@ -1,10 +1,10 @@
 //
 // Default port value for led7-d and led7 apps
 //
-#ifndef LIBLED_PORT_HPP
-#define LIBLED_PORT_HPP
+#ifndef CORE_PORT_HPP
+#define CORE_PORT_HPP
 
-namespace libled
+namespace core
 {
 
   struct port_t

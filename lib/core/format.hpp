@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef LIBLED_FORMAT_HPP
-#define LIBLED_FORMAT_HPP
+#ifndef CORE_FORMAT_HPP
+#define CORE_FORMAT_HPP
 
 #include <list>
 #include <memory>
@@ -11,7 +11,7 @@
 #include "refsymbol.hpp"
 #include "token.hpp"
 
-namespace libled
+namespace core
 {
 
   class format_t
@@ -140,6 +140,6 @@ namespace libled
     m_inversion.reset ();
   }
   
-} // namespace libled
+} // namespace core
 
 #endif

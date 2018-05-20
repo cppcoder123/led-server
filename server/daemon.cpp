@@ -81,11 +81,11 @@ namespace led_d
   
   void daemon_t::update_load ()
   {
-    typedef libled::refsymbol_t refsymbol_t;
-    typedef libled::request_t request_t;
-    typedef libled::response_t response_t;
-    typedef libled::codec_t<refsymbol_t, request_t> request_codec_t;
-    typedef libled::codec_t<refsymbol_t, response_t> response_codec_t;
+    typedef core::refsymbol_t refsymbol_t;
+    typedef core::request_t request_t;
+    typedef core::response_t response_t;
+    typedef core::codec_t<refsymbol_t, request_t> request_codec_t;
+    typedef core::codec_t<refsymbol_t, response_t> response_codec_t;
 
     std::string buffer;
     message_ptr_t message_ptr;
