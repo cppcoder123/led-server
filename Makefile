@@ -1,55 +1,46 @@
 #
-#
+# Top level makefile
 #
 
 ROOT = $(shell pwd)
 
-ROOT_EXT = $(ROOT)/lib/ext
-export ROOT_INT = $(ROOT)/lib/int
+export LIB_ROOT = $(ROOT)/lib
+export LIB_ASIO = $(LIB_ROOT)/asio
+export LIB_ARDUINO = $(LIB_ROOT)/arduino
+export LIB_CORE = $(LIB_ROOT)/core
+export LIB_DAEMON = $(LIB_ROOT)/daemon
+export LIB_RENDER = $(LIB_ROOT)/render
+export LIB_TCLAP = $(LIB_ROOT)/tclap
 
-export INCLUDE_EXT = $(ROOT_EXT)/include
-export INCLUDE_INT = $(ROOT_INT)
+export COMMON_CPPFLAGS = -std=c++17 -Wall -pedantic -g
 
-export LIB_DAEMON = $(ROOT_EXT)/lib/libdaemon.a
+SERVER = $(ROOT)/server
+INFO_GATEWAY = $(ROOT)/info-gateway
+TEST_CLIENT = $(ROOT)/test-client
 
-CPPFLAGS ?= -std=c++11 -Wall -pedantic -g \
-	-I$(INCLUDE_INT) -I$(INCLUDE_EXT)
+LIB_TO_BUILD = $(LIB_DAEMON) $(LIB_RENDER)
+APP_TO_BUILD = $(TEST_CLIENT) $(INFO_GATEWAY) $(SERVER)
 
-LDFLAGS ?= -L$(ROOT_EXT)/lib
+# lib(s) first
+TARGET_PATH_LIST = $(LIB_TO_BUILD) $(APP_TO_BUILD)
 
-#
-#
-#
-LIB_LEDHW = $(ROOT_INT)/ledhw/src/libledhw.a
+ALL: $(TARGET_PATH_LIST)
 
-LED_D = led-d/led-d
-LED_INFO_D = led-info-d/led-info-d 
-LED = led/led
-
-TARGET_LIST = $(LED_D) $(LED_INFO_D) $(LED)
-
-ALL: $(TARGET_LIST)
-
-led%: $(LIB_LEDHW)
-	cd $(dir $@) && \
-	make CPPFLAGS="$(CPPFLAGS)" LDFLAGS="$(LDFLAGS)" && \
-	cd $(ROOT)
-
-$(LIB_LEDHW):
-	cd $(dir $@) && \
-	make CPPFLAGS="$(CPPFLAGS)" \
-	&& cd $(ROOT)
+$(TARGET_PATH_LIST):
+	cd $@ && make && cd $(ROOT)
 
 install:
-	cp led-d/led-d $(DESTDIR)
-	cp led-info-d/led-info-d $(DESTDIR)
-	cp led/led $(DESTDIR)
+	-echo "Implement me"
+#cp led-d/led-d $(DESTDIR)
+#cp led-info-d/led-info-d $(DESTDIR)
+#cp led/led $(DESTDIR)
 
 clean:
-	-rm $(wildcard $(dir $(LED_D))*.o)
-	-rm $(wildcard $(dir $(LED_INFO_D))*.o)
-	-rm $(wildcard $(dir $(LED))*.o)
-	-rm $(wildcard $(dir $(LIB_LEDHW))*.o)
-	-rm $(TARGET_LIST) $(LIB_LEDHW)
+	-echo 'Implement me'
+#-rm $(wildcard $(dir $(LED_D))*.o)
+#-rm $(wildcard $(dir $(LED_INFO_D))*.o)
+#-rm $(wildcard $(dir $(LED))*.o)
+#-rm $(wildcard $(dir $(LIB_LEDHW))*.o)
+#-rm $(TARGET_LIST) $(LIB_LEDHW)
 
-.PHONY: clean
+.PHONY: clean $(LIB_TO_BUILD) $(APP_TO_BUILD)

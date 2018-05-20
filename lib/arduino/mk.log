@@ -1,0 +1,6 @@
+avr-gcc -I../../ -mmcu=atmega8a -Os -std=gnu99 -Wall  -c ht1632c.c
+avr-gcc -mmcu=atmega8a -o atmega8a.elf atmega8a.o ht1632c.o
+avr-objcopy -j .text -j .data -O ihex atmega8a.elf atmega8a.hex
+avr-size atmega8a.hex
+   text	   data	    bss	    dec	    hex	filename
+      0	   3472	      0	   3472	    d90	atmega8a.hex
