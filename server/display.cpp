@@ -38,6 +38,7 @@ namespace led_d
       log_t::buffer_t msg ("Failed to create render device : ");
       msg << e.what ();
       log_t::error (msg);
+      return;
     }
 
     if (m_render.init (arg) == false) {

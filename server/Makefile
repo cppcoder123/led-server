@@ -34,8 +34,8 @@ CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_CORE) -I $(LIB_RENDER)/include \
 #
 ALL: $(TARGET)
 
-$(TARGET): $(OBJECT_LIST)
-	$(CXX) -o $@ $^ $(LDFLAGS)
+$(TARGET): $(OBJECT_LIST) $(LIB_RENDER)/src/librender.a $(LIB_CORE)/*
+	$(CXX) -o $@ $(OBJECT_LIST) $(LDFLAGS)
 
 
 %.o: %.cpp $(HEADER_LIST)

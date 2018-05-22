@@ -31,8 +31,8 @@ namespace render
     using msg_t = std::list<std::uint8_t>;
     void send_receive_check (const msg_t &msg);
 
-    bool configure_attributes ();
-    bool configure_blocking ();
+    void configure_attributes (int speed);
+    void set_min_count (int min_count);
 
     const std::string m_linux_device;
     int m_descriptor;
