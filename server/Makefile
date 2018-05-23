@@ -13,18 +13,14 @@ HEADER_LIST = arg.hpp daemon.hpp display.hpp font.hpp font-dir.hpp \
   log-wrapper.hpp meta-queue.hpp network.hpp render.hpp session.hpp 
 
 OBJECT_LIST = led-d.o arg.o daemon.o display.o font.o font-dir.o hex-font.o \
-  log-wrapper.o network.o render.o session.o
+  log-wrapper.o network.o pipe.o render.o session.o
 
 
 #
 #
 #
-
-#LIB_HW = $(ROOT_INT)/ledhw/src/libledhw.a
 
 LDFLAGS = -L $(LIB_RENDER)/src -L $(LIB_DAEMON)/src -lrender -ldaemon -lpthread
-
-#LDFLAGS += ldaemon
 
 CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_CORE) -I $(LIB_RENDER)/include \
   -I $(LIB_DAEMON)/include -I $(LIB_ASIO) -I $(LIB_ROOT)

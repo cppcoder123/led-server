@@ -8,11 +8,10 @@
 
 #include "matrix.hpp"
 
-#include "uart.hpp"
-
 #include "display.hpp"
 #include "idle-request.hpp"
 #include "log-wrapper.hpp"
+#include "pipe.hpp"
 
 
 namespace led_d
@@ -32,7 +31,7 @@ namespace led_d
   {
     //
     try {
-      m_device_ptr = std::make_unique<render::uart_t>(arg.device);
+      m_pipe_ptr = std::make_unique<pipe_t>(arg.device);
     }
     catch (std::exception &e) {
       log_t::buffer_t msg ("Failed to create render device : ");
@@ -138,7 +137,7 @@ namespace led_d
     return true;
   }
 
-  void display_t::show (const request_t &request) const
+  void display_t::show (const request_t &request)
   {
     core::matrix_t matrix;
     if (m_render.pixelize (matrix, request.info, request.format) == false) {
@@ -148,7 +147,7 @@ namespace led_d
       return;
     }
 
-    if (m_device_ptr->render (matrix) == false) {
+    if (m_pipe_ptr->render (std::move(matrix)) == false) {
       log_t::buffer_t buf;
       buf << "Driver failed to render info related to \"" << request.tag << "\"";
       log_t::error (buf);

@@ -13,9 +13,8 @@
 #include "request.hpp"
 #include "response.hpp"
 
-#include "device.hpp"
-
 #include "arg.hpp"
+#include "pipe.hpp"
 #include "render.hpp"
 
 namespace led_d
@@ -40,7 +39,7 @@ namespace led_d
 
     bool next (request_t &info);
     bool prepare (request_t &info) const;
-    void show (const request_t &info) const;
+    void show (const request_t &info);
     
     arg_t m_arg;
 
@@ -62,7 +61,7 @@ namespace led_d
 
     render_t m_render;
 
-    std::unique_ptr<render::device_t> m_device_ptr;
+    std::unique_ptr<pipe_t> m_pipe_ptr;
   };
 } // namespace led_d
 
