@@ -10,6 +10,8 @@
 
 #include "asio.hpp"
 
+#include "message-queue.hpp"
+
 namespace led_d
 {
   class session_t : public std::enable_shared_from_this<session_t>
@@ -17,8 +19,9 @@ namespace led_d
     
   public:
     
-    session_t (asio::ip::tcp::socket socket)
-      : m_socket (std::move (socket))
+    session_t (asio::ip::tcp::socket socket, queue_t &queue)
+      : m_socket (std::move (socket)),
+        m_queue (queue)
     {
       m_raw_read_buf[0] = 0;
       m_raw_write_buf[0] = 0;
@@ -47,7 +50,8 @@ namespace led_d
     typedef std::lock_guard<mutex_t> guard_t;
 
     mutex_t m_write_mutex;
-    
+
+    queue_t &m_queue;
   };
 
   typedef std::shared_ptr<session_t> session_ptr_t;

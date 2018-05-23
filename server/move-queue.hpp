@@ -4,12 +4,11 @@
 #ifndef LED_D_QUEUE_HPP
 #define LED_D_QUEUE_HPP
 
-#include "message-ptr.hpp"
 #include "meta-queue.hpp"
 
 namespace led_d
 {
-  namespace queue_wrap
+  namespace move
   {
 
     template <typename record_t>
@@ -21,22 +20,8 @@ namespace led_d
       {return meta::queue_t<record_t>::move_pop (record);}
     };
 
-  } // namespace queue_wrap
+  } // namespace move
 
-  typedef queue_wrap::queue_t<message_ptr_t> queue_t;
-
-  
-  //
-  // We have the only queue in the project, so
-  //
-  inline queue_t& queue_buffer ()
-  {
-    static queue_t queue;
-
-    return queue;
-  }
-
-  
 } // namespace led_d
 
 #endif

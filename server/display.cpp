@@ -104,6 +104,7 @@ namespace led_d
       } else if (request.action == request_t::action_erase) {
         m_request_map.erase (iter);
         response.reason = "Info map entry is erased";
+        m_request_iterator = m_request_map.end ();
       }
       response.status = response_t::status_ok;
     }

@@ -9,8 +9,8 @@
 
 #include "daemon.hpp"
 #include "log-wrapper.hpp"
-#include "queue.hpp"
 #include "network.hpp"
+#include "session.hpp"
 
 namespace led_d
 {
@@ -44,7 +44,7 @@ namespace led_d
   void daemon_t::stop ()
   {
     m_update_go = false;
-    (queue_buffer ()).notify_one ();
+    m_message_queue.notify_one ();
     m_update_thread.join ();
 
     m_display.stop ();
@@ -63,7 +63,7 @@ namespace led_d
     }
 
     try {
-      network_t network (m_asio_service, arg.port);
+      network_t network (m_asio_service, arg.port, m_message_queue);
       m_asio_service.run ();
     }
     catch (std::exception &e) {
@@ -91,7 +91,7 @@ namespace led_d
     message_ptr_t message_ptr;
     //
     while (m_update_go == true) {
-      if ((queue_buffer ()).pop (message_ptr) == false)
+      if (m_message_queue.pop (message_ptr) == false)
         continue;
       request_t request;
       response_t response;

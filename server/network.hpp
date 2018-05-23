@@ -8,6 +8,8 @@
 
 #include "port.hpp"
 
+#include "message-queue.hpp"
+
 namespace led_d
 {
   class network_t
@@ -16,7 +18,8 @@ namespace led_d
   public:
 
     network_t (asio::io_service &io_service,
-               core::port_t::value_t port);
+               core::port_t::value_t port,
+               queue_t &queue);
     ~network_t () {};
 
   private:
@@ -25,6 +28,8 @@ namespace led_d
 
     asio::ip::tcp::acceptor m_acceptor;
     asio::ip::tcp::socket m_socket;
+
+    queue_t &m_queue;
   };
 } // namespace led_d
 

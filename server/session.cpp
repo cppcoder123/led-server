@@ -8,7 +8,6 @@
 
 
 #include "log-wrapper.hpp"
-#include "queue.hpp"
 #include "message.hpp"
 #include "message-ptr.hpp"
 #include "session.hpp"
@@ -58,7 +57,7 @@ namespace led_d
          std::string current_msg, next_msg;
          //
          while (codec_t::decode (m_read_buf, current_msg, next_msg) == true) {
-           (queue_buffer ()).push
+           m_queue.push
              (message_ptr_t (new message_t (current_msg, session_ptr)));
            m_read_buf = next_msg;
          }

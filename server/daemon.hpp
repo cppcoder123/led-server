@@ -10,6 +10,8 @@
 
 #include "arg.hpp"
 #include "display.hpp"
+#include "message-queue.hpp"
+#include "message-ptr.hpp"
 
 namespace led_d
 {
@@ -41,10 +43,10 @@ namespace led_d
 
     std::thread m_update_thread;
     bool m_update_go;
-    
+
+    queue_t m_message_queue;
   };
   
 } // namespace led_d
-
 
 #endif

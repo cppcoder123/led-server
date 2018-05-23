@@ -4,16 +4,20 @@
 #ifndef LED_D_MESSAGE_HPP
 #define LED_D_MESSAGE_HPP
 
+#include <memory>
 #include <string>
 
-#include "session.hpp"
+//#include "session.hpp"
 
 namespace led_d
 {
-  
+  class session_t;
+
   struct message_t
   {
     message_t () = delete;
+
+    using session_ptr_t = std::shared_ptr<session_t>;
     message_t (const std::string &text, session_ptr_t session)
       : info (text),
         sender (session)
