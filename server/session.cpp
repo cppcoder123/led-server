@@ -57,8 +57,7 @@ namespace led_d
          std::string current_msg, next_msg;
          //
          while (codec_t::decode (m_read_buf, current_msg, next_msg) == true) {
-           m_queue.push
-             (message_ptr_t (new message_t (current_msg, session_ptr)));
+           m_queue.push (std::make_unique<message_t>(current_msg, session_ptr));
            m_read_buf = next_msg;
          }
          if (m_read_buf.empty () == false)

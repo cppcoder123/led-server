@@ -6,12 +6,12 @@
 
 #include <memory>
 #include <string>
-#include <vector>
+#include <list>
 
 #include "device.hpp"
 
 #include "matrix.hpp"
-#include "move-queue.hpp"
+#include "mutex-queue.hpp"
 
 namespace led_d
 {
@@ -25,8 +25,8 @@ namespace led_d
 
   private:
     using uchar_t = unsigned char;
-    using vector_t = std::vector<uchar_t>;
-    using queue_t = move::queue_t<vector_t>;
+    using vector_t = std::list<uchar_t>;
+    using queue_t = mutex::queue_t<vector_t>;
     
     queue_t m_write_queue;
     queue_t m_read_queue;

@@ -87,15 +87,16 @@ namespace led_d
     typedef core::codec_t<refsymbol_t, request_t> request_codec_t;
     typedef core::codec_t<refsymbol_t, response_t> response_codec_t;
 
-    std::string buffer;
-    message_ptr_t message_ptr;
     //
     while (m_update_go == true) {
-      if (m_message_queue.pop (message_ptr) == false)
+      auto optional_message = m_message_queue.pop ();
+      if (optional_message.has_value () == false)
         continue;
+      message_ptr_t &message_ptr (*optional_message);
       request_t request;
       response_t response;
 
+      std::string buffer;
       // 
       if (request_codec_t::decode (message_ptr->info, request) == false) {
         response.status = 1;
