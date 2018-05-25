@@ -5,6 +5,7 @@
 #define RENDER_DEVICE_HTPP
 
 #include "matrix.hpp"
+#include "device-codec.hpp"
 
 namespace render
 {
@@ -16,8 +17,10 @@ namespace render
 
     virtual ~device_t () {}
 
-    virtual bool render (const core::matrix_t &info) = 0;
-    virtual bool brightness (int level) = 0;
+    using msg_t = core::device::codec_t::msg_t;
+
+    virtual void write (const msg_t &msg) = 0;
+    virtual void read (msg_t &msg, bool block) = 0;
   };
 
 } // namespace render

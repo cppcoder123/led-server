@@ -15,21 +15,35 @@
 #include <stdexcept>
 
 #include "device-id.h"
+#include "device-codec.hpp"
 
 #include "uart.hpp"
 
 namespace render
 {
+  using core::device::codec_t;
+  
   uart_t::uart_t (const std::string &linux_device)
     : m_linux_device (linux_device)
   {
     device_open ();
-    // fixme
-    // send_receive_check ({MSG_ID_SLAVE_HANDSHAKE});
-    // send_receive_check ({MSG_ID_SLAVE_SHIFT_DELAY,
-    //       MSG_ID_SHIFT_DELAY, 30, MSG_ID_SHIFT_PAUSE, 150});
-    // send_receive_check ({MSG_ID_SLAVE_BRIGHTNESS, MSG_ID_BRIGHTNESS_MAX});
-    // send_receive_check ({MSG_ID_SLAVE_INIT});
+
+    codec_t::short_t serial_id = 0;
+
+    codec_t::msg_t msg = codec_t::encode (ID_HANDSHAKE, ++serial_id);
+    write (msg);
+    read_status ();
+
+    // fixme: where we shoud keep shift deays?
+    msg = codec_t::encode (ID_SHIFT_DELAY, ++serial_id,
+                           codec_t::to_short (200), codec_t::to_short (700));
+    write (msg);
+    read_status ();
+
+    msg = codec_t::encode (ID_BRIGHTNESS, ++serial_id,
+                           codec_t::to_char (ID_BRIGHTNESS_MAX));
+    write (msg);
+    read_status ();
   }
 
   uart_t::~uart_t ()
@@ -37,18 +51,18 @@ namespace render
     device_close ();
   }
 
-  bool uart_t::render (const core::matrix_t &info)
+  // throws
+  void uart_t::write (const msg_t &msg)
   {
     // fixme
-    return true;
   }
 
-  bool uart_t::brightness (int level)
+  // throws
+  void uart_t::read (msg_t &msg, bool block)
   {
     // fixme
-    return true;
   }
-
+  
   void uart_t::device_open ()
   {
     m_descriptor = open (m_linux_device.c_str (), O_RDWR | O_NOCTTY | O_SYNC);
@@ -71,11 +85,6 @@ namespace render
     m_descriptor = -1;
   }
   
-  void uart_t::send_receive_check (const msg_t &msg)
-  {
-    // fixme
-  }
-
   void uart_t::configure_attributes (int speed)
   {
     struct termios tty;
@@ -129,4 +138,26 @@ namespace render
     }
   }
 
+  void uart_t::read_status ()
+  {
+    msg_t msg;
+    read (msg, true);
+
+    codec_t::char_t msg_id = 0;
+    codec_t::short_t serial_id = 0;
+    if (codec_t::decode_head (msg, msg_id, serial_id) == false)
+      throw std::runtime_error ("uart: Failed to decode status message");
+
+    codec_t::char_t msg_status = 0;
+    if (codec_t::decode_tail (msg, msg_status) == false)
+      throw std::runtime_error ("uart: Failed to decode status value");
+
+    if (msg_status != ID_STATUS_OK) {
+      std::ostringstream stream;
+      stream << "uart: Wrong status value: " << msg_status;
+      throw std::runtime_error (stream.str ());
+    }
+  }
+
+  
 } // namespace render

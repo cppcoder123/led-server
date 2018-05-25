@@ -49,9 +49,9 @@ namespace led_d
     for (std::size_t i = 0; i < matrix.size (); ++i)
       matrix_submsg.push_back (get_char (matrix.get_column (i)));
     
-    codec_t::msg_t msg;
-    codec_t::encode (msg, ID_MATRIX, m_serial_id, codec_t::to_char (ID_MATRIX_START),
-                     std::cref (matrix_submsg), codec_t::to_char (ID_MATRIX_FINISH));
+    codec_t::msg_t msg = codec_t::encode
+      (ID_MATRIX, m_serial_id, codec_t::to_char (ID_MATRIX_START),
+       std::cref (matrix_submsg), codec_t::to_char (ID_MATRIX_FINISH));
 
     m_write_queue.push (msg);
     return true;

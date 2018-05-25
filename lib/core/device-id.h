@@ -37,8 +37,8 @@ enum {
   ID_UNINIT,                    /**/
   ID_HANDSHAKE,                 /**/
   ID_MATRIX,    /*<size-lsb><size-msb><arr-start><data-1>..<arr-fin>*/
-  ID_SHIFT_DELAY, /*<delay-id-1><delay-data><delay-id-2><delay-data>*/
-  ID_BRIGHTNESS                 /**/
+  ID_SHIFT_DELAY, /*<short-pixel-delay><short-matrix-delay> 4 chars*/
+  ID_BRIGHTNESS                 /*<char-value> 0-15*/
 };
 
 /*status value*/
