@@ -2,7 +2,7 @@
 //
 //
 
-#include "codec.hpp"
+#include "network-codec.hpp"
 #include "refsymbol.hpp"
 #include "request.hpp"
 #include "response.hpp"
@@ -81,11 +81,11 @@ namespace led_d
   
   void daemon_t::update_load ()
   {
-    typedef core::refsymbol_t refsymbol_t;
-    typedef core::request_t request_t;
-    typedef core::response_t response_t;
-    typedef core::codec_t<refsymbol_t, request_t> request_codec_t;
-    typedef core::codec_t<refsymbol_t, response_t> response_codec_t;
+    using refsymbol_t = core::refsymbol_t;
+    using request_t = core::request_t;
+    using response_t = core::response_t;
+    using request_codec_t = core::network::codec_t<refsymbol_t, request_t>;
+    using response_codec_t = core::network::codec_t<refsymbol_t, response_t>;
 
     //
     while (m_update_go == true) {

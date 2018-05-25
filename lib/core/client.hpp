@@ -8,8 +8,8 @@
 
 #include "asio/asio.hpp"
 
-#include "codec.hpp"
 #include "log.hpp"
+#include "network-codec.hpp"
 #include "patch.hpp"
 #include "port.hpp"
 #include "refsymbol.hpp"
@@ -62,7 +62,7 @@ namespace core
 
   inline bool client_t::write (const request_t &request, asio::ip::tcp::socket &socket)
   {
-    typedef codec_t<refsymbol_t, request_t> codec_t;
+    using codec_t = network::codec_t<refsymbol_t, request_t>;
     std::string msg;
     if (codec_t::encode (request, msg) == false) {
       log_t::error ("Failed to encode request");
@@ -76,7 +76,7 @@ namespace core
 
   inline bool client_t::read (asio::ip::tcp::socket &socket)
   {
-    typedef codec_t<refsymbol_t, response_t> codec_t;
+    using codec_t = network::codec_t<refsymbol_t, response_t>;
     char response_buf[codec_t::max_size];
     std::size_t response_size =
       asio::read (socket, asio::buffer (response_buf, codec_t::header_size));

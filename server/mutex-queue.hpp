@@ -40,8 +40,6 @@ namespace mutex
 
     bool empty () const;
 
-  protected:
-
     // put a record into the queue
     void push (record_t record);
 

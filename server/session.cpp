@@ -2,7 +2,7 @@
 //
 //
 
-#include "codec.hpp"
+#include "network-codec.hpp"
 #include "refsymbol.hpp"
 #include "request.hpp"
 
@@ -41,7 +41,7 @@ namespace led_d
 
   void session_t::do_read ()
   {
-    typedef core::codec_t<core::refsymbol_t, core::request_t> codec_t;
+    using codec_t = core::network::codec_t<core::refsymbol_t, core::request_t>;
     
     session_ptr_t session_ptr (shared_from_this ());
     m_socket.async_read_some

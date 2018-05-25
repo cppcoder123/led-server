@@ -14,7 +14,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "msg-id.h"
+#include "device-id.h"
 
 #include "uart.hpp"
 
@@ -24,12 +24,12 @@ namespace render
     : m_linux_device (linux_device)
   {
     device_open ();
-    //
-    send_receive_check ({MSG_ID_SLAVE_HANDSHAKE});
-    send_receive_check ({MSG_ID_SLAVE_SHIFT,
-          MSG_ID_SHIFT_DELAY, 30, MSG_ID_SHIFT_PAUSE, 150});
-    send_receive_check ({MSG_ID_SLAVE_BRIGHTNESS, MSG_ID_BRIGHTNESS_MAX});
-    send_receive_check ({MSG_ID_SLAVE_INIT});
+    // fixme
+    // send_receive_check ({MSG_ID_SLAVE_HANDSHAKE});
+    // send_receive_check ({MSG_ID_SLAVE_SHIFT_DELAY,
+    //       MSG_ID_SHIFT_DELAY, 30, MSG_ID_SHIFT_PAUSE, 150});
+    // send_receive_check ({MSG_ID_SLAVE_BRIGHTNESS, MSG_ID_BRIGHTNESS_MAX});
+    // send_receive_check ({MSG_ID_SLAVE_INIT});
   }
 
   uart_t::~uart_t ()
