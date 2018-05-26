@@ -28,6 +28,6 @@ $(TARGET_PATH_LIST):
 
 clean:
 	$(foreach dir, $(TARGET_PATH_LIST), cd $(dir) && make clean;)
-	-find . -iname "*~" | xargs rm 
+	-find . -iname "*~" | xargs rm -f
 
 .PHONY: clean $(TARGET_PATH_LIST)

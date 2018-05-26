@@ -23,7 +23,7 @@ namespace core
       using msg_t = std::list<char_t>;
       using short_t = unsigned short;
 
-      static constexpr char_t max_char = std::numeric_limits<char_t>::max ();
+      static constexpr short_t max_char = std::numeric_limits<char_t>::max () + 1;
 
       template <typename arg_t>
       static char_t to_char (arg_t arg)
@@ -49,40 +49,31 @@ namespace core
 
       static bool decode_head (msg_t &src, char_t &msg_id, short_t &serial_id)
       {
-        // check the size: 2 chars for wrap, 1 - msg_id, 2 serial_id, so
-        if (src.size () < 5)
+        // msg-id + serial-id (2 bytes), so
+        if (src.size () < 3)
           return false;
 
-        char_t start = 0;
-        
-        return decode_data (src, std::ref (start), std::ref (msg_id), std::ref (serial_id))
-          &&  (start == ID_MSG_START);
+        return decode_data (src, std::ref (msg_id), std::ref (serial_id));
       }
 
       template <typename ...arg_t>
-      static bool decode_tail (msg_t &src, arg_t ...arg)
+      static bool decode_body (msg_t &src, arg_t ...arg)
       {
-        bool decode_status = decode_data (src, arg...);
-        if (decode_status == false)
-          return false;
-
-        // src should have 1 element
-        if (src.size () != 1)
-          return false;
-
-        // and it should be equal to ID_MSG_FINISH
-        char_t finish = src.front ();
-        src.clear ();
-
-        return finish == ID_MSG_FINISH;
+        return decode_data (src, arg...);
       }
 
     private:
 
       static void encode_data (msg_t &msg)
       {
-        msg.push_front (ID_MSG_START);
-        msg.push_back (ID_MSG_FINISH);
+        // no-op
+        //
+        // message is almost ready, we just need to put
+        // eye-catcher and message size at the front
+        // msg_t header;
+        // encode_data (header, to_char (ID_MSG_START));
+        // encode_data (header, to_short (static_cast<short_t>(msg.size ())));
+        // msg.insert (msg.begin (), header.begin (), header.end ());
       }
 
       template <typename first_t, typename ...arg_t>
@@ -99,8 +90,8 @@ namespace core
       }
       static void encode_type (msg_t &msg, short_t info)
       {
-        msg.push_back (info % max_char);
-        msg.push_back (info / max_char);
+        msg.push_back (static_cast<char_t>(info % max_char));
+        msg.push_back (static_cast<char_t>(info / max_char));
       }
       static void encode_type (msg_t &msg, const msg_t &info)
       {
@@ -109,12 +100,8 @@ namespace core
 
       static bool decode_data (const msg_t &src)
       {
-        if (src.size () != 1)
-          return false;
-
-        char_t finish = *(src.begin ());
-
-        return finish == ID_MSG_FINISH;
+        // no-op
+        return true;
       }
       
       template <typename first_t, typename ...arg_t>
