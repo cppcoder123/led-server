@@ -61,7 +61,7 @@ namespace render
   bool uart_t::write (const codec_t::msg_t &src)
   {
     codec_t::msg_t msg = codec_t::encode
-      (ID_MSG_START, codec_t::to_short (src.size ()), std::cref (src));
+      (ID_EYE_CATCH, codec_t::to_short (src.size ()), std::cref (src));
 
     codec_t::char_t buffer[io_max_size];
     std::size_t io_size = 0;
@@ -134,7 +134,7 @@ namespace render
       [&msg, &started, &msg_size] (codec_t::char_t info)
       {
         if (started == false) {
-          if (info == ID_MSG_START) {
+          if (info == ID_EYE_CATCH) {
           } else {
             // we are missing message start?
             // m_error += "Skipping symbol: \"" + buffer[index] + "\" ";

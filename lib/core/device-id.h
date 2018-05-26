@@ -14,8 +14,8 @@
  * Message header
  *
  * Note:
- *  Messages going _to_ arduino are has 2 bytes for message size,
- *  we are expecting long message int that direction (more than 255 chars),
+ *  Messages going _to_ arduino have 2 bytes for message size,
+ *  we are expecting long message in that direction (more than 255 chars),
  *  but messages going _from_ arduino should be short, so one character (255)
  *  should be enough to code it size.
  */
@@ -29,7 +29,7 @@ enum {
 
 /*wrap ids*/
 enum {
-  ID_MSG_START = 254,
+  ID_EYE_CATCH = 254,
 
   /*Note: we are at unsigned char limit*/
 };
