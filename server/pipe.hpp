@@ -27,14 +27,20 @@ namespace led_d
     bool render (const core::matrix_t &matrix);
 
   private:
-    using queue_t = mutex::queue_t<core::device::codec_t::msg_t>;
+    using codec_t = core::device::codec_t;
+    using queue_t = mutex::queue_t<codec_t::msg_t>;
 
+    void serve_read_write ();
+
+    bool decode (codec_t::msg_t &msg);
     
     queue_t m_write_queue;
-    queue_t m_read_queue;
     //
     std::unique_ptr<render::device_t> m_device;
     unsigned short m_serial_id;
+    //
+    bool m_device_go;
+    std::thread m_device_thread;
   };
 } // namespace led_d
 
