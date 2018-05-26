@@ -135,6 +135,7 @@ namespace render
       {
         if (started == false) {
           if (info == ID_EYE_CATCH) {
+            started = true;
           } else {
             // we are missing message start?
             // m_error += "Skipping symbol: \"" + buffer[index] + "\" ";
