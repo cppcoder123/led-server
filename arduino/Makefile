@@ -1,9 +1,9 @@
 #
 # Compile code for atmega8a
 #
-TARGET = atmega8a.hex
+TARGET = arduino.hex
 
-MCU = atmega8a
+MCU = atmega328p
 #F_CPU = 16000000UL
 
 #PROGRAMMER_TYPE = avrdude
@@ -15,7 +15,7 @@ MCU = atmega8a
 #AVRSIZE = avr-size
 #AVRDUDE = avrdude
 
-CFLAGS_OPT = -I../../ -mmcu=$(MCU) -Os -std=gnu99 -Wall 
+CFLAGS_OPT = -I ../lib/core -mmcu=$(MCU) -Os -std=gnu99 -Wall 
 LDFLAGS_OPT = -mmcu=$(MCU)
 
 CFLAGS_DEBUG = $(CFLAGS) -g
@@ -26,18 +26,21 @@ LDFLAGS = $(LDFLAGS_OPT)
 
 ALL: $(TARGET)
 
-$(TARGET): atmega8a.elf
+$(TARGET): arduino.elf
 	avr-objcopy -j .text -j .data -O ihex $< $@
 	avr-size $@
 
-atmega8a.elf: atmega8a.o ht1632c.o
+arduino.elf: arduino.o
 	avr-gcc $(LDFLAGS) -o $@ $^
 
-atmega8a.o: atmega8a.c
+#arduino.elf: arduino.o ht1632c.o
+#	avr-gcc $(LDFLAGS) -o $@ $^
+
+arduino.o: arduino.c
 	avr-gcc $(CFLAGS) -c $<
 
-ht1632c.o: ht1632c.c
-	avr-gcc $(CFLAGS) -c $<
+#ht1632c.o: ht1632c.c
+#	avr-gcc $(CFLAGS) -c $<
 
 clean:
 	-rm *.o *.elf *.hex $(TARGET)
