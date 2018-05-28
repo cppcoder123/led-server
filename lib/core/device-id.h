@@ -48,7 +48,8 @@ enum {                          /* msg body */
 
 /*
  * Matrix message format:
- *   <size-lsb><size-msb><data-1><data-2>...
+ *   <data-1><data-2>...<data-(msg-size minus 3)>
+ *  3 = 2 bytes for serial id + 1 byte for message id
  *
  * Shift-delay format:
  *   <pixel-delay-lsb><pixel-delay-msb><matrix-delay-lsb><matrix-delay-msb>
