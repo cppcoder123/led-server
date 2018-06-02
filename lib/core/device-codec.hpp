@@ -67,13 +67,6 @@ namespace core
       static void encode_data (msg_t &msg)
       {
         // no-op
-        //
-        // message is almost ready, we just need to put
-        // eye-catcher and message size at the front
-        // msg_t header;
-        // encode_data (header, to_char (ID_MSG_START));
-        // encode_data (header, to_short (static_cast<short_t>(msg.size ())));
-        // msg.insert (msg.begin (), header.begin (), header.end ());
       }
 
       template <typename first_t, typename ...arg_t>

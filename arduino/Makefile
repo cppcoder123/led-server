@@ -30,19 +30,21 @@ $(TARGET): arduino.elf
 	avr-objcopy -j .text -j .data -O ihex $< $@
 	avr-size $@
 
-arduino.elf: arduino.o
+arduino.elf: arduino.o codec.o parse.o
 	avr-gcc $(LDFLAGS) -o $@ $^
 
-#arduino.elf: arduino.o ht1632c.o
-#	avr-gcc $(LDFLAGS) -o $@ $^
 
 arduino.o: arduino.c
 	avr-gcc $(CFLAGS) -c $<
 
-#ht1632c.o: ht1632c.c
-#	avr-gcc $(CFLAGS) -c $<
+codec.o: codec.c
+	avr-gcc $(CFLAGS) -c $<
+
+parse.o: parse.c
+	avr-gcc $(CFLAGS) -c $<
+
 
 clean:
-	-rm *.o *.elf *.hex $(TARGET)
+	-rm *~ *.o *.elf *.hex $(TARGET)
 
 .PHONY: clean

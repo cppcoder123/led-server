@@ -10,6 +10,14 @@
 
 #include "device-id.h"
 
+#include "parse.h"
+
+/* #define BUFFER_NAME uart_read_buffer */
+/* #define BUFFER_MAX_SIZE 800 */
+/* #define BUFFER_SIZE_TYPE uint16_t */
+/* #include "buffer.h" */
+
+#if 0
 enum {
   MATRIX_READ_STARTED = (1 << 0),
   MATRIX_READ_FINISHED = (1 << 1),
@@ -58,6 +66,8 @@ volatile struct matrix_data_t matrix_render_buffer;
 #define MATRIX_IS_SHORT (matrix_render_buffer.size == MATRIX_PHYSICAL_SIZE)
 #define MATRIX_IS_LONG (matrix_render_buffer.size > MATRIX_PHYSICAL_SIZE)
 
+#endif
+
 void hardware_init ()
 {
   /* fixme */
@@ -66,19 +76,20 @@ void hardware_init ()
 void software_init ()
 {
   /*assume last cycle was OK*/
-  matrix_flag = MATRIX_READ_MASK | MATRIX_COPY_FINISHED;
+  /*matrix_flag = MATRIX_READ_MASK | MATRIX_COPY_FINISHED;*/
 }
 
-void hw_sw_test ()
+void self_test ()
 {
   /* fixme*/
 }
 
-void handle_io ()
+void say_hello ()
 {
   /* fixme */
 }
 
+#if 0
 void copy_matrix ()
 {
   uint8_t left = 0;
@@ -103,13 +114,9 @@ void copy_matrix ()
 
   matrix_flag |= MATRIX_COPY_FINISHED;
 }
+#endif
 
-void render_stable ()
-{
-  /* fixme */
-}
-
-void render_rolling ()
+void check_button ()
 {
   /* fixme */
 }
@@ -118,18 +125,18 @@ int main ()
 {
   hardware_init ();
   software_init ();
-  hw_sw_test ();
+  self_test ();
+  say_hello ();
 
   while (1) {
-    handle_io ();
-    if (MATRIX_OK_TO_COPY)
-      copy_matrix ();
-    if (MATRIX_IS_SHORT) {
-      render_stable ();
-    } else if (MATRIX_IS_LONG) {
-      render_rolling ();
-    }
+    /*
+     * uart read/write & spi write uses interrupts,
+     * so we only need to parse uart read queue 
+     * and check buttons
+     */
+    parse ();
+    check_button ();
   }
-  
+
   return 0;
 }

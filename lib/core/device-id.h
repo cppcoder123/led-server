@@ -8,7 +8,7 @@
 /*
  * Message starts with 'ID_MSG_START' next field is message length,
  * where length is calculated w/o eye-catcher (ID_MSG_START) and length itself, i.e.:
- *  e.g. : <ID_MSG_START><msg-size-lsb><msg-size-msb><msg-id><serial-lsb><serial-msb> <msg-body>
+ *  e.g. : <ID_EYE_CATCH><msg-size-lsb><msg-size-msb><msg-id><serial-lsb><serial-msb> <msg-body>
  *          ^
  *          |
  * Message header
@@ -17,8 +17,15 @@
  *  Messages going _to_ arduino have 2 bytes for message size,
  *  we are expecting long message in that direction (more than 255 chars),
  *  but messages going _from_ arduino should be short, so one character (255)
- *  should be enough to code it size.
+ *  should be enough to code its size.
  */
+
+/*
+ * Message header size
+ */
+enum {
+  ID_HEADER_SIZE = 6
+};
 
 /*
  * Max matrix size
@@ -30,20 +37,29 @@ enum {
 /*wrap ids*/
 enum {
   ID_EYE_CATCH = 254,
-
   /*Note: we are at unsigned char limit*/
 };
 
 /*message ids*/
 enum {                          /* msg body */
-  ID_STATUS = 1,                /* <value>*/
-  ID_BUTTON,                    /*  */
+  /*
+   * from arduino
+   */
+  ID_UNKNOWN_MSG,               /* <invalid msg> */
+  ID_STATUS ,                   /* <value>*/
+  ID_MISSING_EYE_CATCH,         /* <wrong-value> != EYE_CATCH */
+  ID_HEADER_DECODE_FAILED,      /* <empty> */
+  ID_BUTTON,                    /* fixme */
+  /*
+   * to arduino
+   */
   ID_INIT,                      /* <empty> */
   ID_UNINIT,                    /* <empty> */
   ID_HANDSHAKE,                 /* <empty> */
   ID_MATRIX,                    /* see below */
-  ID_SHIFT_DELAY,               /* see below */
-  ID_BRIGHTNESS                 /* <0-15> */
+  ID_SHIFT_DELAY,               /* <pixel-delay><matrix-delay> fixme */
+  ID_STABLE_DELAY,              /* <stable-delay> fixme: implement*/
+  ID_BRIGHTNESS,                /* <0-15> */
 };
 
 /*
@@ -58,8 +74,9 @@ enum {                          /* msg body */
 
 /*status value*/
 enum {
-  ID_STATUS_RESERVED = 6,
-  ID_STATUS_OK,
+  ID_STATUS_OK = 7,
+  ID_STATUS_THROTTLE,
+  /**/
   ID_STATUS_NO_FINISH,
   ID_STATUS_ID_UNKNOWN,
   ID_STATUS_LONG_ID_UNKNOWN,

@@ -60,8 +60,19 @@ namespace render
   // 
   bool uart_t::write (const codec_t::msg_t &src)
   {
-    codec_t::msg_t msg = codec_t::encode
-      (ID_EYE_CATCH, codec_t::to_short (src.size ()), std::cref (src));
+    // msg size should not be less than 3,
+    // msg-id (1 byte) and serial-id (2 bytes),
+    // so exclude this header info from size to simplify decode
+    constexpr std::size_t msg_min_size = 3;
+
+    if (src.size () < msg_min_size)
+      return false;
+
+    const codec_t::short_t msg_size
+      = codec_t::to_short (src.size () - msg_min_size);
+
+    codec_t::msg_t msg
+      = codec_t::encode (ID_EYE_CATCH, msg_size, std::cref (src));
 
     codec_t::char_t buffer[io_max_size];
     std::size_t io_size = 0;
