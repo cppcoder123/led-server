@@ -85,7 +85,7 @@ void parse ()
         ++(read->current);
         continue;
       }
-      if (read->size - read->current >= ID_HEADER_SIZE) {
+      if (read->size - read->current >= ID_TO_ARDUINO_HEADER_SIZE) {
         if (codec_decode_header (read->data + read->current,
                                  &msg_size, &msg_id, &msg_serial_id) == 0) {
           codec_encode_0 (ID_HEADER_DECODE_FAILED, ++own_serial_id);
@@ -93,10 +93,10 @@ void parse ()
           ++(read->current);
           continue;
         }
-        read->current += ID_HEADER_SIZE;
+        read->current += ID_TO_ARDUINO_HEADER_SIZE;
         /*
          * We have valid msg-id, size, serial id here,
-         * we can parse empty body messages here
+         * we can parse empty body message
          */
         parse_body ();
       }

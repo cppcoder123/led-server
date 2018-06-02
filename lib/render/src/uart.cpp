@@ -38,7 +38,12 @@ namespace render
 
     // fixme: where we shoud keep shift delays?
     msg = codec_t::encode (ID_SHIFT_DELAY, ++serial_id,
-                           codec_t::to_short (200), codec_t::to_short (700));
+                           codec_t::to_char (5), codec_t::to_char (15));
+    write_status (msg);
+    read_status ();
+
+    // fixme: where we shoud keep stable delays?
+    msg = codec_t::encode (ID_STABLE_DELAY, ++serial_id, codec_t::to_char (50));
     write_status (msg);
     read_status ();
 

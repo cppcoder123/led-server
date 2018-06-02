@@ -14,7 +14,8 @@ struct uart_write_buffer
 {
   uint8_t data[UART_WRITE_BUFFER_MAX_SIZE];
   uint8_t size;
-  uint8_t current;
 };
+
+void uart_write_kick ();
 
 #endif

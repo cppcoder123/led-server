@@ -4,6 +4,8 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
+#include <stdint.h>
+
 /*returns zero in case of failure*/
 uint8_t matrix_write_prepare (uint16_t size);
 

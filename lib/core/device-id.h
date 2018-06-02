@@ -24,7 +24,8 @@
  * Message header size
  */
 enum {
-  ID_HEADER_SIZE = 6
+  ID_TO_ARDUINO_HEADER_SIZE = 6,
+  ID_FROM_ARDUINO_HEADER_SIZE = 5
 };
 
 /*
@@ -46,9 +47,9 @@ enum {                          /* msg body */
    * from arduino
    */
   ID_UNKNOWN_MSG,               /* <invalid msg> */
-  ID_STATUS ,                   /* <value>*/
   ID_MISSING_EYE_CATCH,         /* <wrong-value> != EYE_CATCH */
   ID_HEADER_DECODE_FAILED,      /* <empty> */
+  ID_STATUS ,                   /* <value>*/
   ID_BUTTON,                    /* fixme */
   /*
    * to arduino
@@ -68,7 +69,7 @@ enum {                          /* msg body */
  *  3 = 2 bytes for serial id + 1 byte for message id
  *
  * Shift-delay format:
- *   <pixel-delay-lsb><pixel-delay-msb><matrix-delay-lsb><matrix-delay-msb>
+ *   <pixel-delay><matrix-delay>
  */
 
 

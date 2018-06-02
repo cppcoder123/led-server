@@ -3,6 +3,14 @@
 #
 TARGET = arduino.hex
 
+OBJECT_LIST = \
+  arduino.o \
+  codec.o \
+  matrix.o \
+  parse.o \
+  spi-write.o \
+  uart-write.o
+
 MCU = atmega328p
 #F_CPU = 16000000UL
 
@@ -30,19 +38,12 @@ $(TARGET): arduino.elf
 	avr-objcopy -j .text -j .data -O ihex $< $@
 	avr-size $@
 
-arduino.elf: arduino.o codec.o parse.o
+arduino.elf: $(OBJECT_LIST)
 	avr-gcc $(LDFLAGS) -o $@ $^
 
 
-arduino.o: arduino.c
+%.o: %.c $(wildcard *.h)
 	avr-gcc $(CFLAGS) -c $<
-
-codec.o: codec.c
-	avr-gcc $(CFLAGS) -c $<
-
-parse.o: parse.c
-	avr-gcc $(CFLAGS) -c $<
-
 
 clean:
 	-rm *~ *.o *.elf *.hex $(TARGET)

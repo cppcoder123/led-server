@@ -8,9 +8,6 @@ TARGET = led-d
 #
 #
 #
-HEADER_LIST = arg.hpp daemon.hpp display.hpp font.hpp font-dir.hpp \
-  hex-font.hpp idle-request.hpp message.hpp message-ptr.hpp queue.hpp \
-  log-wrapper.hpp meta-queue.hpp network.hpp render.hpp session.hpp 
 
 OBJECT_LIST = led-d.o arg.o daemon.o display.o font.o font-dir.o hex-font.o \
   log-wrapper.o network.o pipe.o render.o session.o
@@ -34,7 +31,7 @@ $(TARGET): $(OBJECT_LIST) $(LIB_RENDER)/src/librender.a $(LIB_CORE)/*
 	$(CXX) -o $@ $(OBJECT_LIST) $(LDFLAGS)
 
 
-%.o: %.cpp $(HEADER_LIST)
+%.o: %.cpp $(wildcard *.hpp)
 	$(CXX) $(CPPFLAGS) -c $<
 
 

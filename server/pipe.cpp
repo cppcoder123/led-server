@@ -15,9 +15,12 @@ namespace led_d
 {
   namespace
   {
-    core::device::codec_t::char_t get_char (const core::matrix_t::column_t &column)
+    using char_t = core::device::codec_t::char_t;
+    using short_t = core::device::codec_t::short_t;
+
+    char_t get_char (const core::matrix_t::column_t &column)
     {
-      core::device::codec_t::char_t res = 0, mask = 1;
+      char_t res = 0, mask = 1;
       for (std::size_t bit = 0; bit < core::matrix_t::column_size; ++bit) {
         if (column.test (bit) == true)
           res |= mask;
@@ -25,6 +28,44 @@ namespace led_d
       }
 
       return res;
+    }
+
+    void decode_1_char_msg (char_t msg_id, short_t serial_id, char_t info)
+    {
+      log_t::buffer_t buf;
+      bool complain = true;
+
+      switch (msg_id) {
+      case ID_UNKNOWN_MSG:
+        buf << "Device failed to recognize \"" << info
+            << "\" as message id, serial id \"" << serial_id << "\"";
+        break;
+      case ID_MISSING_EYE_CATCH:
+        buf << "Device expects eye-catch symbol, but found \"" << info << "\"";
+        break;
+      case ID_HEADER_DECODE_FAILED:
+        buf << "Device failed to decode header for message with serial id \""
+            << serial_id << "\"";
+        break;
+      case ID_STATUS:
+        if (info != ID_STATUS_OK) {
+          buf << "Bad status \"" << info << "\" arrived for serial id \""
+              << serial_id << "\"";
+        } else {
+          complain = false;
+        }
+        break;
+      default:
+        {
+          buf << "Unknown message id \"" << msg_id << "\", serial id \""
+              << serial_id << "\"";
+          log_t::error (buf);
+        }
+        break;
+      }
+
+      if (complain == true)
+        log_t::error (buf);
     }
   } // namespace anonymous
   
@@ -95,23 +136,20 @@ namespace led_d
     }
 
     switch (msg_id) {
+    case ID_UNKNOWN_MSG:
+    case ID_MISSING_EYE_CATCH:
+    case ID_HEADER_DECODE_FAILED:
     case ID_STATUS:
       {
-        codec_t::char_t status = 0;
-        if (codec_t::decode_body (msg, status) == false) {
+        codec_t::char_t info = 0;
+        if (codec_t::decode_body (msg, info) == false) {
           log_t::buffer_t buf;
           buf << "pipe: Failed to decode message body, message id: \""
               << msg_id << "\", serial id: \"" << serial_id << "\"";
           log_t::error (buf);
           return false;
         }
-        if (status != ID_STATUS_OK) {
-          log_t::buffer_t buf;
-          buf << "pipe: Bad status \"" << status << "\", is arrived for message id \""
-              << msg_id << "\", serial id \"" << serial_id << "\"";
-          log_t::error (buf);
-          return false;
-        }
+        decode_1_char_msg (msg_id, serial_id, info);
       }
       break;
       // fixme: add button handling here
