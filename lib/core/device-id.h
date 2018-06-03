@@ -54,13 +54,13 @@ enum {                          /* msg body */
   /*
    * to arduino
    */
-  ID_INIT,                      /* <empty> */
-  ID_UNINIT,                    /* <empty> */
+  ID_BRIGHTNESS,                /* <0-15> */
   ID_HANDSHAKE,                 /* <empty> */
+  ID_INIT,                      /* <empty> turn on matrix driver IC*/
   ID_MATRIX,                    /* see below */
   ID_SHIFT_DELAY,               /* <pixel-delay><matrix-delay> fixme */
   ID_STABLE_DELAY,              /* <stable-delay> fixme: implement*/
-  ID_BRIGHTNESS,                /* <0-15> */
+  ID_UNINIT,                    /* <empty> turn off matrix driver IC*/
 };
 
 /*
@@ -111,6 +111,15 @@ enum {
   ID_BRIGHTNESS_14,
   ID_BRIGHTNESS_15,            /* max level */
   ID_BRIGHTNESS_MAX = ID_BRIGHTNESS_15,
+};
+
+enum {
+  ID_BUTTON_MIN = (1 << 0),
+  ID_BUTTON_0 = ID_BUTTON_MIN,
+  ID_BUTTON_1 = (1 << 1),
+  ID_BUTTON_2 = (1 << 2),
+  ID_BUTTON_MAX = ID_BUTTON_2,
+  ID_BUTTON_MASK = (ID_BUTTON_0 | ID_BUTTON_1 | ID_BUTTON_2)
 };
 
 #endif

@@ -10,6 +10,8 @@ void uart_write_init ()
 {
   for (uint8_t i = 0; i < UART_WRITE_BUFFER_MAX_SIZE; ++i)
     buffer.data[i] = 0;
+  buffer.size = 0;
+
   /*fixme*/
 }
 

@@ -12,6 +12,7 @@
 
 #include "device-id.h"
 
+#include "button.h"
 #include "codec.h"
 #include "matrix.h"
 #include "matrix-timer.h"
@@ -28,6 +29,7 @@ void hardware_init ()
 
 void software_init ()
 {
+  button_init ();
   codec_init ();
   matrix_init ();
   matrix_timer_init ();
