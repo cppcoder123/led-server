@@ -8,7 +8,12 @@
 
 volatile struct uart_write_buffer *write;
 
-static const uint16_t divider = UINT8_MAX + 1;
+static const uint16_t divider = (uint16_t) UINT8_MAX + 1;
+
+void codec_init ()
+{
+  write = uart_write_get_buffer ();
+}
 
 static uint8_t encode_uint16 (uint16_t data, uint8_t msb)
 {

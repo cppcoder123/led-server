@@ -9,9 +9,13 @@
 /*how many led columns we have*/
 #define SPI_WRITE_MATRIX_SIZE 32
 
+/* init module internals */
 void spi_write_init ();
 
-void spi_write_uninit ();
+/* init display device: led matrix, ... */
+void spi_write_initialize ();
+
+void spi_write_uninitialize ();
 
 void spi_write_brightness (uint8_t brightness);
 

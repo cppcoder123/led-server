@@ -36,16 +36,12 @@ namespace led_d
       bool complain = true;
 
       switch (msg_id) {
-      case ID_UNKNOWN_MSG:
-        buf << "Device failed to recognize \"" << info
-            << "\" as message id, serial id \"" << serial_id << "\"";
-        break;
-      case ID_MISSING_EYE_CATCH:
-        buf << "Device expects eye-catch symbol, but found \"" << info << "\"";
-        break;
       case ID_HEADER_DECODE_FAILED:
         buf << "Device failed to decode header for message with serial id \""
             << serial_id << "\"";
+        break;
+      case ID_MISSING_EYE_CATCH:
+        buf << "Device expects eye-catch symbol, but found \"" << info << "\"";
         break;
       case ID_STATUS:
         if (info != ID_STATUS_OK) {
@@ -54,6 +50,10 @@ namespace led_d
         } else {
           complain = false;
         }
+        break;
+      case ID_UNKNOWN_MSG:
+        buf << "Device failed to recognize \"" << info
+            << "\" as message id, serial id \"" << serial_id << "\"";
         break;
       default:
         {
@@ -70,7 +70,7 @@ namespace led_d
   } // namespace anonymous
   
   pipe_t::pipe_t (const std::string &device_name)
-    : m_device (std::make_unique<render::uart_t>(device_name)),
+    : m_device (std::make_unique<device::uart_t>(device_name)),
       m_serial_id (0),
       m_device_go (true),
       m_device_thread (std::thread (&pipe_t::serve_read_write, this))
@@ -136,10 +136,10 @@ namespace led_d
     }
 
     switch (msg_id) {
-    case ID_UNKNOWN_MSG:
-    case ID_MISSING_EYE_CATCH:
     case ID_HEADER_DECODE_FAILED:
+    case ID_MISSING_EYE_CATCH:
     case ID_STATUS:
+    case ID_UNKNOWN_MSG:
       {
         codec_t::char_t info = 0;
         if (codec_t::decode_body (msg, info) == false) {

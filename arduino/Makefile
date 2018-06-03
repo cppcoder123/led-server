@@ -7,8 +7,11 @@ OBJECT_LIST = \
   arduino.o \
   codec.o \
   matrix.o \
+  matrix-timer.o \
   parse.o \
+  self-test.o \
   spi-write.o \
+  uart-read.o \
   uart-write.o
 
 MCU = atmega328p

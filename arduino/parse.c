@@ -15,12 +15,22 @@
 volatile struct uart_read_buffer *read;
 volatile struct uart_write_buffer *write;
 
-uint16_t msg_size;
 uint8_t msg_id;
+uint16_t msg_size;
 uint16_t msg_serial_id;
 
 uint16_t own_serial_id;
 
+void parse_init ()
+{
+  read = uart_read_get_buffer ();
+  write = uart_write_get_buffer ();
+  /* */
+  msg_id = ID_UNKNOWN_MSG;
+  msg_size = 0;
+  msg_serial_id = 0;
+  own_serial_id = 0;
+}
 
 static void parse_body ()
 {
@@ -30,11 +40,11 @@ static void parse_body ()
 
   switch (msg_id) {
   case ID_INIT:
-    spi_write_init ();
+    spi_write_initialize ();
     codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_UNINIT:
-    spi_write_uninit ();
+    spi_write_uninitialize ();
     codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_HANDSHAKE:

@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef RENDER_UART_HPP
-#define RENDER_UART_HPP
+#ifndef DEVICE_UART_HPP
+#define DEVICE_UART_HPP
 
 #include <list>
 #include <cstdint>
@@ -13,7 +13,7 @@
 
 #include "device.hpp"
 
-namespace render
+namespace device
 {
   class uart_t : public device_t
   {
@@ -29,7 +29,7 @@ namespace render
 
     std::string get_error ();
 
-    void read_status ();
+    void read_status (codec_t::char_t status = ID_STATUS_OK);
     void write_status (const msg_t &msg);
 
   private:
@@ -52,6 +52,6 @@ namespace render
     codec_t::msg_t m_message_buffer;
   };
   
-} // namespace render
+} // namespace device
 
 #endif

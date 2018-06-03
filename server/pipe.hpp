@@ -36,7 +36,7 @@ namespace led_d
     
     queue_t m_write_queue;
     //
-    std::unique_ptr<render::device_t> m_device;
+    std::unique_ptr<device::device_t> m_device;
     unsigned short m_serial_id;
     //
     bool m_device_go;

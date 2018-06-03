@@ -9,7 +9,12 @@ void spi_write_init ()
   /* fixme */
 }
 
-void spi_write_uninit ()
+void spi_write_initialize ()
+{
+  /* fixme */
+}
+
+void spi_write_uninitialize ()
 {
   /* fixme */
 }

@@ -17,9 +17,9 @@ OBJECT_LIST = led-d.o arg.o daemon.o display.o font.o font-dir.o hex-font.o \
 #
 #
 
-LDFLAGS = -L $(LIB_RENDER)/src -L $(LIB_DAEMON)/src -lrender -ldaemon -lpthread
+LDFLAGS = -L $(LIB_DEVICE)/src -L $(LIB_DAEMON)/src -ldevice -ldaemon -lpthread
 
-CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_CORE) -I $(LIB_RENDER)/include \
+CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_CORE) -I $(LIB_DEVICE)/include \
   -I $(LIB_DAEMON)/include -I $(LIB_ASIO) -I $(LIB_ROOT)
 
 #
@@ -27,7 +27,7 @@ CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_CORE) -I $(LIB_RENDER)/include \
 #
 ALL: $(TARGET)
 
-$(TARGET): $(OBJECT_LIST) $(LIB_RENDER)/src/librender.a $(LIB_CORE)/*
+$(TARGET): $(OBJECT_LIST) $(LIB_DEVICE)/src/libdevice.a $(LIB_CORE)/*
 	$(CXX) -o $@ $(OBJECT_LIST) $(LDFLAGS)
 
 

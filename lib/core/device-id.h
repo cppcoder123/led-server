@@ -46,11 +46,11 @@ enum {                          /* msg body */
   /*
    * from arduino
    */
-  ID_UNKNOWN_MSG,               /* <invalid msg> */
-  ID_MISSING_EYE_CATCH,         /* <wrong-value> != EYE_CATCH */
-  ID_HEADER_DECODE_FAILED,      /* <empty> */
-  ID_STATUS ,                   /* <value>*/
   ID_BUTTON,                    /* fixme */
+  ID_HEADER_DECODE_FAILED,      /* <empty> */
+  ID_MISSING_EYE_CATCH,         /* <wrong-value> != EYE_CATCH */
+  ID_STATUS,                    /* <value>*/
+  ID_UNKNOWN_MSG,               /* <invalid msg> */
   /*
    * to arduino
    */
@@ -77,7 +77,8 @@ enum {                          /* msg body */
 enum {
   ID_STATUS_OK = 7,
   ID_STATUS_THROTTLE,
-  /**/
+  ID_STATUS_HELLO,
+  /*fixme: remove ?*/
   ID_STATUS_NO_FINISH,
   ID_STATUS_ID_UNKNOWN,
   ID_STATUS_LONG_ID_UNKNOWN,

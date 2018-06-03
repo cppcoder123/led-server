@@ -23,13 +23,15 @@
 
 #include "uart.hpp"
 
-namespace render
+namespace device
 {
   uart_t::uart_t (const std::string &linux_device)
     : m_linux_device (linux_device)
   {
     device_open ();
 
+    read_status (ID_STATUS_HELLO);
+    
     codec_t::short_t serial_id = 0;
 
     codec_t::msg_t msg = codec_t::encode (ID_HANDSHAKE, ++serial_id);
@@ -178,7 +180,7 @@ namespace render
     return tmp;
   }
   
-  void uart_t::read_status ()
+  void uart_t::read_status (codec_t::char_t status)
   {
     codec_t::msg_t msg;
     if (read (msg, true) == false) {
@@ -202,9 +204,10 @@ namespace render
     if (codec_t::decode_body (msg, msg_status) == false)
       throw std::runtime_error ("uart: Failed to decode status value");
 
-    if (msg_status != ID_STATUS_OK) {
+    if (msg_status != status) {
       std::ostringstream stream;
-      stream << "uart: Wrong status value: \"" << msg_status << "\"";
+      stream << "uart: Arrived status value: \"" << msg_status
+             << "\" doesn't match expected one: \"" << status << "\"";
       throw std::runtime_error (stream.str ());
     }
   }
@@ -295,4 +298,4 @@ namespace render
 
 
   
-} // namespace render
+} // namespace device
