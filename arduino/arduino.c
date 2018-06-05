@@ -22,12 +22,7 @@
 #include "uart-read.h"
 #include "uart-write.h"
 
-void hardware_init ()
-{
-  sei ();
-}
-
-void software_init ()
+static void init ()
 {
   button_init ();
   codec_init ();
@@ -35,8 +30,10 @@ void software_init ()
   matrix_timer_init ();
   parse_init ();
   spi_write_init ();
-  uart_write_init ();
   uart_read_init ();
+  uart_write_init ();
+  /* enable interrupts */
+  sei ();
 }
 
 static void say_hello ()
@@ -46,8 +43,7 @@ static void say_hello ()
 
 int main ()
 {
-  hardware_init ();
-  software_init ();
+  init ();
   self_test ();
   say_hello ();
 

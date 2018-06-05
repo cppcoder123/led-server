@@ -21,8 +21,9 @@ static uint8_t stable_delay;
 volatile uint8_t *wait_condition;
 
 enum {
-  MATRIX_NEW = (1 << 0),
-  MATRIX_RENDERED = (1 << 1)
+  MATRIX_UPDATE_STARTED = (1 << 0),
+  MATRIX_UPDATE_FINISHED = (1 << 1),
+  MATRIX_RENDERED = (1 << 2)
 };
 
 void matrix_init ()
@@ -80,24 +81,37 @@ static void render ()
 }
 
 /*returns zero in case of failure*/
-uint8_t matrix_write_prepare (uint16_t new_size)
+uint8_t matrix_update_start (uint8_t type)
 {
-  if (new_size > ID_MAX_MATRIX_SIZE)
+  if (type & ID_SUB_MATRIX_TYPE_FIRST) {
+    state = MATRIX_UPDATE_STARTED;
+    size = 0;
+    return 1;
+  }
+
+  if ((type & ID_SUB_MATRIX_TYPE_MASK) == 0)
+    /* bad value */
     return 0;
 
-  if ((state != 0) && ((state & MATRIX_RENDERED) == 0))
-    return 0;
-
-  size = new_size;
-
-  state &= (~MATRIX_NEW);
-  state &= (~MATRIX_RENDERED);
-  
   return 1;
 }
 
-void matrix_write (volatile uint8_t *new_data)
+uint8_t matrix_update (volatile uint8_t *update_data, uint8_t update_size)
 {
+  /* check size first */
+  if (size + update_size > ID_MAX_MATRIX_SIZE)
+    return 0;
+
+  for (uint8_t i = 0; i < update_size; ++i) {
+    matrix_data[size + i] = update_data[i];
+  }
+
+  size += update_size;
+
+  return 1;
+}
+#if 0
+// fixme
   uint16_t left = 0;
 
   if (size < PHYSICAL_MATRIX_SIZE) {
@@ -125,6 +139,17 @@ void matrix_write (volatile uint8_t *new_data)
   state |= MATRIX_NEW;
 
   render ();
+}
+#endif
+
+uint8_t matrix_update_finish ()
+{
+  /* fixme center if needed */
+  state |= MATRIX_UPDATE_FINISHED;
+
+  render ();
+
+  return (size != 0) ? 1 : 0;
 }
 
 void matrix_shift_delay (uint8_t one_pixel_delay, uint8_t whole_phrase_delay)

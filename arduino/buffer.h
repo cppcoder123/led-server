@@ -4,28 +4,31 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-/*
- * 3 macros should be available before including this file:
- *
- * BUFFER_NAME, BUFFER_MAX_SIZE, BUFFER_SIZE_TYPE
- *
- */
-
-
 #include <stdint.h>
 
-struct BUFFER_NAME
+/* Do not access directly use functions instead */
+struct buffer_t
 {
-  uint8_t data[BUFFER_MAX_SIZE];
-  BUFFER_SIZE_TYPE size;
-  BUFFER_SIZE_TYPE current;
+  uint8_t *data;
+  uint8_t size;
+  uint8_t max_size;
 };
 
-inline void buffer_init (struct BUFFER_NAME *buffer)
-{
-  buffer->size = 0;
-  buffer->current = 0;
-}
+/*
+ * Functions return 0 in case of failure
+ */
 
+void buffer_init (volatile struct buffer_t *buf,
+                  uint8_t *data, uint8_t max_size);
+
+uint8_t buffer_is_fillable (volatile struct buffer_t *buf, uint8_t fill_size);
+uint8_t buffer_is_drainable (volatile struct buffer_t *buf, uint8_t drain_size);
+
+uint8_t buffer_get (volatile struct buffer_t *buf, uint8_t index, uint8_t **data);
+
+uint8_t buffer_fill_symbol (volatile struct buffer_t *buf, uint8_t symbol);
+uint8_t buffer_drain_symbol (volatile struct buffer_t *buf, uint8_t *symbol);
+
+uint8_t buffer_drain (volatile struct buffer_t *buf, uint8_t drain_size);
 
 #endif

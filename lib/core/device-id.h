@@ -8,10 +8,10 @@
 /*
  * Message starts with 'ID_MSG_START' next field is message length,
  * where length is calculated w/o eye-catcher (ID_MSG_START) and length itself, i.e.:
- *  e.g. : <ID_EYE_CATCH><msg-size-lsb><msg-size-msb><msg-id><serial-lsb><serial-msb> <msg-body>
+ *  e.g. : <ID_EYE_CATCH><msg-size><msg-id><serial-id><msg-body>
  *          ^
  *          |
- * Message header
+ * Message header (4 bytes)
  *
  * Note:
  *  Messages going _to_ arduino have 2 bytes for message size,
@@ -24,8 +24,7 @@
  * Message header size
  */
 enum {
-  ID_TO_ARDUINO_HEADER_SIZE = 6,
-  ID_FROM_ARDUINO_HEADER_SIZE = 5
+  ID_HEADER_SIZE = 4,
 };
 
 /*
@@ -43,6 +42,7 @@ enum {
 
 /*message ids*/
 enum {                          /* msg body */
+  ID_INVALID_MSG,               /* invalid msg id */
   /*
    * from arduino
    */
@@ -50,23 +50,22 @@ enum {                          /* msg body */
   ID_HEADER_DECODE_FAILED,      /* <empty> */
   ID_MISSING_EYE_CATCH,         /* <wrong-value> != EYE_CATCH */
   ID_STATUS,                    /* <value>*/
-  ID_UNKNOWN_MSG,               /* <invalid msg> */
   /*
    * to arduino
    */
   ID_BRIGHTNESS,                /* <0-15> */
   ID_HANDSHAKE,                 /* <empty> */
   ID_INIT,                      /* <empty> turn on matrix driver IC*/
-  ID_MATRIX,                    /* see below */
-  ID_SHIFT_DELAY,               /* <pixel-delay><matrix-delay> fixme */
+  ID_SUB_MATRIX,                /* see below */
+  ID_PIXEL_DELAY,               /* <pixel-delay> */
+  ID_PHRASE_DELAY,              /* <phrase-delay> */
   ID_STABLE_DELAY,              /* <stable-delay> fixme: implement*/
   ID_UNINIT,                    /* <empty> turn off matrix driver IC*/
 };
 
 /*
  * Matrix message format:
- *   <data-1><data-2>...<data-(msg-size minus 3)>
- *  3 = 2 bytes for serial id + 1 byte for message id
+ *   <sub-matrix-type><data-1><data-2>...<data-(msg-size minus 1)>
  *
  * Shift-delay format:
  *   <pixel-delay><matrix-delay>
@@ -78,6 +77,16 @@ enum {
   ID_STATUS_OK = 7,
   ID_STATUS_THROTTLE,
   ID_STATUS_HELLO,
+  ID_STATUS_BUFFER_CORRUPTED_0,
+  ID_STATUS_BUFFER_CORRUPTED_1,
+  ID_STATUS_BUFFER_CORRUPTED_2,
+  ID_STATUS_MSG_UNKNOWN_H,
+  ID_STATUS_MSG_UNKNOWN_0,
+  ID_STATUS_MSG_UNKNOWN_1,
+  ID_STATUS_SUB_MATRIX_TOO_SHORT,
+  ID_STATUS_SUB_MATRIX_UPDATE_START_FAILURE,
+  ID_STATUS_SUB_MATRIX_UPDATE_FAILURE,
+  ID_STATUS_SUB_MATRIX_UPDATE_FINISH_FAILURE,
   /*fixme: remove ?*/
   ID_STATUS_NO_FINISH,
   ID_STATUS_ID_UNKNOWN,
@@ -90,6 +99,14 @@ enum {
   ID_STATUS_BRIGHTNESS_OUT_OF_RANGE,
   /**/
   MSG_ID_STATUS_MAX
+};
+
+enum {
+  ID_SUB_MATRIX_TYPE_FIRST = (1 << 0),
+  ID_SUB_MATRIX_TYPE_MIDDLE = (1 << 1),
+  ID_SUB_MATRIX_TYPE_LAST = (1 << 2),
+  ID_SUB_MATRIX_TYPE_MASK = (ID_SUB_MATRIX_TYPE_FIRST | \
+                             ID_SUB_MATRIX_TYPE_MIDDLE | ID_SUB_MATRIX_TYPE_LAST)
 };
 
 enum {

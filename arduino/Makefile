@@ -5,6 +5,7 @@ TARGET = arduino.hex
 
 OBJECT_LIST = \
   arduino.o \
+  buffer.o \
   button.o \
   codec.o \
   matrix.o \

@@ -8,17 +8,11 @@
 
 #include <stdint.h>
 
-#define UART_WRITE_BUFFER_MAX_SIZE 50
-
-struct uart_write_buffer
-{
-  uint8_t data[UART_WRITE_BUFFER_MAX_SIZE];
-  uint8_t size;
-};
+#include "buffer.h"
 
 void uart_write_init ();
 
-volatile struct uart_write_buffer* uart_write_get_buffer ();
+volatile struct buffer_t* uart_write_get_buffer ();
 
 void uart_write_kick ();
 

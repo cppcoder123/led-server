@@ -4,18 +4,19 @@
 
 #include "uart-write.h"
 
-volatile struct uart_write_buffer buffer;
+#define BUFFER_MAX_SIZE 50
+
+static uint8_t buffer_data[BUFFER_MAX_SIZE];
+static volatile struct buffer_t buffer;
 
 void uart_write_init ()
 {
-  for (uint8_t i = 0; i < UART_WRITE_BUFFER_MAX_SIZE; ++i)
-    buffer.data[i] = 0;
-  buffer.size = 0;
+  buffer_init (&buffer, buffer_data, BUFFER_MAX_SIZE);
 
   /*fixme*/
 }
 
-volatile struct uart_write_buffer* uart_write_get_buffer ()
+volatile struct buffer_t* uart_write_get_buffer ()
 {
   return &buffer;
 }
