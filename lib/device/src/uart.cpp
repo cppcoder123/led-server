@@ -32,25 +32,26 @@ namespace device
 
     read_status (ID_STATUS_HELLO);
     
-    codec_t::short_t serial_id = 0;
+    codec_t::char_t serial_id = 0;
 
     codec_t::msg_t msg = codec_t::encode (ID_HANDSHAKE, ++serial_id);
     write_status (msg);
     read_status ();
 
     // fixme: where we shoud keep shift delays?
-    msg = codec_t::encode (ID_SHIFT_DELAY, ++serial_id,
-                           codec_t::to_char (5), codec_t::to_char (15));
+    msg = codec_t::encode (ID_PIXEL_DELAY, ++serial_id, 5);
     write_status (msg);
     read_status ();
 
-    // fixme: where we shoud keep stable delays?
-    msg = codec_t::encode (ID_STABLE_DELAY, ++serial_id, codec_t::to_char (50));
+    msg = codec_t::encode (ID_PHRASE_DELAY, ++serial_id, 15);
     write_status (msg);
     read_status ();
 
-    msg = codec_t::encode (ID_BRIGHTNESS, ++serial_id,
-                           codec_t::to_char (ID_BRIGHTNESS_MAX));
+    msg = codec_t::encode (ID_STABLE_DELAY, ++serial_id, 50);
+    write_status (msg);
+    read_status ();
+
+    msg = codec_t::encode (ID_BRIGHTNESS, ++serial_id, ID_BRIGHTNESS_MAX);
     write_status (msg);
     read_status ();
 
@@ -67,16 +68,16 @@ namespace device
   // 
   bool uart_t::write (const codec_t::msg_t &src)
   {
-    // msg size should not be less than 3,
-    // msg-id (1 byte) and serial-id (2 bytes),
+    // msg size should not be less than 2,
+    // msg-id (1 byte) and serial-id (1 byte),
     // so exclude this header info from size to simplify decode
-    constexpr std::size_t msg_min_size = 3;
+    constexpr std::size_t msg_min_size = 2;
 
     if (src.size () < msg_min_size)
       return false;
 
-    const codec_t::short_t msg_size
-      = codec_t::to_short (src.size () - msg_min_size);
+    const codec_t::char_t msg_size
+      = codec_t::to_char (src.size () - msg_min_size);
 
     codec_t::msg_t msg
       = codec_t::encode (ID_EYE_CATCH, msg_size, std::cref (src));
@@ -108,6 +109,10 @@ namespace device
   // 
   bool uart_t::read (codec_t::msg_t &msg, bool block)
   {
+  fixme: redo, use codec here, change decode src arg to const
+      fixme: change decode_head to decode_head (const msg_t &msg, char_t &first, char_t &second);
+  fixme: change format to <eye-catch><size><serial><msg-id>
+      
     bool started = false, finished = false;
     std::size_t msg_size = 0;
 
@@ -190,7 +195,7 @@ namespace device
     }
 
     codec_t::char_t msg_id = 0;
-    codec_t::short_t serial_id = 0;
+    codec_t::char_t serial_id = 0;
     if (codec_t::decode_head (msg, msg_id, serial_id) == false)
       throw std::runtime_error ("uart: Failed to decode status message");
 

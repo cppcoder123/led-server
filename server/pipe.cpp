@@ -16,7 +16,7 @@ namespace led_d
   namespace
   {
     using char_t = core::device::codec_t::char_t;
-    using short_t = core::device::codec_t::short_t;
+    // using short_t = core::device::codec_t::short_t;
 
     char_t get_char (const core::matrix_t::column_t &column)
     {
@@ -30,7 +30,7 @@ namespace led_d
       return res;
     }
 
-    void decode_1_char_msg (char_t msg_id, short_t serial_id, char_t info)
+    void decode_1_char_msg (char_t msg_id, char_t serial_id, char_t info)
     {
       log_t::buffer_t buf;
       bool complain = true;
@@ -40,9 +40,6 @@ namespace led_d
         buf << "Device failed to decode header for message with serial id \""
             << serial_id << "\"";
         break;
-      case ID_MISSING_EYE_CATCH:
-        buf << "Device expects eye-catch symbol, but found \"" << info << "\"";
-        break;
       case ID_STATUS:
         if (info != ID_STATUS_OK) {
           buf << "Bad status \"" << info << "\" arrived for serial id \""
@@ -51,9 +48,13 @@ namespace led_d
           complain = false;
         }
         break;
-      case ID_UNKNOWN_MSG:
+      case ID_INVALID_MSG:
         buf << "Device failed to recognize \"" << info
             << "\" as message id, serial id \"" << serial_id << "\"";
+        break;
+      case ID_BUTTON:
+        buf << "Not implemented \"button\" message is arrived, value \""
+            << info << "\"";
         break;
       default:
         {
@@ -85,26 +86,35 @@ namespace led_d
 
   bool pipe_t::render (const core::matrix_t &matrix)
   {
+    using core::device::codec_t;
+
     if (matrix.size () > ID_MAX_MATRIX_SIZE)
       return false;
 
-    ++m_serial_id;
+    for (std::size_t sub_index = 0;
+         sub_index * ID_MAX_SUB_MATRIX_SIZE <= matrix.size (); ++sub_index) {
+      codec_t::msg_t info_msg;
+      for (std::size_t i = sub_index * ID_MAX_SUB_MATRIX_SIZE;
+           i < (sub_index + 1) * ID_MAX_SUB_MATRIX_SIZE; ++i)
+        info_msg.push_back (get_char (matrix.get_column (i)));
+      codec_t::char_t submsg_type = (sub_index == 0) ? ID_SUB_MATRIX_TYPE_FIRST : 0;
+      if (((sub_index + 1)* ID_MAX_SUB_MATRIX_SIZE) >= matrix.size ())
+        submsg_type |= ID_SUB_MATRIX_TYPE_LAST;
+      if ((submsg_type & ID_SUB_MATRIX_TYPE_MASK) == 0)
+        // neither frst, nor last => middle
+        submsg_type |= ID_SUB_MATRIX_TYPE_MIDDLE;
+      codec_t::msg_t sub_msg = codec_t::encode
+        (ID_SUB_MATRIX, ++m_serial_id, std::cref (info_msg));
 
-    using core::device::codec_t;
+      m_write_queue.push (sub_msg);
+    }
 
-    codec_t::msg_t matrix_submsg;
-    for (std::size_t i = 0; i < matrix.size (); ++i)
-      matrix_submsg.push_back (get_char (matrix.get_column (i)));
-    
-    codec_t::msg_t msg = codec_t::encode
-      (ID_MATRIX, m_serial_id, std::cref (matrix_submsg));
-
-    m_write_queue.push (msg);
     return true;
   }
 
   void pipe_t::serve_read_write ()
   {
+    fixme: implement blocker here
     while (m_device_go == true) {
       {
         auto opt_msg = m_write_queue.pop ();
@@ -128,7 +138,7 @@ namespace led_d
   bool pipe_t::decode (codec_t::msg_t &msg)
   {
     codec_t::char_t msg_id = 0;
-    codec_t::short_t serial_id = 0;
+    codec_t::char_t serial_id = 0;
 
     if (codec_t::decode_head (msg, msg_id, serial_id) == false) {
       log_t::error ("pipe: Failed to decode message header");
@@ -137,9 +147,9 @@ namespace led_d
 
     switch (msg_id) {
     case ID_HEADER_DECODE_FAILED:
-    case ID_MISSING_EYE_CATCH:
     case ID_STATUS:
-    case ID_UNKNOWN_MSG:
+    case ID_BUTTON:
+    case ID_INVALID_MSG:
       {
         codec_t::char_t info = 0;
         if (codec_t::decode_body (msg, info) == false) {
@@ -152,7 +162,6 @@ namespace led_d
         decode_1_char_msg (msg_id, serial_id, info);
       }
       break;
-      // fixme: add button handling here
     default:
       {
         log_t::buffer_t buf;

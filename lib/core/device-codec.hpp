@@ -21,9 +21,9 @@ namespace core
 
       using char_t = unsigned char;
       using msg_t = std::list<char_t>;
-      using short_t = unsigned short;
+      // using short_t = unsigned short;
 
-      static constexpr short_t max_char = std::numeric_limits<char_t>::max () + 1;
+      // static constexpr short_t max_char = std::numeric_limits<char_t>::max () + 1;
 
       template <typename arg_t>
       static char_t to_char (arg_t arg)
@@ -31,15 +31,14 @@ namespace core
         return static_cast<char_t>(arg);
       }
 
-      template <typename arg_t>
-      static short_t to_short (arg_t arg)
-      {
-        return static_cast<short_t>(arg);
-      }
-
+      // template <typename arg_t>
+      // static short_t to_short (arg_t arg)
+      // {
+      //   return static_cast<short_t>(arg);
+      // }
 
       template <typename ...arg_t>
-      static msg_t encode (char_t msg_id, short_t serial_id, arg_t ...arg)
+      static msg_t encode (char_t msg_id, char_t serial_id, arg_t ...arg)
       {
         msg_t dst;
         encode_data (dst, msg_id, serial_id, arg...);
@@ -47,9 +46,9 @@ namespace core
       }
 
 
-      static bool decode_head (msg_t &src, char_t &msg_id, short_t &serial_id)
+      static bool decode_head (msg_t &src, char_t &msg_id, char_t &serial_id)
       {
-        // msg-id + serial-id (2 bytes), so
+        // msg-id + serial-id (1 bytes), so
         if (src.size () < 3)
           return false;
 
@@ -81,11 +80,11 @@ namespace core
       {
         msg.push_back (info);
       }
-      static void encode_type (msg_t &msg, short_t info)
-      {
-        msg.push_back (static_cast<char_t>(info % max_char));
-        msg.push_back (static_cast<char_t>(info / max_char));
-      }
+      // static void encode_type (msg_t &msg, short_t info)
+      // {
+      //   msg.push_back (static_cast<char_t>(info % max_char));
+      //   msg.push_back (static_cast<char_t>(info / max_char));
+      // }
       static void encode_type (msg_t &msg, const msg_t &info)
       {
         msg.insert (msg.end (), info.begin (), info.end ());
@@ -117,20 +116,20 @@ namespace core
         return true;
       }
 
-      static bool decode_type (msg_t &src, short_t &info)
-      {
-        if (src.size () < 2)
-          return false;
+      // static bool decode_type (msg_t &src, short_t &info)
+      // {
+      //   if (src.size () < 2)
+      //     return false;
 
-        char_t lsb = src.front ();
-        src.pop_front ();
-        char_t msb = src.front ();
-        src.pop_front ();
+      //   char_t lsb = src.front ();
+      //   src.pop_front ();
+      //   char_t msb = src.front ();
+      //   src.pop_front ();
 
-        info  = msb * max_char + lsb;
+      //   info  = msb * max_char + lsb;
 
-        return true;
-      }
+      //   return true;
+      // }
     };
     
   } // namespace device

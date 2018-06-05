@@ -54,12 +54,16 @@ static void parse_body_1 (uint8_t data)
 {
   switch (msg_id) {
   case ID_PIXEL_DELAY:
+    matrix_pixel_delay (data);
     break;
   case ID_PHRASE_DELAY:
+    matrix_phrase_delay (data);
     break;
   case ID_STABLE_DELAY:
+    matrix_stable_delay (data);
     break;
   case ID_BRIGHTNESS:
+    spi_write_brightness (data);
     break;
   default:
     codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_MSG_UNKNOWN_1);
@@ -124,17 +128,10 @@ static void parse_body ()
         return;
       }
 
-      if (*matrix_type == ID_SUB_MATRIX_TYPE_LAST) {
-        /*
-         * Data already copied we can read new matrix,
-         * hope this one will be rendered OK
-         */
-        codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
-        if (matrix_update_finish () == 0) {
-          codec_encode_1 (ID_STATUS, msg_serial_id,
-                          ID_STATUS_SUB_MATRIX_UPDATE_FINISH_FAILURE);
-          return;
-        }
+      if (matrix_update_finish (*matrix_type) == 0) {
+        codec_encode_1 (ID_STATUS, msg_serial_id,
+                        ID_STATUS_SUB_MATRIX_UPDATE_FINISH_FAILURE);
+        return;
       }
     }
     break;
@@ -176,32 +173,9 @@ void parse ()
     /*header is OK and body length is OK*/
     parse_body ();
 
-    buffer_drain (read, ID_HEADER_SIZE + msg_size);
+    if (buffer_drain (read, ID_HEADER_SIZE + msg_size) == 0) {
+      codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_DRAIN_FAILURE);
+      continue;
+    }
   }
-  
-  /*   if (msg_id == ID_UNKNOWN_MSG) { */
-  /*     if (read->data[read->current] != ID_EYE_CATCH) { */
-  /*       codec_encode_1 (ID_MISSING_EYE_CATCH, ++own_serial_id, */
-  /*                       read->data[read->current]); */
-  /*       ++(read->current); */
-  /*       continue; */
-  /*     } */
-  /*     if (read->size - read->current >= ID_TO_ARDUINO_HEADER_SIZE) { */
-  /*       if (codec_decode_header (read->data + read->current, */
-  /*                                &msg_size, &msg_id, &msg_serial_id) == 0) { */
-  /*         msg_id = ID_UNKNOWN_MSG; */
-  /*         ++(read->current); */
-  /*         continue; */
-  /*       } */
-  /*       read->current += ID_TO_ARDUINO_HEADER_SIZE; */
-  /*       /\* */
-  /*        * We have valid msg-id, size, serial id here, */
-  /*        * we can parse empty body message */
-  /*        *\/ */
-  /*       parse_body (); */
-  /*     } */
-  /*   } else {                    /\* header already parsed *\/ */
-  /*     parse_body (); */
-  /*   } */
-  /* } */
 }

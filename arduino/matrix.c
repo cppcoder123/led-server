@@ -10,7 +10,7 @@
 
 #define PHYSICAL_MATRIX_SIZE SPI_WRITE_MATRIX_SIZE
 
-volatile uint8_t matrix_data[ID_MAX_MATRIX_SIZE];
+static uint8_t matrix_data[ID_MAX_MATRIX_SIZE];
 static uint16_t size;
 static uint8_t state;
 
@@ -28,7 +28,6 @@ enum {
 
 void matrix_init ()
 {
-  wait_condition = matrix_timer_get_condition ();
   for (uint8_t i = 0; i < ID_MAX_MATRIX_SIZE; ++i)
     matrix_data[i] = 0;
   size = 0;
@@ -36,15 +35,41 @@ void matrix_init ()
   pixel_delay = 2;
   phrase_delay = 10;
   state = 0;
+
   wait_condition = matrix_timer_get_condition ();
 }
 
-static void shift_buffer (uint8_t *buffer, uint8_t info)
+static void buffer_left_shift (uint8_t *buffer, uint8_t step, uint8_t fill_pattern)
 {
-  for (uint8_t i = 0; i < PHYSICAL_MATRIX_SIZE - 1; ++i)
-    buffer[i] = buffer[i + 1];
+  for (uint8_t i = 0; i < PHYSICAL_MATRIX_SIZE - step; ++i)
+    buffer[i] = buffer[i + step];
 
-  buffer[PHYSICAL_MATRIX_SIZE - 1] = info;
+  for (uint8_t j = PHYSICAL_MATRIX_SIZE - step; j < PHYSICAL_MATRIX_SIZE; ++j)
+    buffer[j] = fill_pattern;
+}
+
+static void buffer_right_shift (uint8_t *buffer, uint8_t step, uint8_t fill_pattern)
+{
+  for (uint8_t i = PHYSICAL_MATRIX_SIZE - step - 1; i >= 0; --i)
+    buffer[i + step] = buffer[i];
+  for (uint8_t j = 0; j < step; ++j)
+    buffer[j] = fill_pattern;
+}
+
+static void center_data ()
+{
+  if (size >= PHYSICAL_MATRIX_SIZE)
+    return;
+
+  uint8_t left = (PHYSICAL_MATRIX_SIZE - (uint8_t)size) / 2;
+
+  buffer_right_shift (matrix_data, left, 0);
+  size += left;
+
+  for (uint8_t i = size; i < PHYSICAL_MATRIX_SIZE; ++i)
+    matrix_data[i] = 0;
+
+  size = PHYSICAL_MATRIX_SIZE;
 }
 
 static void render_shift ()
@@ -55,7 +80,7 @@ static void render_shift ()
 
   for (uint16_t j = 0; j < size + PHYSICAL_MATRIX_SIZE; ++j) {
     uint8_t info = (j < size) ? matrix_data[j] : 0;
-    shift_buffer (buffer, info);
+    buffer_left_shift (buffer, 1, info);
     spi_write_matrix (buffer);
     matrix_wait (pixel_delay);
   }
@@ -110,51 +135,31 @@ uint8_t matrix_update (volatile uint8_t *update_data, uint8_t update_size)
 
   return 1;
 }
-#if 0
-// fixme
-  uint16_t left = 0;
 
-  if (size < PHYSICAL_MATRIX_SIZE) {
-    /* left zeroes */
-    left = (PHYSICAL_MATRIX_SIZE - size) / 2;
-    for (uint16_t i = 0; i < left; ++i) {
-      matrix_data[i] = 0;
-    }
-  }
-
-  for (uint16_t i = left; i < size + left; ++i) {
-    matrix_data[i] = new_data[i];
-  }
-
-  if (size < PHYSICAL_MATRIX_SIZE) {
-    /* right zeroes */
-    for (uint16_t i = left + size; i < PHYSICAL_MATRIX_SIZE; ++i) {
-      matrix_data[i] = 0;
-    }
-  }
-
-  if (size < PHYSICAL_MATRIX_SIZE)
-    size = PHYSICAL_MATRIX_SIZE;
-
-  state |= MATRIX_NEW;
-
-  render ();
-}
-#endif
-
-uint8_t matrix_update_finish ()
+uint8_t matrix_update_finish (uint8_t type)
 {
-  /* fixme center if needed */
+  if ((type & ID_SUB_MATRIX_TYPE_LAST) == 0)
+    /* everything is OK, do nothing */
+    return 1;
+
+  /* Do we need to display empty matrix */
+  
+  center_data ();
+
   state |= MATRIX_UPDATE_FINISHED;
 
   render ();
 
-  return (size != 0) ? 1 : 0;
+  return 1;
 }
 
-void matrix_shift_delay (uint8_t one_pixel_delay, uint8_t whole_phrase_delay)
+void matrix_pixel_delay (uint8_t one_pixel_delay)
 {
   pixel_delay = one_pixel_delay;
+}
+
+void matrix_phrase_delay (uint8_t whole_phrase_delay)
+{
   phrase_delay = whole_phrase_delay;
 }
 

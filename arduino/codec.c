@@ -14,10 +14,10 @@ void codec_init ()
   write = uart_write_get_buffer ();
 }
 
-void codec_encode_0 (uint8_t msg_id, uint8_t msg_serial_id)
-{
-  codec_encode_1 (msg_id, msg_serial_id, 0/*dummy*/);
-}
+/* void codec_encode_0 (uint8_t msg_id, uint8_t msg_serial_id) */
+/* { */
+/*   codec_encode_1 (msg_id, msg_serial_id, 0/\*dummy*\/); */
+/* } */
 
 void codec_encode_1 (uint8_t msg_id, uint8_t msg_serial_id, uint8_t data)
 {

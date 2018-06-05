@@ -31,7 +31,8 @@ enum {
  * Max matrix size
  */
 enum {
-  ID_MAX_MATRIX_SIZE = 800 // just ~100 fat (8 bit wide) symbols
+  ID_MAX_MATRIX_SIZE = 800,     // just ~100 fat (8 bit wide) symbols
+  ID_MAX_SUB_MATRIX_SIZE = 195
 };
 
 /*wrap ids*/
@@ -47,8 +48,7 @@ enum {                          /* msg body */
    * from arduino
    */
   ID_BUTTON,                    /* fixme */
-  ID_HEADER_DECODE_FAILED,      /* <empty> */
-  ID_MISSING_EYE_CATCH,         /* <wrong-value> != EYE_CATCH */
+  ID_HEADER_DECODE_FAILED,      /* <wrong symbol instead of eye catch> */
   ID_STATUS,                    /* <value>*/
   /*
    * to arduino
@@ -67,19 +67,17 @@ enum {                          /* msg body */
  * Matrix message format:
  *   <sub-matrix-type><data-1><data-2>...<data-(msg-size minus 1)>
  *
- * Shift-delay format:
- *   <pixel-delay><matrix-delay>
  */
 
 
 /*status value*/
 enum {
   ID_STATUS_OK = 7,
-  ID_STATUS_THROTTLE,
-  ID_STATUS_HELLO,
   ID_STATUS_BUFFER_CORRUPTED_0,
   ID_STATUS_BUFFER_CORRUPTED_1,
   ID_STATUS_BUFFER_CORRUPTED_2,
+  ID_STATUS_DRAIN_FAILURE,
+  ID_STATUS_HELLO,
   ID_STATUS_MSG_UNKNOWN_H,
   ID_STATUS_MSG_UNKNOWN_0,
   ID_STATUS_MSG_UNKNOWN_1,
@@ -87,18 +85,7 @@ enum {
   ID_STATUS_SUB_MATRIX_UPDATE_START_FAILURE,
   ID_STATUS_SUB_MATRIX_UPDATE_FAILURE,
   ID_STATUS_SUB_MATRIX_UPDATE_FINISH_FAILURE,
-  /*fixme: remove ?*/
-  ID_STATUS_NO_FINISH,
-  ID_STATUS_ID_UNKNOWN,
-  ID_STATUS_LONG_ID_UNKNOWN,
-  ID_STATUS_PARSE_ERROR,
-  ID_STATUS_NO_ARRAY_START,
-  ID_STATUS_NO_ARRAY_FINISH,
-  ID_STATUS_TOO_LONG_MATRIX,
-  ID_STATUS_UNKNOWN_DELAY_ID,
-  ID_STATUS_BRIGHTNESS_OUT_OF_RANGE,
-  /**/
-  MSG_ID_STATUS_MAX
+  ID_STATUS_THROTTLE
 };
 
 enum {
