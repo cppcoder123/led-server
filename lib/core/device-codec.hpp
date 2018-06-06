@@ -4,7 +4,6 @@
 #ifndef CORE_DEVICE_CODEC_HPP
 #define CORE_DEVICE_CODEC_HPP
 
-#include <functional>
 #include <limits>
 #include <list>
 
@@ -21,45 +20,43 @@ namespace core
 
       using char_t = unsigned char;
       using msg_t = std::list<char_t>;
-      // using short_t = unsigned short;
-
-      // static constexpr short_t max_char = std::numeric_limits<char_t>::max () + 1;
-
-      template <typename arg_t>
-      static char_t to_char (arg_t arg)
-      {
-        return static_cast<char_t>(arg);
-      }
-
-      // template <typename arg_t>
-      // static short_t to_short (arg_t arg)
-      // {
-      //   return static_cast<short_t>(arg);
-      // }
 
       template <typename ...arg_t>
-      static msg_t encode (char_t msg_id, char_t serial_id, arg_t ...arg)
+      static msg_t encode (char_t first, arg_t ...arg)
       {
         msg_t dst;
-        encode_data (dst, msg_id, serial_id, arg...);
+        encode_data (dst, first, arg...);
         return dst;
       }
 
-
-      static bool decode_head (msg_t &src, char_t &msg_id, char_t &serial_id)
-      {
-        // msg-id + serial-id (1 bytes), so
-        if (src.size () < 3)
-          return false;
-
-        return decode_data (src, std::ref (msg_id), std::ref (serial_id));
-      }
-
       template <typename ...arg_t>
-      static bool decode_body (msg_t &src, arg_t ...arg)
+      static bool decode_modify (msg_t &src, arg_t ...arg)
       {
         return decode_data (src, arg...);
       }
+
+      template <typename ...arg_t>
+      static bool decode (const msg_t &src, arg_t ...arg)
+      {
+        msg_t src_copy = src;
+
+        return decode_modify (src_copy, arg...);
+      }      
+
+      // static bool decode_head (msg_t &src, char_t &msg_id, char_t &serial_id)
+      // {
+      //   // msg-id + serial-id (1 bytes), so
+      //   if (src.size () < 1)
+      //     return false;
+
+      //   return decode_data (src, std::ref (msg_id), std::ref (serial_id));
+      // }
+
+      // template <typename ...arg_t>
+      // static bool decode_body (msg_t &src, arg_t ...arg)
+      // {
+      //   return decode_data (src, arg...);
+      // }
 
     private:
 

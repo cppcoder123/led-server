@@ -8,37 +8,20 @@
 /*
  * Message starts with 'ID_MSG_START' next field is message length,
  * where length is calculated w/o eye-catcher (ID_MSG_START) and length itself, i.e.:
- *  e.g. : <ID_EYE_CATCH><msg-size><msg-id><serial-id><msg-body>
+ *  e.g. : <ID_EYE_CATCH><msg-size><serial-id><msg-id><msg-body>
  *          ^
  *          |
  * Message header (4 bytes)
  *
- * Note:
- *  Messages going _to_ arduino have 2 bytes for message size,
- *  we are expecting long message in that direction (more than 255 chars),
- *  but messages going _from_ arduino should be short, so one character (255)
- *  should be enough to code its size.
  */
 
-/*
- * Message header size
- */
-enum {
-  ID_HEADER_SIZE = 4,
-};
 
-/*
- * Max matrix size
- */
 enum {
-  ID_MAX_MATRIX_SIZE = 800,     // just ~100 fat (8 bit wide) symbols
-  ID_MAX_SUB_MATRIX_SIZE = 195
-};
-
-/*wrap ids*/
-enum {
-  ID_EYE_CATCH = 254,
-  /*Note: we are at unsigned char limit*/
+  ID_MAX_MATRIX_SIZE = 800,   /* just ~100 fat (8 bit wide) symbols */
+  ID_MAX_SUB_MATRIX_SIZE = 195,
+  ID_HEADER_SIZE = 4,           /* Message header size */
+  ID_EYE_CATCH = 254,           /* eye catch symbol */
+  ID_ARDUINO_SERIAL = 0         /* serial id used by arduino only */
 };
 
 /*message ids*/

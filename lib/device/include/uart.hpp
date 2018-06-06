@@ -40,10 +40,12 @@ namespace device
     void configure_attributes (int speed);
     void set_min_count (int min_count);
 
-    void unwrap_fill (codec_t::msg_t &msg,
-                      bool &started, std::size_t &msg_size);
+    bool read_decode (codec_t::msg_t &msg);
+    bool read_tty ();
     
     static constexpr std::size_t io_max_size = 80;
+    static constexpr std::size_t header_left_size = 2;
+    static constexpr std::size_t header_right_size = 2;
     
     const std::string m_linux_device;
     int m_descriptor;

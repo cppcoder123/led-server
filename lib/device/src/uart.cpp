@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <chrono>
 #include <functional>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 #include <thread>
@@ -71,13 +72,13 @@ namespace device
     // msg size should not be less than 2,
     // msg-id (1 byte) and serial-id (1 byte),
     // so exclude this header info from size to simplify decode
-    constexpr std::size_t msg_min_size = 2;
 
-    if (src.size () < msg_min_size)
+    if ((src.size () < header_right_size)
+        || (src.size () > ID_MAX_SUB_MATRIX_SIZE))
       return false;
 
     const codec_t::char_t msg_size
-      = codec_t::to_char (src.size () - msg_min_size);
+      = static_cast<codec_t::char_t>(src.size () - header_right_size);
 
     codec_t::msg_t msg
       = codec_t::encode (ID_EYE_CATCH, msg_size, std::cref (src));
@@ -109,72 +110,76 @@ namespace device
   // 
   bool uart_t::read (codec_t::msg_t &msg, bool block)
   {
-  fixme: redo, use codec here, change decode src arg to const
-      fixme: change decode_head to decode_head (const msg_t &msg, char_t &first, char_t &second);
-  fixme: change format to <eye-catch><size><serial><msg-id>
-      
-    bool started = false, finished = false;
-    std::size_t msg_size = 0;
-
-    m_error.clear ();
-    
     do {
-      // try to drain message buffer first
-      unwrap_fill (msg, started, msg_size);
-      if ((started == true)
-          && (msg_size != 0)
-          && (msg.size () == msg_size))
+      // try to drain buffer first
+      if ((m_message_buffer.empty () == false)
+          && (read_decode (msg) == true))
         return true;
+      // failed to decode, try to read something
+      if ((read_tty () == true)
+          && (read_decode (msg) == true))
+        return true;
+    } while (block == true);
 
-      // buffer was empty or message arrived partly => read more
-      codec_t::char_t buffer[io_max_size];
-      int read_length = ::read (m_descriptor, buffer, io_max_size - 1);
-      if (read_length > 0) {
-        for (int i = 0; i < read_length; ++i)
-          m_message_buffer.push_back (buffer[i]);
-        unwrap_fill (msg, started, msg_size);
-      } else if (read_length < 0) {
-        m_error += "Error during ::read call \"";
-        m_error += strerror (errno);
-        m_error += "\"";
-        return false;
-      } else {
-        // no error just need to wait in case of blocking read
-        if (block == true)
-          // fixme: where we should keep read delay?
-          std::this_thread::sleep_for (std::chrono::milliseconds (100));
-      }
-      finished = ((msg_size != 0) && (msg_size == msg.size ()));
-    } while (((block == false) && (started == true) && (finished == false)) // at least 1 symbol is arrived
-             || ((block == true) && (finished == false))); // read till message is arrived
-
+    // block == false
     return m_error.empty ();
   }
 
-  void uart_t::unwrap_fill (codec_t::msg_t &msg, bool &started, std::size_t &msg_size)
+  bool uart_t::read_decode (codec_t::msg_t &msg)
   {
-    std::for_each (m_message_buffer.begin (), m_message_buffer.end (),
-      [&msg, &started, &msg_size] (codec_t::char_t info)
-      {
-        if (started == false) {
-          if (info == ID_EYE_CATCH) {
-            started = true;
-          } else {
-            // we are missing message start?
-            // m_error += "Skipping symbol: \"" + buffer[index] + "\" ";
-          }
-        } else {                // started == true
-          if (msg_size == 0) {
-            // we do not expect long messages, so 255 should be enough
-            msg_size = info;
-          } else {              // msg_size != 0
-            msg.push_back (info);
-            if (msg.size () == msg_size)
-              // the rest of read info should stay in (m_message_) buffer
-              return;
-          }
-        }
-      });
+    msg.clear ();
+    if (m_message_buffer.size () < header_left_size)
+      return false;
+
+    codec_t::char_t eye_catch = 0, msg_size = 0;
+    if (codec_t::decode (m_message_buffer,
+                         std::ref (eye_catch), std::ref (msg_size)) == false)
+      // no error just need to wait
+      return false;
+
+    if (eye_catch != ID_EYE_CATCH) {
+      m_message_buffer.pop_front ();
+      m_error += "Expecting eye catch found something different ";
+      return false;
+    }
+
+    if (msg_size < header_right_size) {
+      m_error += "Message size is too small";
+      return false;
+    }
+
+    std::size_t target_size = header_right_size + msg_size;
+    if (m_message_buffer.size () >= header_left_size + target_size) {
+      m_message_buffer.pop_front (); // eye catch
+      m_message_buffer.pop_front (); // msg size
+      while (msg.size () < target_size) {
+        auto iter_last = m_message_buffer.begin ();
+        std::advance (iter_last, target_size + 1); // range [first, last)
+        msg.splice (msg.begin (), m_message_buffer,
+                    m_message_buffer.begin (), iter_last);
+      }
+    }
+    
+    return true;
+  }
+
+  bool uart_t::read_tty ()
+  {
+    codec_t::char_t buffer[io_max_size];
+    int read_length = ::read (m_descriptor, buffer, io_max_size - 1);
+
+    if (read_length > 0) {
+      for (int i = 0; i < read_length; ++i)
+        m_message_buffer.push_back (buffer[i]);
+    } else if (read_length < 0) {
+      m_error += "Error during ::read call \"";
+      m_error += strerror (errno);
+      m_error += "\"";
+      return false;
+    }
+
+    // we have not zero read timeout, so we should wait there if needed
+    return true;
   }
 
   std::string uart_t::get_error ()
@@ -196,7 +201,8 @@ namespace device
 
     codec_t::char_t msg_id = 0;
     codec_t::char_t serial_id = 0;
-    if (codec_t::decode_head (msg, msg_id, serial_id) == false)
+    if (codec_t::decode_modify
+        (msg, std::ref (serial_id), std::ref (msg_id)) == false)
       throw std::runtime_error ("uart: Failed to decode status message");
 
     if (msg_id != ID_STATUS) {
@@ -206,7 +212,7 @@ namespace device
     }
 
     codec_t::char_t msg_status = 0;
-    if (codec_t::decode_body (msg, msg_status) == false)
+    if (codec_t::decode_modify (msg, std::ref (msg_status)) == false)
       throw std::runtime_error ("uart: Failed to decode status value");
 
     if (msg_status != status) {
@@ -271,7 +277,7 @@ namespace device
     tty.c_oflag &= ~OPOST;
 
     /* fetch bytes as they become available */
-    tty.c_cc[VMIN] = 1;
+    tty.c_cc[VMIN] = 0;         // Note: Don't wait for a byte(s) arrival
     tty.c_cc[VTIME] = 1;
 
     if (tcsetattr(m_descriptor, TCSANOW, &tty) != 0) {
