@@ -18,8 +18,6 @@ static volatile uint8_t msg_id;
 static volatile uint8_t msg_size;
 static volatile uint8_t msg_serial_id;
 
-static volatile uint8_t own_serial_id;
-
 void parse_init ()
 {
   read = uart_read_get_buffer ();
@@ -27,7 +25,6 @@ void parse_init ()
   msg_id = ID_INVALID_MSG;
   msg_size = 0;
   msg_serial_id = 0;
-  own_serial_id = 0;
 }
 
 static void parse_body_0 ()
@@ -55,15 +52,19 @@ static void parse_body_1 (uint8_t data)
   switch (msg_id) {
   case ID_PIXEL_DELAY:
     matrix_pixel_delay (data);
+    codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_PHRASE_DELAY:
     matrix_phrase_delay (data);
+    codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_STABLE_DELAY:
     matrix_stable_delay (data);
+    codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_BRIGHTNESS:
     spi_write_brightness (data);
+    codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     break;
   default:
     codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_MSG_UNKNOWN_1);
@@ -133,6 +134,8 @@ static void parse_body ()
                         ID_STATUS_SUB_MATRIX_UPDATE_FINISH_FAILURE);
         return;
       }
+
+      codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     }
     break;
   default:
@@ -152,7 +155,7 @@ void parse ()
   while (buffer_is_drainable (read, ID_HEADER_SIZE) != 0) {
     uint8_t *data = 0;
     if (buffer_get (read, 0, &data) == 0) {
-      codec_encode_1 (ID_STATUS, ++own_serial_id, ID_STATUS_BUFFER_CORRUPTED_0);
+      codec_encode_1 (ID_STATUS, ID_ARDUINO_SERIAL, ID_STATUS_BUFFER_CORRUPTED_0);
       uint8_t symbol;
       buffer_drain_symbol (read, &symbol);
       continue;
@@ -160,7 +163,7 @@ void parse ()
     if (codec_decode_header (data, &msg_size, &msg_id, &msg_serial_id) == 0) {
       uint8_t symbol;
       buffer_drain_symbol (read, &symbol);
-      codec_encode_1 (ID_HEADER_DECODE_FAILED, ++own_serial_id, symbol);
+      codec_encode_1 (ID_HEADER_DECODE_FAILED, ID_ARDUINO_SERIAL, symbol);
       continue;
     } 
 

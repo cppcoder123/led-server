@@ -21,12 +21,6 @@ namespace led_d
 
     using char_t = core::device::codec_t::char_t;
 
-    //
-    // fixme: For messages going to arduino we should not use 0,
-    //        but for own messages going from arduino we should always use 0,
-    //        so implement a function that generates only positive serial id.
-    //
-    
     bool can_go () const;
 
     void tighten (char_t id);   // error if already tightened with other id

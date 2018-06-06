@@ -9,7 +9,6 @@
 #include "button.h"
 #include "codec.h"
 
-#define BUTTON_SERIAL_ID 111
 #define BUTTON_SEND_DISABLED (ID_BUTTON_MAX << 1)
 
 volatile uint8_t button_pressed;
@@ -54,7 +53,7 @@ static void button_compare (uint8_t new_button_pressed)
      */
     if ((button_pressed & BUTTON_SEND_DISABLED) == 0) {
       codec_encode_1
-        (ID_BUTTON, BUTTON_SERIAL_ID, button_pressed & ID_BUTTON_MASK);
+        (ID_BUTTON, ID_ARDUINO_SERIAL, button_pressed & ID_BUTTON_MASK);
       button_pressed |= BUTTON_SEND_DISABLED;
     }
     if (new_count == 0) {
