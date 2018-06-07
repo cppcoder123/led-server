@@ -24,9 +24,9 @@ namespace led_d
     if ((m_pending == true)
         && (m_pending_id != id)) {
       log_t::buffer_t buf;
-      buf << "block: Tightening with new id, while old id is not relaxed.";
+      buf << "block: Trying to tighten with new id \"" << id
+          << "\", while old id \"" << m_pending_id << "\" is not relaxed.";
       log_t::error (buf);
-      m_pending_id = id;
       return;
     }
 
@@ -36,9 +36,15 @@ namespace led_d
 
   void block_t::relax (char_t id)
   {
+    if ((id == ID_ARDUINO_SERIAL)
+        || (m_pending == false))
+      // not an error
+      return;
+    
     if (m_pending_id != id) {
       log_t::buffer_t buf;
-      buf << "block: Trying to relax mismatching id";
+      buf << "block: Trying to relax with wrong id \""
+          << id << "\" while expecting \"" << m_pending_id << "\"";
       log_t::error (buf);
       return;
     }

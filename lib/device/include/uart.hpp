@@ -41,9 +41,14 @@ namespace device
     void set_min_count (int min_count);
 
     bool read_decode (codec_t::msg_t &msg);
+
+    bool write_tty (codec_t::msg_t &&msg);
     bool read_tty ();
+
     
-    static constexpr std::size_t io_max_size = 80;
+    static constexpr std::size_t max_write_size = 255;
+    static constexpr std::size_t max_read_size = 80;
+    //
     static constexpr std::size_t header_left_size = 2;
     static constexpr std::size_t header_right_size = 2;
     

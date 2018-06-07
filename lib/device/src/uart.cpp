@@ -18,6 +18,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <thread>
+#include <utility>
 
 #include "device-id.h"
 #include "device-codec.hpp"
@@ -83,28 +84,7 @@ namespace device
     codec_t::msg_t msg
       = codec_t::encode (ID_EYE_CATCH, msg_size, std::cref (src));
 
-    codec_t::char_t buffer[io_max_size];
-    std::size_t io_size = 0;
-    std::size_t size = 0;
-    
-    for (codec_t::char_t symbol : msg) {
-      buffer[io_size++] = symbol;
-      if ((io_size == io_max_size) || (size + io_size == msg.size ())) {
-        if (::write (m_descriptor, buffer, io_size) == false) {
-          std::ostringstream stream;
-          stream << "uart: Failed to write to linux device: \""
-                 << strerror (errno) << "\"";
-          m_error = stream.str ();
-          return false;
-        }
-        tcdrain (m_descriptor);
-        //
-        size += io_size;
-        io_size = 0;
-      }
-    }
-
-    return true;
+    return write_tty (std::move (msg));
   }
 
   // 
@@ -163,10 +143,35 @@ namespace device
     return true;
   }
 
+  bool uart_t::write_tty (codec_t::msg_t &&msg)
+  {
+    // msg should fit into write buffer
+    codec_t::char_t buffer[max_write_size];
+    std::size_t buffer_size = 0; 
+    std::for_each (msg.begin (), msg.end (),
+                   [&buffer, &buffer_size] (codec_t::char_t info)
+                   {
+                     buffer[buffer_size++] = 0;
+                   });
+    
+    if (::write (m_descriptor, buffer, buffer_size) == false) {
+      std::ostringstream stream;
+      stream << "uart: Failed to write to linux device: \""
+             << strerror (errno) << "\"";
+      m_error = stream.str ();
+      return false;
+    }
+
+    tcdrain (m_descriptor);
+
+    return true;
+
+  }
+  
   bool uart_t::read_tty ()
   {
-    codec_t::char_t buffer[io_max_size];
-    int read_length = ::read (m_descriptor, buffer, io_max_size - 1);
+    codec_t::char_t buffer[max_read_size];
+    int read_length = ::read (m_descriptor, buffer, max_read_size - 1);
 
     if (read_length > 0) {
       for (int i = 0; i < read_length; ++i)
