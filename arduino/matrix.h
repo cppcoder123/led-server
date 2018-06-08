@@ -21,6 +21,4 @@ void matrix_phrase_delay (uint8_t phrase_delay);
 
 void matrix_stable_delay (uint8_t delay);
 
-void matrix_wait (uint8_t delay);
-
 #endif

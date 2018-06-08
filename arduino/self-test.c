@@ -7,6 +7,7 @@
 #include "device-id.h"
 
 #include "matrix.h"
+#include "matrix-timer.h"
 #include "self-test.h"
 #include "spi-write.h"
 
@@ -20,7 +21,7 @@ static void test_pattern (uint8_t pattern)
 
   spi_write_matrix (buf);
 
-  matrix_wait (DELAY);
+  matrix_timer_wait (DELAY);
 }
 
 void self_test ()

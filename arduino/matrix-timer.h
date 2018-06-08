@@ -9,6 +9,6 @@
 
 void matrix_timer_init ();
 
-volatile uint8_t* matrix_timer_get_condition ();
+void matrix_timer_wait (uint8_t dot1_sec_delay);
 
 #endif

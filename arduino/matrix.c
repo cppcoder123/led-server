@@ -18,8 +18,6 @@ static uint8_t pixel_delay;
 static uint8_t phrase_delay;
 static uint8_t stable_delay;
 
-volatile uint8_t *wait_condition;
-
 enum {
   MATRIX_UPDATE_STARTED = (1 << 0),
   MATRIX_UPDATE_FINISHED = (1 << 1),
@@ -35,8 +33,6 @@ void matrix_init ()
   pixel_delay = 2;
   phrase_delay = 10;
   state = 0;
-
-  wait_condition = matrix_timer_get_condition ();
 }
 
 static void buffer_left_shift (uint8_t *buffer, uint8_t step, uint8_t fill_pattern)
@@ -82,10 +78,10 @@ static void render_shift ()
     uint8_t info = (j < size) ? matrix_data[j] : 0;
     buffer_left_shift (buffer, 1, info);
     spi_write_matrix (buffer);
-    matrix_wait (pixel_delay);
+    matrix_timer_wait (pixel_delay);
   }
 
-  matrix_wait (phrase_delay);
+  matrix_timer_wait (phrase_delay);
 
   state |= MATRIX_RENDERED;
 }
@@ -93,7 +89,7 @@ static void render_shift ()
 static void render_stable ()
 {
   spi_write_matrix (matrix_data);
-  matrix_wait (stable_delay);
+  matrix_timer_wait (stable_delay);
   state |= MATRIX_RENDERED;
 }
 
@@ -166,13 +162,4 @@ void matrix_phrase_delay (uint8_t whole_phrase_delay)
 void matrix_stable_delay (uint8_t delay)
 {
   stable_delay = delay;
-}
-
-void matrix_wait (uint8_t delay)
-{
-  for (uint8_t i = 0; i < delay; ++i) {
-    *wait_condition = 1;
-    while (*wait_condition)
-      ;
-  }
 }
