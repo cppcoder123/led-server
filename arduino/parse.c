@@ -155,7 +155,7 @@ void parse ()
   while (buffer_is_drainable (read, ID_HEADER_SIZE) != 0) {
     uint8_t *data = 0;
     if (buffer_get (read, 0, &data) == 0) {
-      codec_encode_1 (ID_STATUS, ID_ARDUINO_SERIAL, ID_STATUS_BUFFER_CORRUPTED_0);
+      codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, ID_STATUS_BUFFER_CORRUPTED_0);
       uint8_t symbol;
       buffer_drain_symbol (read, &symbol);
       continue;
@@ -163,7 +163,7 @@ void parse ()
     if (codec_decode_header (data, &msg_size, &msg_id, &msg_serial_id) == 0) {
       uint8_t symbol;
       buffer_drain_symbol (read, &symbol);
-      codec_encode_1 (ID_HEADER_DECODE_FAILED, ID_ARDUINO_SERIAL, symbol);
+      codec_encode_1 (ID_HEADER_DECODE_FAILED, ID_DEVICE_SERIAL, symbol);
       continue;
     } 
 

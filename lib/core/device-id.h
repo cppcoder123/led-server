@@ -21,7 +21,7 @@ enum {
   ID_MAX_SUB_MATRIX_SIZE = 195,
   ID_HEADER_SIZE = 4,           /* Message header size */
   ID_EYE_CATCH = 254,           /* eye catch symbol */
-  ID_ARDUINO_SERIAL = 0         /* serial id used by arduino only */
+  ID_DEVICE_SERIAL = 0          /* serial id used by device only */
 };
 
 /*message ids*/

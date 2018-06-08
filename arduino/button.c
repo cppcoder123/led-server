@@ -53,7 +53,7 @@ static void button_compare (uint8_t new_button_pressed)
      */
     if ((button_pressed & BUTTON_SEND_DISABLED) == 0) {
       codec_encode_1
-        (ID_BUTTON, ID_ARDUINO_SERIAL, button_pressed & ID_BUTTON_MASK);
+        (ID_BUTTON, ID_DEVICE_SERIAL, button_pressed & ID_BUTTON_MASK);
       button_pressed |= BUTTON_SEND_DISABLED;
     }
     if (new_count == 0) {

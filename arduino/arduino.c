@@ -38,7 +38,7 @@ static void init ()
 
 static void say_hello ()
 {
-  codec_encode_1 (ID_STATUS, 0, ID_STATUS_HELLO);
+  codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, ID_STATUS_HELLO);
 }
 
 int main ()

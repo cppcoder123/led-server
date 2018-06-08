@@ -14,7 +14,7 @@ namespace led_d
   
   void block_t::tighten (char_t id)
   {
-    if (id == ID_ARDUINO_SERIAL) {
+    if (id == ID_DEVICE_SERIAL) {
       log_t::buffer_t buf;
       buf << "block: Found arduino serial id";
       log_t::error (buf);
@@ -36,7 +36,7 @@ namespace led_d
 
   void block_t::relax (char_t id)
   {
-    if ((id == ID_ARDUINO_SERIAL)
+    if ((id == ID_DEVICE_SERIAL)
         || (m_pending == false))
       // not an error
       return;

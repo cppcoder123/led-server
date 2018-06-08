@@ -183,7 +183,7 @@ namespace led_d
 
   char_t pipe_t::get_serial_id ()
   {
-    if (++m_serial_id != ID_ARDUINO_SERIAL)
+    if (++m_serial_id != ID_DEVICE_SERIAL)
       return m_serial_id;
 
     return ++m_serial_id;
