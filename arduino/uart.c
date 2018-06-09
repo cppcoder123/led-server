@@ -23,8 +23,16 @@ void uart_init ()
   UCSR0A &= ~(1 << U2X0);       /* disable double mode */
   UCSR0A &= ~(1 << MPCM0);      /* disable multi processor comm mode */
   
-  UCSR0B = (1 << RXEN0) | (1 << TXEN0); /* enable receiver & transmitter */
-  UCSR0B |= (1 << RXCIE0) | (1 << TXCIE0); /* receiver and transmitter interrupts */
+
+  /*Note: Do we need to use TXCIE0 interrupt ? - it seems no*/
+
+  /*
+   * Enable receiver and transmitter,
+   * receiver interrupt
+   * We can't enable transmitter buffer empty interrupt because
+   * we have nothing to send now. It will be done in uart-write
+   */
+  UCSR0B = (1 << RXEN0) | (1 << TXEN0) | (1 << RXCIE0);
 
   /*
    * Configure our format 
@@ -34,4 +42,3 @@ void uart_init ()
   /* UCSR0C &= ~(USBS0);                            1 stop bit */
   UCSR0C = (1 << UCSZ00) | (1 << UCSZ01); /* 8 bit character */
 }
-
