@@ -19,8 +19,7 @@
 #include "parse.h"
 #include "self-test.h"
 #include "spi-write.h"
-#include "uart-read.h"
-#include "uart-write.h"
+#include "uart.h"
 
 static void init ()
 {
@@ -30,8 +29,7 @@ static void init ()
   matrix_timer_init ();
   parse_init ();
   spi_write_init ();
-  uart_read_init ();
-  uart_write_init ();
+  uart_init ();
   /* enable interrupts */
   sei ();
 }

@@ -1,5 +1,5 @@
 //
-//
+// boost::serial should be used instead
 //
 #include <errno.h>
 #include <fcntl.h>
@@ -248,7 +248,7 @@ namespace device
     }
 
     //baudrate 115200, 8 bits, no parity, 1 stop bit
-    configure_attributes (B115200);
+    configure_attributes (B500000); //B115200
 
     //set_min_count (0)
   }

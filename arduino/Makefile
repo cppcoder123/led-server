@@ -13,6 +13,7 @@ OBJECT_LIST = \
   parse.o \
   self-test.o \
   spi-write.o \
+  uart.o \
   uart-read.o \
   uart-write.o
 
