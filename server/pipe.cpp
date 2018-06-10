@@ -6,8 +6,6 @@
 #include "device-codec.hpp"
 #include "device-id.h"
 
-#include "uart.hpp"
-
 #include "log-wrapper.hpp"
 #include "pipe.hpp"
 
@@ -69,18 +67,16 @@ namespace led_d
     }
   } // namespace anonymous
   
-  pipe_t::pipe_t (const std::string &device_name)
-    : m_device (std::make_unique<device::uart_t>(device_name)),
-      m_serial_id (0),
-      m_device_go (true),
-      m_device_thread (std::thread (&pipe_t::serve_read_write, this))
+  pipe_t::pipe_t (serial_t &serial)
+    : m_device (serial),
+      m_serial_id (0)
   {
+    m_device.bind (std::bind (&pipe_t::decode, this, std::placeholders::_1),
+                   std::bind (&pipe_t::write, this));
   }
 
   pipe_t::~pipe_t ()
   {
-    m_device_go = false;
-    m_device_thread.join ();
   }
 
   bool pipe_t::render (const core::matrix_t &matrix)
@@ -109,6 +105,7 @@ namespace led_d
     return true;
   }
 
+#if 0
   void pipe_t::serve_read_write ()
   {
     while (m_device_go == true) {
@@ -135,8 +132,30 @@ namespace led_d
       }
     }
   }
+#endif
 
-  bool pipe_t::decode (msg_t &msg)
+  void pipe_t::write ()
+  {
+    if ((m_block.can_go () == false)
+        || (m_device.ready () == false))
+      return;
+
+    auto opt_msg = m_write_queue.pop ();
+    if (opt_msg.has_value () == false)
+      return;
+
+    // write changes argument => remember serial_id
+    char_t serial_id = opt_msg->front ();
+    if (m_device.write (*opt_msg) == true)
+      m_block.tighten (serial_id);
+    else {
+      log_t::buffer_t buf;
+      buf << "pipe: Failed to write message to serial";
+      log_t::error (buf);
+    }
+  }
+  
+  void pipe_t::decode (msg_t &msg)
   {
     char_t msg_id = 0;
     char_t serial_id = 0;
@@ -144,11 +163,13 @@ namespace led_d
     if (codec_t::decode_modify
         (msg, std::ref (serial_id), std::ref (msg_id)) == false) {
       log_t::error ("pipe: Failed to decode message header");
-      return false;
+      return;
     }
 
     // header is OK => try to relax blocker
     m_block.relax (serial_id);
+    // blocker is relaxed => try to write
+    write ();
 
     switch (msg_id) {
     case ID_HEADER_DECODE_FAILED:
@@ -162,7 +183,7 @@ namespace led_d
           buf << "pipe: Failed to decode message body, message id: \""
               << msg_id << "\", serial id: \"" << serial_id << "\"";
           log_t::error (buf);
-          return false;
+          return;
         }
         decode_1_char_msg (msg_id, serial_id, info);
       }
@@ -173,12 +194,10 @@ namespace led_d
         buf << "Unknown message is arrived with id \"" << msg_id
             << "\", serial id \"" << serial_id << "\"";
         log_t::error (buf);
-        return false;
+        return;
       }
       break;
     }
-
-    return true;
   }
 
   char_t pipe_t::get_serial_id ()

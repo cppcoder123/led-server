@@ -27,9 +27,10 @@ namespace led_d
   int daemon_t::start (const arg_t &arg)
   {
     try {
+      m_serial = std::make_unique<serial_t>(m_asio_service, arg.device);
       //
       m_network_thread = std::thread (&daemon_t::network_load, this, arg);
-      m_display_thread = std::thread (&display_t::start, &m_display, arg);
+      m_display_thread = std::thread (&display_t::start, &m_display, arg, std::ref(*m_serial));
       m_update_thread = std::thread (&daemon_t::update_load, this);
     }
 

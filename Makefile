@@ -9,7 +9,6 @@ export LIB_ASIO = $(LIB_ROOT)/asio
 export LIB_ARDUINO = $(LIB_ROOT)/arduino
 export LIB_CORE = $(LIB_ROOT)/core
 export LIB_DAEMON = $(LIB_ROOT)/daemon
-export LIB_DEVICE = $(LIB_ROOT)/device
 export LIB_TCLAP = $(LIB_ROOT)/tclap
 
 export COMMON_CPPFLAGS = -std=c++17 -Wall -pedantic -g
@@ -19,7 +18,7 @@ INFO_GATEWAY = $(ROOT)/info-gateway
 TEST_CLIENT = $(ROOT)/test-client
 
 # lib(s) first
-TARGET_PATH_LIST = $(LIB_DAEMON) $(LIB_DEVICE) $(TEST_CLIENT) $(INFO_GATEWAY) $(SERVER)
+TARGET_PATH_LIST = $(LIB_DAEMON) $(TEST_CLIENT) $(INFO_GATEWAY) $(SERVER)
 
 ALL: $(TARGET_PATH_LIST)
 

@@ -16,6 +16,7 @@
 #include "arg.hpp"
 #include "pipe.hpp"
 #include "render.hpp"
+#include "serial.hpp"
 
 namespace led_d
 {
@@ -27,7 +28,7 @@ namespace led_d
     display_t ();
     ~display_t ();
 
-    void start (const arg_t &arg);
+    void start (const arg_t &arg, serial_t &serial);
     void stop ();
 
     typedef core::request_t request_t;

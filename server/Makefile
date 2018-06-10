@@ -10,24 +10,24 @@ TARGET = led-d
 #
 
 OBJECT_LIST = led-d.o arg.o block.o daemon.o display.o font.o font-dir.o hex-font.o \
-  log-wrapper.o network.o pipe.o render.o session.o
+  log-wrapper.o network.o pipe.o render.o serial.o session.o
 
 
 #
 #
 #
 
-LDFLAGS = -L $(LIB_DEVICE)/src -L $(LIB_DAEMON)/src -ldevice -ldaemon -lpthread
+LDFLAGS = -L $(LIB_DAEMON)/src -ldaemon -lpthread
 
-CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_CORE) -I $(LIB_DEVICE)/include \
-  -I $(LIB_DAEMON)/include -I $(LIB_ASIO) -I $(LIB_ROOT)
+CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_CORE) -I $(LIB_DAEMON)/include \
+  -I $(LIB_ASIO) -I $(LIB_ROOT)
 
 #
 #
 #
 ALL: $(TARGET)
 
-$(TARGET): $(OBJECT_LIST) $(LIB_DEVICE)/src/libdevice.a $(LIB_CORE)/*
+$(TARGET): $(OBJECT_LIST) $(LIB_CORE)/*
 	$(CXX) -o $@ $(OBJECT_LIST) $(LDFLAGS)
 
 

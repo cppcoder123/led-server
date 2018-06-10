@@ -27,11 +27,11 @@ namespace led_d
     // render device closes itself
   }
 
-  void display_t::start (const arg_t &arg)
+  void display_t::start (const arg_t &arg, serial_t &serial)
   {
     //
     try {
-      m_pipe_ptr = std::make_unique<pipe_t>(arg.device);
+      m_pipe_ptr = std::make_unique<pipe_t>(serial);
     }
     catch (std::exception &e) {
       log_t::buffer_t msg ("Failed to create render device : ");

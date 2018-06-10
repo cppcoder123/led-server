@@ -4,6 +4,7 @@
 #ifndef LED_D_DAEMON_HPP
 #define LED_D_DAEMON_HPP
 
+#include <memory>
 #include <thread>
 
 #include "asio.hpp"
@@ -12,6 +13,7 @@
 #include "display.hpp"
 #include "message-queue.hpp"
 #include "message-ptr.hpp"
+#include "serial.hpp"
 
 namespace led_d
 {
@@ -33,9 +35,8 @@ namespace led_d
     void network_load (const arg_t &arg);
     void update_load ();
 
-    //typedef std::unique_ptr<std::thread> thread_ptr_t;
-
     asio::io_service m_asio_service;
+    std::unique_ptr <serial_t> m_serial;
     std::thread m_network_thread;
 
     display_t m_display;
