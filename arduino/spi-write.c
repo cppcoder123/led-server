@@ -45,7 +45,7 @@ static volatile struct buffer_t buffer;
 static volatile uint8_t send_mode;
 static volatile uint8_t send_count;
 
-static void send_clear ()
+static void reset_send_info ()
 {
   send_mode = 0;
   send_count = 0;
@@ -54,7 +54,7 @@ static void send_clear ()
 void spi_write_init ()
 {
   buffer_init (&buffer, buffer_data, BUFFER_SIZE);
-  send_clear ();
+  reset_send_info ();
 
   /* 
    * Configure SPI port directions,
@@ -77,13 +77,13 @@ void spi_write_init ()
   SPCR = (1 << SPIE) | (1 << SPE) | (1 << MSTR) | (1 << SPR1) | (1 << SPR0);
 }
 
-static void ss_activate ()
+static void activate_ss ()
 {
   /* active level is low, so */
   PORTB &= ~SPI_SS;
 }
 
-static void ss_deactivate ()
+static void deactivate_ss ()
 {
   PORTB |= SPI_SS;
 }
@@ -95,7 +95,7 @@ static void select_mode (uint8_t mode)
     buffer_fill_symbol (&buffer, mode);
 }
 
-static void send_start ()
+static void start_send ()
 {
   if ((send_mode != 0)          /* send in progress */
       || (buffer_is_drainable (&buffer, 1) == 0)) /* empty buffer */
@@ -142,7 +142,7 @@ ISR (SPI_STC_vect)
         || (mode != SEND_DATA_MODE))
       return;
     send_mode = mode;
-    ss_activate ();
+    activate_ss ();
   } else {
     /* we are not changing mode => increase count */
     ++send_count;
@@ -150,8 +150,8 @@ ISR (SPI_STC_vect)
 
   if (((send_mode == SEND_COMMAND_MODE) && (send_count == LENGTH_COMMAND))
       || ((send_mode == SEND_DATA_MODE) && (send_count == LENGTH_DATA))) {
-    ss_deactivate ();
-    send_clear ();
+    deactivate_ss ();
+    reset_send_info ();
     SPDR = 0;                   /* dummy data to call interrupt */
     return;
   }
@@ -171,7 +171,7 @@ void spi_write_initialize ()
   fill_command (CMD_LED_ON);
   fill_command (CMD_BRIGHTNESS_PREFIX | (BRIGHTNESS_MASK & ID_BRIGHTNESS_MAX));
 
-  send_start ();
+  start_send ();
 }
 
 void spi_write_uninitialize ()
@@ -180,7 +180,7 @@ void spi_write_uninitialize ()
 
   fill_command (CMD_SYSTEM_STOP);
 
-  send_start ();
+  start_send ();
 }
 
 void spi_write_brightness (uint8_t brightness)
@@ -193,7 +193,7 @@ void spi_write_brightness (uint8_t brightness)
    */
   fill_command (CMD_BRIGHTNESS_PREFIX | (BRIGHTNESS_MASK & brightness));
 
-  send_start ();
+  start_send ();
 }
 
 void spi_write_matrix (volatile uint8_t *data)
@@ -204,5 +204,5 @@ void spi_write_matrix (volatile uint8_t *data)
   for (uint8_t i = 0; i < SPI_WRITE_MATRIX_SIZE; ++i)
     fill_data (data[i]);
 
-  send_start ();
+  start_send ();
 }
