@@ -12,7 +12,7 @@
 /* init module internals */
 void spi_write_init ();
 
-/* init display device: led matrix, ... */
+/* init display device: led matrix */
 void spi_write_initialize ();
 
 void spi_write_uninitialize ();

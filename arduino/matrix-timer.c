@@ -50,8 +50,9 @@ static void timer_enable ()
 {
   TCNT0 = TIMER_INITIAL_VALUE;
   /*
-   * Enable overflow interrupt
+   * Enable overflow interrupt, clear interrupt source
    */
+  TIFR0 |= (1 << TOV0);
   TIMSK0 |= INTERRUPT_FLAG;
 }
 
