@@ -130,12 +130,6 @@ namespace led_d
   void serial_t::asio_read (const asio::error_code &code,
                             std::size_t bytes_transferred)
   {
-    // setup read callback right before return from the function
-    auto read_guard = core::make_final_action
-      ([this] ()
-       {m_port.async_read_some
-        (asio::buffer (m_read_buffer, read_buffer_size), m_asio_read);});
-    
     if (m_flag.test (bit_pending_read)) {
       log_t::buffer_t buf;
       buf << "serial: Read while doing other read";
@@ -143,6 +137,12 @@ namespace led_d
       return;
     }
 
+    // setup read callback right before return from the function
+    auto read_guard = core::make_final_action
+      ([this] ()
+       {m_port.async_read_some
+        (asio::buffer (m_read_buffer, read_buffer_size), m_asio_read);});
+    
     if (code) {
       log_t::buffer_t buf;
       buf << "serial: Not zero error code during read";
@@ -292,6 +292,9 @@ namespace led_d
         log_t::buffer_t buf;
         buf << "serial: Ready to call user callbacks but they are empty";
         log_t::error (buf);
+      } else {
+        // we have completed init, so we can write now
+        m_write ();
       }
       return;
     }

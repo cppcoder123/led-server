@@ -22,7 +22,6 @@ namespace led_d
   public:
     using codec_t = core::device::codec_t;
     using msg_t = codec_t::msg_t;
-    using msg_list_t = std::list<msg_t>;
     
     // read & write-complete callbacks
     using read_t = std::function<void (msg_t &msg)>;
@@ -42,6 +41,7 @@ namespace led_d
   private:
 
     using char_t = codec_t::char_t;
+    using msg_list_t = std::list<msg_t>;
 
     static constexpr std::size_t header_left_size = 2;
     static constexpr std::size_t header_right_size = 2;
