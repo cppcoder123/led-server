@@ -6,6 +6,7 @@
 
 #include <bitset>
 #include <functional>
+#include <list>
 #include <string>
 #include <vector>
 
@@ -21,6 +22,7 @@ namespace led_d
   public:
     using codec_t = core::device::codec_t;
     using msg_t = codec_t::msg_t;
+    using msg_list_t = std::list<msg_t>;
     
     // read & write-complete callbacks
     using read_t = std::function<void (msg_t &msg)>;
@@ -51,20 +53,19 @@ namespace led_d
     static constexpr std::size_t bit_pending_write = 2;
     static constexpr std::size_t bit_size = 3;
 
-    void private_write (const msg_t &msg);
+    bool private_write (const msg_t &msg);
 
-    // fixme: check we are not wait for pending read
-    //   from prev call
     void asio_read (const asio::error_code &code,
                     std::size_t bytes_stransferred);
     void asio_write (const asio::error_code &code,
                      std::size_t bytes_stransferred,
                      std::size_t bytes_expected);
 
-    bool decode_header (msg_t &msg);
+    // split byte stream into messages
+    bool decode_split (msg_list_t &msg_list, std::size_t bytes_transferred);
 
     void decode_initial (msg_t &msg);
-
+    void encode_initial ();
 
     read_t m_read;
     write_t m_write;
@@ -82,7 +83,7 @@ namespace led_d
 
     asio::serial_port m_port;
 
-    enum state_t {
+    enum {
       state_first,
       state_hello = state_first,
       state_handshake,
@@ -90,11 +91,14 @@ namespace led_d
       state_phrase_delay,
       state_stable_delay,
       state_brightness,
-      state_last,
-      state_init = state_last
+      state_init,
+      state_last
     };
-    state_t m_state;
+    char_t m_state;
+
+    msg_t m_msg_buffer;         // keep data between asio read calls
   };
+
   
 } // namespace led_d
 
