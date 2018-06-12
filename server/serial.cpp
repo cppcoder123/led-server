@@ -330,6 +330,12 @@ namespace led_d
       msg_id = ID_INIT;
       break;
     default:
+      {
+        log_t::buffer_t buf;
+        buf << "serial: Unknown state in \"encode_initial\"";
+        log_t::error (buf);
+        return;
+      }
       break;
     }
 
