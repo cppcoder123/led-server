@@ -309,17 +309,17 @@ namespace led_d
     case state_pixel_delay:
       msg_id = ID_PIXEL_DELAY;
       empty = false;
-      msg_value = 5;            // ???
+      msg_value = 6;            // ??? 0.1 sec
       break;
     case state_phrase_delay:
       msg_id = ID_PHRASE_DELAY;
       empty = false;
-      msg_value = 15;           // ???
+      msg_value = 12;           // ???
       break;
     case state_stable_delay:
       msg_id = ID_STABLE_DELAY;
       empty = false;
-      msg_value = 50;           // ???
+      msg_value = 200;          // ??? 3 sec
       break;
     case state_brightness:
       msg_id = ID_BRIGHTNESS;

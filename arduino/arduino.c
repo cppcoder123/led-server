@@ -14,9 +14,9 @@
 
 #include "button.h"
 #include "codec.h"
-#include "matrix.h"
-#include "matrix-timer.h"
+#include "matrix-buffer.h"
 #include "parse.h"
+#include "render.h"
 #include "self-test.h"
 #include "spi-write.h"
 #include "uart.h"
@@ -25,10 +25,10 @@ static void init ()
 {
   button_init ();
   codec_init ();
-  matrix_init ();
-  matrix_timer_init ();
+  matrix_buffer_init ();
   parse_init ();
   spi_write_init ();
+  render_init ();
   uart_init ();
   /* enable interrupts */
   sei ();

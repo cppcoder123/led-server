@@ -7,8 +7,9 @@
 
 #include "buffer.h"
 #include "codec.h"
-#include "matrix.h"
+#include "matrix-buffer.h"
 #include "parse.h"
+#include "render.h"
 #include "spi-write.h"
 #include "uart-read.h"
 
@@ -51,15 +52,15 @@ static void parse_body_1 (uint8_t data)
 {
   switch (msg_id) {
   case ID_PIXEL_DELAY:
-    matrix_pixel_delay (data);
+    render_pixel_delay (data);
     codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_PHRASE_DELAY:
-    matrix_phrase_delay (data);
+    render_phrase_delay (data);
     codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_STABLE_DELAY:
-    matrix_stable_delay (data);
+    render_stable_delay (data);
     codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_BRIGHTNESS:
@@ -110,30 +111,17 @@ static void parse_body ()
         return;
       }
 
-      if (matrix_update_start (*matrix_type) == 0) {
-        codec_encode_1 (ID_STATUS, msg_serial_id,
-                        ID_STATUS_SUB_MATRIX_UPDATE_START_FAILURE);
-        return;
-      }
-
       uint8_t *data = 0;
       if (buffer_get (read, ID_HEADER_SIZE + 1, &data) == 0) {
         codec_encode_1 (ID_STATUS, msg_serial_id,
                         ID_STATUS_BUFFER_CORRUPTED_2);
         return;
       }
-      
-      if (matrix_update (data, msg_size - 1) == 0) {
-        codec_encode_1 (ID_STATUS, msg_serial_id,
-                        ID_STATUS_SUB_MATRIX_UPDATE_FAILURE);
-        return;
-      }
 
-      if (matrix_update_finish (*matrix_type) == 0) {
-        codec_encode_1 (ID_STATUS, msg_serial_id,
-                        ID_STATUS_SUB_MATRIX_UPDATE_FINISH_FAILURE);
-        return;
-      }
+      /* -1 due to type */
+      while (matrix_buffer_update (*matrix_type, data, msg_size - 1) == 0)
+        /*Note: hang main thread, probably prev matrix render in progress*/
+        ;
 
       codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     }

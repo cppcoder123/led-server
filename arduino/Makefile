@@ -8,9 +8,9 @@ OBJECT_LIST = \
   buffer.o \
   button.o \
   codec.o \
-  matrix.o \
-  matrix-timer.o \
+  matrix-buffer.o \
   parse.o \
+  render.o \
   self-test.o \
   spi-write.o \
   uart.o \

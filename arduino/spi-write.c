@@ -196,13 +196,16 @@ void spi_write_brightness (uint8_t brightness)
   start_send ();
 }
 
-void spi_write_matrix (volatile uint8_t *data)
+void spi_write_matrix_symbol (uint8_t type, uint8_t symbol)
 {
-  select_mode (SEND_DATA_MODE);
+  if (type == SPI_WRITE_FIRST) {
+    select_mode (SEND_DATA_MODE);
+    fill_data_prefix ();
+  }
 
-  fill_data_prefix ();
-  for (uint8_t i = 0; i < SPI_WRITE_MATRIX_SIZE; ++i)
-    fill_data (data[i]);
+  fill_data (symbol);
 
-  start_send ();
+  if (type == SPI_WRITE_LAST)
+    start_send ();
 }
+

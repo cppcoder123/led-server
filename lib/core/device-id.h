@@ -15,9 +15,15 @@
  *
  */
 
+/*
+ * The total RAM size in arduino is 2K.
+ * We have 2 buffers of ID_MAX_MATRIX_SIZE - 700,
+ * one read buffer 255, write buffer ~50, spi buffer ~50.
+ * So, the sum is ~1750, the rest 250 bytes for small things
+ */
 
 enum {
-  ID_MAX_MATRIX_SIZE = 800,   /* just ~100 fat (8 bit wide) symbols */
+  ID_MAX_MATRIX_SIZE = 700,   /* just ~100 fat (8 bit wide) symbols */
   ID_MAX_SUB_MATRIX_SIZE = 195,
   ID_HEADER_SIZE = 4,           /* Message header size */
   ID_EYE_CATCH = 254,           /* eye catch symbol */

@@ -6,22 +6,16 @@
 
 #include "device-id.h"
 
-#include "matrix.h"
-#include "matrix-timer.h"
+#include "matrix-buffer.h"
 #include "self-test.h"
 #include "spi-write.h"
 
-#define DELAY 5                /* ~ .5 sec */
-
 static void test_pattern (uint8_t pattern)
 {
-  uint8_t buf[SPI_WRITE_MATRIX_SIZE];
-  for (uint8_t i = 0; i < SPI_WRITE_MATRIX_SIZE; ++i)
-    buf[i] = pattern;
-
-  spi_write_matrix (buf);
-
-  matrix_timer_wait (DELAY);
+  matrix_buffer_update_symbol (ID_SUB_MATRIX_TYPE_FIRST, pattern);
+  for (uint8_t i = 0; i < SPI_WRITE_MATRIX_SIZE - 1; ++i)
+    matrix_buffer_update_symbol (ID_SUB_MATRIX_TYPE_MIDDLE, pattern);
+  matrix_buffer_update_symbol (ID_SUB_MATRIX_TYPE_LAST, pattern);
 }
 
 void self_test ()
