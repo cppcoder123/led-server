@@ -38,6 +38,8 @@ namespace led_d
     // outcoming info : async write
     bool write (const msg_t &msg);
 
+    bool handshake ();
+
   private:
 
     using char_t = codec_t::char_t;
@@ -65,7 +67,6 @@ namespace led_d
     bool decode_split (msg_list_t &msg_list, std::size_t bytes_transferred);
 
     void decode_initial (msg_t &msg);
-    void encode_initial ();
 
     read_t m_read;
     write_t m_write;
@@ -85,8 +86,7 @@ namespace led_d
 
     enum {
       state_first,
-      state_hello = state_first,
-      state_handshake,
+      state_handshake = state_first,
       state_pixel_delay,
       state_phrase_delay,
       state_stable_delay,
@@ -98,7 +98,6 @@ namespace led_d
 
     msg_t m_msg_buffer;         // keep data between asio read calls
   };
-
   
 } // namespace led_d
 

@@ -26,7 +26,7 @@
 namespace led_d
 {
   namespace {
-    static constexpr speed_t port_speed = 500000;
+    static constexpr speed_t port_speed = B57600;
     
     void configure_tty (int descriptor)
     {
@@ -70,7 +70,7 @@ namespace led_d
       m_state (state_first)
   {
     configure_tty (m_port.native_handle ());
-    
+
     m_port.async_read_some
       (asio::buffer (m_read_buffer, read_buffer_size), m_asio_read);
   }
@@ -120,6 +120,14 @@ namespace led_d
 
     m_flag.set (bit_pending_write);
 
+    // log_t::buffer_t b;
+    // b << "serial: writing ";
+    // for (std::size_t i = 0; i < index; ++i) {
+    //   b << (int) m_write_buffer[i] << " ";
+    // }
+    // log_t::error (b);
+
+    
     m_port.async_write_some
       (asio::buffer (m_write_buffer, index),
        std::bind (&serial_t::asio_write, this,
@@ -140,8 +148,10 @@ namespace led_d
     // setup read callback right before return from the function
     auto read_guard = core::make_final_action
       ([this] ()
-       {m_port.async_read_some
-        (asio::buffer (m_read_buffer, read_buffer_size), m_asio_read);});
+       {
+         m_port.async_read_some
+         (asio::buffer (m_read_buffer, read_buffer_size), m_asio_read);
+       });
     
     if (code) {
       log_t::buffer_t buf;
@@ -200,11 +210,16 @@ namespace led_d
 
   bool serial_t::decode_split (msg_list_t &msg_list, std::size_t bytes_transferred)
   {
-    for (std::size_t i = 0; i < bytes_transferred; ++i)
+    // log_t::buffer_t buff;
+    // buff << "serial: Reading: ";
+    for (std::size_t i = 0; i < bytes_transferred; ++i) {
+      // buff << (int) m_read_buffer[i] << " ";
       m_msg_buffer.push_back (m_read_buffer[i]);
+    }
+    // log_t::error (buff);
     // Note: actually we can read from serial again here
 
-    while (m_msg_buffer.size () > header_left_size + header_right_size) {
+    while (m_msg_buffer.size () >= header_left_size + header_right_size) {
       char_t symbol = 0, size = 0;
       if (codec_t::decode
           (m_msg_buffer, std::ref (symbol), std::ref (size)) == false) {
@@ -215,7 +230,7 @@ namespace led_d
       }
       if (symbol != ID_EYE_CATCH) {
         log_t::buffer_t buf;
-        buf << "serial: Expecting eye-catch, but got \"" << symbol
+        buf << "serial: Expecting eye-catch, but got \"" << (int) symbol
             << "\" instead, skipping";
         log_t::error (buf);
         m_msg_buffer.pop_front ();
@@ -232,7 +247,7 @@ namespace led_d
       total_size -= 2;
 
       auto iter_last = m_msg_buffer.begin ();
-      std::advance (iter_last, total_size + 1); // range [first, last)
+      std::advance (iter_last, total_size);
       msg_t msg;
       msg.splice (msg.begin (), m_msg_buffer,
                   m_msg_buffer.begin (), iter_last);
@@ -261,30 +276,60 @@ namespace led_d
     //       << "\" instead, ignoring";
     //   log_t::error (buf);
     // }
-    if (msg_id != ID_STATUS) {
-      log_t::buffer_t buf;
-      buf << "serial: Expecting status message but got \"" << msg_id
-          << "\" instead, can't continue";
-      log_t::error (buf);
-      return;
+
+    log_t::buffer_t buf;
+
+    switch (msg_id) {
+    case ID_HEADER_DECODE_FAILED:
+      buf << "serial: Header decode failure message is arrived \""
+          << (int) status << "\"";
+      break;
+    case ID_STATUS:
+      buf << "serial: Status message is arrived";
+      break;
+    case ID_BRIGHTNESS:
+      buf << "serial: Brightness message is arrived";
+      if (m_state == state_brightness)
+        m_state = state_init;
+      break;
+    case ID_HANDSHAKE:
+      buf << "serial: Handshake message is arrived";
+      if (m_state == state_handshake)
+        m_state = state_pixel_delay;
+      break;
+    case ID_INIT:
+      buf << "serial: Init message is arrived";
+      if (m_state == state_init)
+        m_state = state_last;
+      break;
+    case ID_PIXEL_DELAY:
+      buf << "serial: Pixel delay message is arrived";
+      if (m_state == state_pixel_delay)
+        m_state = state_phrase_delay;
+      break;
+    case ID_PHRASE_DELAY:
+      buf << "serial: Phrase delay message is arrived";
+      if (m_state == state_phrase_delay)
+        m_state = state_stable_delay;
+      break;
+    case ID_STABLE_DELAY:
+      buf << "serial: Stable delay message is arrived";
+      if (m_state == state_stable_delay)
+        m_state = state_brightness;
+      break;
+    case ID_UNINIT:             // ???
+      buf << "serial: ??? Uninit message is arrived";
+      break;
+    default:
+      buf << "serial: ??? Unknown message \"" << (int) msg_id
+          << "\" is arrived in \"handshake\"";
+      break;
     }
 
-    char_t good_status = (m_state == state_hello)
-      ? ID_STATUS_HELLO : ID_STATUS_OK;
-    if (status != good_status) {
-      log_t::buffer_t buf;
-      buf << "serial: Expecting status \"" << good_status
-          << "\", but got \"" << status << "\" instead, can't continue";
-      log_t::error (buf);
-      return;
-    }
-
-    ++m_state;
-
-    encode_initial ();
+    log_t::info (buf);
   }
 
-  void serial_t::encode_initial ()
+  bool serial_t::handshake ()
   {
     if (m_state >= state_last) {
       m_flag.set (bit_ready);
@@ -296,45 +341,43 @@ namespace led_d
         // we have completed init, so we can write now
         m_write ();
       }
-      return;
+      return false;
     }
 
-    bool empty = true;
+    bool empty = false;
     char_t msg_id = 0, msg_value = 0;
 
     switch (m_state) {
     case state_handshake:
       msg_id = ID_HANDSHAKE;
+      empty = true;
       break;
     case state_pixel_delay:
       msg_id = ID_PIXEL_DELAY;
-      empty = false;
       msg_value = 6;            // ??? 0.1 sec
       break;
     case state_phrase_delay:
       msg_id = ID_PHRASE_DELAY;
-      empty = false;
       msg_value = 12;           // ???
       break;
     case state_stable_delay:
       msg_id = ID_STABLE_DELAY;
-      empty = false;
       msg_value = 200;          // ??? 3 sec
       break;
     case state_brightness:
       msg_id = ID_BRIGHTNESS;
-      empty = false;
       msg_value = ID_BRIGHTNESS_MAX;
       break;
     case state_init:
       msg_id = ID_INIT;
+      empty = true;
       break;
     default:
       {
         log_t::buffer_t buf;
-        buf << "serial: Unknown state in \"encode_initial\"";
+        buf << "serial: Unknown state in \"handshake\"";
         log_t::error (buf);
-        return;
+        return true;
       }
       break;
     }
@@ -344,6 +387,8 @@ namespace led_d
       : codec_t::encode (++serial_id, msg_id, msg_value);
 
     private_write (msg);
+
+    return true;
   }
   
 } // namespace led_d

@@ -11,6 +11,7 @@
 
 #include "arg.hpp"
 #include "display.hpp"
+#include "initial.hpp"
 #include "message-queue.hpp"
 #include "message-ptr.hpp"
 #include "serial.hpp"
@@ -45,6 +46,9 @@ namespace led_d
     std::thread m_update_thread;
     bool m_update_go;
 
+    std::thread m_initial_thread;
+    initial_t m_initial;
+    
     queue_t m_message_queue;
   };
   

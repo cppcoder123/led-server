@@ -16,7 +16,7 @@ void codec_init ()
 
 void codec_encode_1 (uint8_t msg_id, uint8_t msg_serial_id, uint8_t data)
 {
-  /* 
+  /*
    * check space first:
    * eye-catcher (1), size (1), serial (1), msg-id (1), data (1)
    */

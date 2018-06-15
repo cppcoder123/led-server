@@ -20,30 +20,25 @@
 #include "self-test.h"
 #include "spi-write.h"
 #include "uart.h"
+#include "uart-write.h"
 
 static void init ()
 {
-  button_init ();
+  /* button_init (); */
   codec_init ();
-  matrix_buffer_init ();
+  /* matrix_buffer_init (); */
   parse_init ();
-  spi_write_init ();
-  render_init ();
+  /* spi_write_init (); */
+  /* render_init (); */
   uart_init ();
   /* enable interrupts */
   sei ();
 }
 
-static void say_hello ()
-{
-  codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, ID_STATUS_HELLO);
-}
-
 int main ()
 {
   init ();
-  self_test ();
-  say_hello ();
+  /* self_test (); */
 
   while (1) {
     /*

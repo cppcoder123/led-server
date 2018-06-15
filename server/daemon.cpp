@@ -30,8 +30,14 @@ namespace led_d
       m_serial = std::make_unique<serial_t>(m_asio_service, arg.device);
       //
       m_network_thread = std::thread (&daemon_t::network_load, this, arg);
-      m_display_thread = std::thread (&display_t::start, &m_display, arg, std::ref(*m_serial));
+      m_display_thread = std::thread
+        (&display_t::start, &m_display, arg, std::ref(*m_serial));
       m_update_thread = std::thread (&daemon_t::update_load, this);
+
+      m_initial_thread = std::thread
+        (&initial_t::start, &m_initial, std::ref(*m_serial));
+
+      m_initial_thread.detach (); // we don't want to join it
     }
 
     catch (std::exception &e) {

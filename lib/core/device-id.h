@@ -23,10 +23,10 @@
  */
 
 enum {
-  ID_MAX_MATRIX_SIZE = 700,   /* just ~100 fat (8 bit wide) symbols */
+  ID_MAX_MATRIX_SIZE = 100,   /* just ~100 fat (8 bit wide) symbols */
   ID_MAX_SUB_MATRIX_SIZE = 195,
   ID_HEADER_SIZE = 4,           /* Message header size */
-  ID_EYE_CATCH = 254,           /* eye catch symbol */
+  ID_EYE_CATCH = 155,           /* eye catch symbol */
   ID_DEVICE_SERIAL = 0          /* serial id used by device only */
 };
 

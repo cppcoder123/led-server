@@ -3,16 +3,23 @@
 #
 TARGET = arduino.hex
 
-OBJECT_LIST = \
+#OBJECT_LIST = \
   arduino.o \
   buffer.o \
   button.o \
   codec.o \
   matrix-buffer.o \
-  parse.o \
   render.o \
   self-test.o \
   spi-write.o \
+  uart.o \
+  uart-read.o \
+  uart-write.o
+OBJECT_LIST = \
+  arduino.o \
+  buffer.o \
+  codec.o \
+  parse.o \
   uart.o \
   uart-read.o \
   uart-write.o

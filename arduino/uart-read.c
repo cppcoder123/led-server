@@ -16,7 +16,7 @@ static volatile struct buffer_t buffer;
 
 void uart_read_init ()
 {
-  buffer_init (&buffer, buffer_data, BUFFER_SIZE);
+  buffer_init (&buffer, buffer_data, BUFFER_SIZE, 44);
 }
 
 volatile struct buffer_t* uart_read_get_buffer ()
@@ -27,5 +27,5 @@ volatile struct buffer_t* uart_read_get_buffer ()
 ISR (USART_RX_vect)
 {
   /* what we can do with error code  here? */
-  buffer_fill_symbol (&buffer, UDR0);
+   buffer_fill_symbol (&buffer, UDR0);
 }

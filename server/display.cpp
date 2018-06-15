@@ -150,7 +150,8 @@ namespace led_d
     if (m_pipe_ptr->render (std::move(matrix)) == false) {
       log_t::buffer_t buf;
       buf << "Driver failed to render info related to \"" << request.tag << "\"";
-      log_t::error (buf);
+      // fixme
+      //log_t::error (buf);
       return;
     }
     
