@@ -100,7 +100,7 @@ namespace led_d
         // neither first, nor last => middle
         submsg_type |= ID_SUB_MATRIX_TYPE_MIDDLE;
       msg_t sub_msg = codec_t::encode
-        (ID_SUB_MATRIX, get_serial_id (), submsg_type, std::cref (info_msg));
+        (get_serial_id (), ID_SUB_MATRIX, submsg_type, std::cref (info_msg));
 
       m_write_queue.push (sub_msg);
     }
