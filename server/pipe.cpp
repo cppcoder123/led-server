@@ -110,55 +110,8 @@ namespace led_d
       m_write_queue.push (sub_msg);
     }
     
-    // for (std::size_t sub_index = 0;
-    //      sub_index * data_size <= matrix.size (); ++sub_index) {
-    //   msg_t info_msg;
-    //   for (std::size_t i = sub_index * data_size;
-    //        i < (sub_index + 1) * data_size; ++i)
-    //     info_msg.push_back (get_char (matrix.get_column (i)));
-    //   char_t submsg_type = (sub_index == 0) ? ID_SUB_MATRIX_TYPE_FIRST : 0;
-    //   if (((sub_index + 1)* data_size) >= matrix.size ())
-    //     submsg_type |= ID_SUB_MATRIX_TYPE_LAST;
-    //   if ((submsg_type & ID_SUB_MATRIX_TYPE_MASK) == 0)
-    //     // neither first, nor last => middle
-    //     submsg_type |= ID_SUB_MATRIX_TYPE_MIDDLE;
-    //   msg_t sub_msg = codec_t::encode
-    //     (get_serial_id (), ID_SUB_MATRIX, submsg_type, std::cref (info_msg));
-
-    //   m_write_queue.push (sub_msg);
-    // }
-
     return true;
   }
-
-#if 0
-  void pipe_t::serve_read_write ()
-  {
-    while (m_device_go == true) {
-      {
-        if (m_block.can_go () == true) {
-          auto opt_msg = m_write_queue.pop ();
-          if (opt_msg.has_value () == true) {
-            if (m_device->write (*opt_msg) == true) {
-              // Note: front char_t is serial id
-              m_block.tighten (opt_msg->front ());
-            } else {
-              log_t::error ("pipe: Failed to write message");
-            }
-          }
-        }
-      }
-      {
-        msg_t msg;
-        if (m_device->read (msg, false) == true) {
-          if (decode (msg) == false) {
-            log_t::error ("pipe: Failed to decode message");
-          }
-        }
-      }
-    }
-  }
-#endif
 
   void pipe_t::write ()
   {
