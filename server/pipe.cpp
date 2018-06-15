@@ -39,8 +39,8 @@ namespace led_d
         break;
       case ID_STATUS:
         if (info != ID_STATUS_OK) {
-          buf << "Bad status \"" << info << "\" arrived for serial id \""
-              << serial_id << "\"";
+          buf << "Bad status \"" << (int) info << "\" arrived for serial id \""
+              << (int) serial_id << "\"";
         } else {
           complain = false;
         }
@@ -84,20 +84,23 @@ namespace led_d
     if (matrix.size () > ID_MAX_MATRIX_SIZE)
       return false;
 
+    //header and submatrix-type
+    constexpr std::size_t data_size = ID_MAX_SUB_MATRIX_SIZE - ID_HEADER_SIZE - 1;
+    
     for (std::size_t sub_index = 0;
-         sub_index * ID_MAX_SUB_MATRIX_SIZE <= matrix.size (); ++sub_index) {
+         sub_index * data_size <= matrix.size (); ++sub_index) {
       msg_t info_msg;
-      for (std::size_t i = sub_index * ID_MAX_SUB_MATRIX_SIZE;
-           i < (sub_index + 1) * ID_MAX_SUB_MATRIX_SIZE; ++i)
+      for (std::size_t i = sub_index * data_size;
+           i < (sub_index + 1) * data_size; ++i)
         info_msg.push_back (get_char (matrix.get_column (i)));
       char_t submsg_type = (sub_index == 0) ? ID_SUB_MATRIX_TYPE_FIRST : 0;
-      if (((sub_index + 1)* ID_MAX_SUB_MATRIX_SIZE) >= matrix.size ())
+      if (((sub_index + 1)* data_size) >= matrix.size ())
         submsg_type |= ID_SUB_MATRIX_TYPE_LAST;
       if ((submsg_type & ID_SUB_MATRIX_TYPE_MASK) == 0)
         // neither first, nor last => middle
         submsg_type |= ID_SUB_MATRIX_TYPE_MIDDLE;
       msg_t sub_msg = codec_t::encode
-        (ID_SUB_MATRIX, get_serial_id (), std::cref (info_msg));
+        (ID_SUB_MATRIX, get_serial_id (), submsg_type, std::cref (info_msg));
 
       m_write_queue.push (sub_msg);
     }

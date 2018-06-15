@@ -83,10 +83,13 @@ namespace led_d
 
   bool serial_t::write (const msg_t &src)
   {
-    if ((ready () == false)
-        || (src.size () < header_right_size)
-        || (src.size () > ID_MAX_SUB_MATRIX_SIZE)
-        || (m_flag.test (bit_pending_write) == true))
+    if (ready () == false)
+      return false;
+    if  (src.size () < header_right_size)
+      return false;
+    if  (src.size () > ID_MAX_SUB_MATRIX_SIZE)
+      return false;
+    if (m_flag.test (bit_pending_write) == true)
       return false;
 
     bool status = private_write (src);
