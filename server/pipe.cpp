@@ -86,24 +86,47 @@ namespace led_d
 
     //header and submatrix-type
     constexpr std::size_t data_size = ID_MAX_SUB_MATRIX_SIZE - ID_HEADER_SIZE - 1;
-    
-    for (std::size_t sub_index = 0;
-         sub_index * data_size <= matrix.size (); ++sub_index) {
-      msg_t info_msg;
-      for (std::size_t i = sub_index * data_size;
-           i < (sub_index + 1) * data_size; ++i)
-        info_msg.push_back (get_char (matrix.get_column (i)));
-      char_t submsg_type = (sub_index == 0) ? ID_SUB_MATRIX_TYPE_FIRST : 0;
-      if (((sub_index + 1)* data_size) >= matrix.size ())
-        submsg_type |= ID_SUB_MATRIX_TYPE_LAST;
-      if ((submsg_type & ID_SUB_MATRIX_TYPE_MASK) == 0)
-        // neither first, nor last => middle
-        submsg_type |= ID_SUB_MATRIX_TYPE_MIDDLE;
+
+    // 1. convert
+    msg_t matrix_data;
+    for (std::size_t i = 0; i < matrix.size (); ++i)
+      matrix_data.push_back (get_char (matrix.get_column (i)));
+
+    // 2. split into submatrices
+    msg_t submatrix_data;
+    bool first = true;
+    while (matrix_data.empty () == false) {
+      auto upto = matrix_data.begin ();
+      bool last = (matrix_data.size () <= data_size) ? true : false;
+      std::advance (upto, last ? matrix_data.size () : data_size);
+      char_t sub_type = (first ? ID_SUB_MATRIX_TYPE_FIRST : 0)
+        | (last ? ID_SUB_MATRIX_TYPE_LAST : 0);
+      sub_type = (sub_type == 0) ? ID_SUB_MATRIX_TYPE_MIDDLE : sub_type;
+      submatrix_data.splice (submatrix_data.begin (), matrix_data,
+                             matrix_data.begin (), upto);
       msg_t sub_msg = codec_t::encode
-        (get_serial_id (), ID_SUB_MATRIX, submsg_type, std::cref (info_msg));
+        (get_serial_id (), ID_SUB_MATRIX, sub_type, std::cref (submatrix_data));
 
       m_write_queue.push (sub_msg);
     }
+    
+    // for (std::size_t sub_index = 0;
+    //      sub_index * data_size <= matrix.size (); ++sub_index) {
+    //   msg_t info_msg;
+    //   for (std::size_t i = sub_index * data_size;
+    //        i < (sub_index + 1) * data_size; ++i)
+    //     info_msg.push_back (get_char (matrix.get_column (i)));
+    //   char_t submsg_type = (sub_index == 0) ? ID_SUB_MATRIX_TYPE_FIRST : 0;
+    //   if (((sub_index + 1)* data_size) >= matrix.size ())
+    //     submsg_type |= ID_SUB_MATRIX_TYPE_LAST;
+    //   if ((submsg_type & ID_SUB_MATRIX_TYPE_MASK) == 0)
+    //     // neither first, nor last => middle
+    //     submsg_type |= ID_SUB_MATRIX_TYPE_MIDDLE;
+    //   msg_t sub_msg = codec_t::encode
+    //     (get_serial_id (), ID_SUB_MATRIX, submsg_type, std::cref (info_msg));
+
+    //   m_write_queue.push (sub_msg);
+    // }
 
     return true;
   }
