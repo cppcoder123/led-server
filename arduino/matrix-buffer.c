@@ -16,15 +16,13 @@ static uint8_t state;
 
 void matrix_buffer_init ()
 {
-  ATOMIC_BLOCK (ATOMIC_FORCEON) {
-    /* debug */
-    for (uint16_t i = 0; i < ID_MAX_MATRIX_SIZE; ++i)
-      buffer[i] = 0xFF;
+  /* debug */
+  for (uint16_t i = 0; i < ID_MAX_MATRIX_SIZE; ++i)
+    buffer[i] = 0xFF;
 
-    buffer_size = 0;
+  buffer_size = 0;
 
-    state = 0;
-  }
+  state = 0;
 }
 
 static uint8_t state_updateable (uint8_t type)
@@ -79,12 +77,14 @@ uint8_t matrix_buffer_drain (matrix_buffer_array_t sink,
     /*either empty or not completely updated*/
     return 0;
 
-  for (uint16_t i = 0; i < buffer_size; ++i)
-    (*sink)[i] = buffer[i];
+  ATOMIC_BLOCK (ATOMIC_FORCEON) {
+    for (uint16_t i = 0; i < buffer_size; ++i)
+      (*sink)[i] = buffer[i];
 
-  *size = buffer_size;
+    *size = buffer_size;
 
-  matrix_buffer_init ();
+    matrix_buffer_init ();
+  }
 
   return 1;
 }
