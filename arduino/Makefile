@@ -1,5 +1,5 @@
 #
-# Compile code for atmega8a
+# Compile code for arduino nano v3
 #
 TARGET = arduino.hex
 
@@ -16,26 +16,8 @@ OBJECT_LIST = \
   uart.o \
   uart-read.o \
   uart-write.o
-#OBJECT_LIST = \
-  arduino.o \
-  codec.o \
-  queue.o \
-  parse.o \
-  uart.o \
-  uart-read.o \
-  uart-write.o
 
 MCU = atmega328p
-#F_CPU = 16000000UL
-
-#PROGRAMMER_TYPE = avrdude
-#PROGRAMMER_ARGS =
-
-#CC = avr-gcc
-#OBJCOPY = avr-objcopy
-#OBJDUMP = avr-objdump
-#AVRSIZE = avr-size
-#AVRDUDE = avrdude
 
 CFLAGS_OPT = -I ../lib/core -mmcu=$(MCU) -Os -std=gnu99 -Wall 
 LDFLAGS_OPT = -mmcu=$(MCU)

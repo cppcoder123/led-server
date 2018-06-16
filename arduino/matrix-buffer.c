@@ -4,6 +4,7 @@
  *
  *
  */
+#include <util/atomic.h>
 
 #include "device-id.h"
 
@@ -15,14 +16,18 @@ static uint8_t state;
 
 void matrix_buffer_init ()
 {
-  /* for (uint16_t i = 0; i < ID_MAX_MATRIX_SIZE; ++i) */
-  /*   buffer[i] = 0; */
-  buffer_size = 0;
+  ATOMIC_BLOCK (ATOMIC_FORCEON) {
+    /* debug */
+    for (uint16_t i = 0; i < ID_MAX_MATRIX_SIZE; ++i)
+      buffer[i] = 0xFF;
 
-  state = 0;
+    buffer_size = 0;
+
+    state = 0;
+  }
 }
 
-uint8_t matrix_buffer_update (uint8_t type, volatile uint8_t *src, uint8_t size)
+static uint8_t state_updateable (uint8_t type)
 {
   /*first enables update for clean buffer*/
   if ((state == 0)
@@ -33,20 +38,36 @@ uint8_t matrix_buffer_update (uint8_t type, volatile uint8_t *src, uint8_t size)
   if ((state & ID_SUB_MATRIX_TYPE_LAST) != 0)
     return 0;
 
-  for (uint8_t i = 0; i < size; ++i)
-    buffer[buffer_size++] = *(src + i);
+  return 1;
+}
 
-  state |= type & ID_SUB_MATRIX_TYPE_MASK;
+uint8_t matrix_buffer_update (uint8_t type, volatile uint8_t *src, uint8_t size)
+{
+  if (state_updateable (type) == 0)
+    return 0;
+
+  ATOMIC_BLOCK (ATOMIC_FORCEON) {
+    for (uint8_t i = 0; i < size; ++i)
+      buffer[buffer_size++] = *(src + i);
+
+    state |= type & ID_SUB_MATRIX_TYPE_MASK;
+  }
 
   return 1;
 }
 
 uint8_t matrix_buffer_update_symbol (uint8_t type, uint8_t symbol)
 {
+  if (state_updateable (type) == 0)
+    return 0;
+
   if (buffer_size >= ID_MAX_MATRIX_SIZE)
     return 0;
 
-  buffer[buffer_size++] = symbol;
+  ATOMIC_BLOCK (ATOMIC_FORCEON) {
+    buffer[buffer_size++] = symbol;
+    state |= type & ID_SUB_MATRIX_TYPE_MASK;
+  }
 
   return 1;
 }
