@@ -17,8 +17,8 @@ TARGET = arduino.hex
   uart-write.o
 OBJECT_LIST = \
   arduino.o \
-  buffer.o \
   codec.o \
+  queue.o \
   parse.o \
   uart.o \
   uart-read.o \

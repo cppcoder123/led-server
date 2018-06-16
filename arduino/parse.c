@@ -5,15 +5,15 @@
  */
 #include <stdint.h>
 
-#include "buffer.h"
 #include "codec.h"
+#include "queue.h"
 #include "matrix-buffer.h"
 #include "parse.h"
 #include "render.h"
 #include "spi-write.h"
 #include "uart-read.h"
 
-static volatile struct buffer_t *read;
+static volatile struct queue_t *read;
 
 static volatile uint8_t msg_id;
 static volatile uint8_t msg_size;
@@ -21,7 +21,7 @@ static volatile uint8_t msg_serial_id;
 
 void parse_init ()
 {
-  read = uart_read_get_buffer ();
+  read = uart_read_get_queue ();
   /* */
   msg_id = ID_INVALID_MSG;
   msg_size = 0;
@@ -87,7 +87,7 @@ static void parse_body ()
   case ID_BRIGHTNESS:
     {
       volatile uint8_t *data = 0;
-      if (buffer_get (read, ID_HEADER_SIZE, &data) == 0) {
+      if (queue_get (read, ID_HEADER_SIZE, &data) == 0) {
         codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_BUFFER_CORRUPTED_1);
         return;
       }
@@ -104,7 +104,7 @@ static void parse_body ()
       }
 
       volatile uint8_t *matrix_type = 0;
-      if (buffer_get (read, ID_HEADER_SIZE, &matrix_type) == 0) {
+      if (queue_get (read, ID_HEADER_SIZE, &matrix_type) == 0) {
         /*we should not get here, size is double checked*/
         codec_encode_1 (ID_STATUS, msg_serial_id,
                         ID_STATUS_BUFFER_CORRUPTED_1);
@@ -112,7 +112,7 @@ static void parse_body ()
       }
 
       volatile uint8_t *data = 0;
-      if (buffer_get (read, ID_HEADER_SIZE + 1, &data) == 0) {
+      if (queue_get (read, ID_HEADER_SIZE + 1, &data) == 0) {
         codec_encode_1 (ID_STATUS, msg_serial_id,
                         ID_STATUS_BUFFER_CORRUPTED_2);
         return;
@@ -138,28 +138,28 @@ void parse ()
   /*
    * 1. Try to read header first
    * 2. If 1. is OK read body
-   * 3. If 2. is OK drain buffer
+   * 3. If 2. is OK drain queue
    */
-  while (buffer_is_drainable (read, ID_HEADER_SIZE) != 0) {
+  while (queue_is_drainable (read, ID_HEADER_SIZE) != 0) {
 
     volatile uint8_t *data = 0;
-    if (buffer_get (read, 0, &data) == 0) {
+    if (queue_get (read, 0, &data) == 0) {
       codec_encode_1 (ID_STATUS,
                       ID_DEVICE_SERIAL, ID_STATUS_BUFFER_CORRUPTED_0);
       uint8_t symbol;
-      buffer_drain_symbol (read, &symbol);
+      queue_drain_symbol (read, &symbol);
       continue;
     }
 
     if (codec_decode_header (data, &msg_size, &msg_id, &msg_serial_id) == 0) {
       codec_encode_1 (ID_HEADER_DECODE_FAILED, ID_DEVICE_SERIAL, data[0]);
       uint8_t symbol;
-      buffer_drain_symbol (read, &symbol);
+      queue_drain_symbol (read, &symbol);
       continue;
     }
 
     /* header is OK, check body */
-    if (buffer_is_drainable (read, ID_HEADER_SIZE + msg_size) == 0) {
+    if (queue_is_drainable (read, ID_HEADER_SIZE + msg_size) == 0) {
       /* body is not yet arrived */
       break;
     }
@@ -167,7 +167,7 @@ void parse ()
     /*header is OK and body length is OK*/
     parse_body ();
 
-    if (buffer_drain (read, ID_HEADER_SIZE + msg_size) == 0) {
+    if (queue_drain (read, ID_HEADER_SIZE + msg_size) == 0) {
       codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_DRAIN_FAILURE);
       continue;
     }

@@ -8,11 +8,11 @@
 
 #include <stdint.h>
 
-#include "buffer.h"
+#include "queue.h"
 
 void uart_write_init ();
 
-volatile struct buffer_t* uart_write_get_buffer ();
+volatile struct queue_t* uart_write_get_queue ();
 
 void uart_write_kick ();
 

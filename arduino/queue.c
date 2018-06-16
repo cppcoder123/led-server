@@ -4,12 +4,12 @@
 
 #include <util/atomic.h>
 
-#include "buffer.h"
+#include "queue.h"
 
 
-void buffer_init (volatile struct buffer_t *buf,
-                  volatile uint8_t *data,
-                  uint8_t max_size, uint8_t pattern)
+void queue_init (volatile struct queue_t *buf,
+                 volatile uint8_t *data,
+                 uint8_t max_size, uint8_t pattern)
 {
   buf->data = data;
   buf->size = 0;
@@ -20,18 +20,18 @@ void buffer_init (volatile struct buffer_t *buf,
     buf->data[i] = pattern;
 }
 
-uint8_t buffer_is_fillable (volatile struct buffer_t *buf, uint8_t fill_size)
+uint8_t queue_is_fillable (volatile struct queue_t *buf, uint8_t fill_size)
 {
   return (buf->size + fill_size <= buf->max_size) ? 1 : 0;
 }
 
-uint8_t buffer_is_drainable (volatile struct buffer_t *buf, uint8_t drain_size)
+uint8_t queue_is_drainable (volatile struct queue_t *buf, uint8_t drain_size)
 {
   return (buf->size >= drain_size) ? 1 : 0;
 }
 
-uint8_t buffer_get (volatile struct buffer_t *buf, uint8_t index,
-                    volatile uint8_t **data)
+uint8_t queue_get (volatile struct queue_t *buf, uint8_t index,
+                   volatile uint8_t **data)
 {
   if (index >= buf->size)
     // outside of data
@@ -42,7 +42,7 @@ uint8_t buffer_get (volatile struct buffer_t *buf, uint8_t index,
   return 1;
 }
 
-uint8_t buffer_fill_symbol (volatile struct buffer_t *buf, uint8_t symbol)
+uint8_t queue_fill_symbol (volatile struct queue_t *buf, uint8_t symbol)
 {
   if (buf->size + 1 >= buf->max_size)
     // Do we have space ?
@@ -57,7 +57,7 @@ uint8_t buffer_fill_symbol (volatile struct buffer_t *buf, uint8_t symbol)
   return 1;
 }
 
-uint8_t buffer_drain_symbol (volatile struct buffer_t *buf, uint8_t *symbol)
+uint8_t queue_drain_symbol (volatile struct queue_t *buf, uint8_t *symbol)
 {
   if (buf->size == 0)
     return 0;
@@ -65,13 +65,13 @@ uint8_t buffer_drain_symbol (volatile struct buffer_t *buf, uint8_t *symbol)
   ATOMIC_BLOCK (ATOMIC_FORCEON)
   {
     *symbol = buf->data[0];
-    buffer_drain (buf, 1);
+    queue_drain (buf, 1);
   }
 
   return 1;
 }
 
-uint8_t buffer_drain (volatile struct buffer_t *buf, uint8_t drain_size)
+uint8_t queue_drain (volatile struct queue_t *buf, uint8_t drain_size)
 {
   if (drain_size > buf->size)
     return 0;

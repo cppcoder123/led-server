@@ -6,25 +6,25 @@
 
 #include "uart-write.h"
 
-#define BUFFER_MAX_SIZE 50
+#define QUEUE_MAX_SIZE 50
 
-static uint8_t buffer_data[BUFFER_MAX_SIZE];
-static volatile struct buffer_t buffer;
+static uint8_t queue_data[QUEUE_MAX_SIZE];
+static volatile struct queue_t queue;
 
 void uart_write_init ()
 {
-  buffer_init (&buffer, buffer_data, BUFFER_MAX_SIZE, 222);
+  queue_init (&queue, queue_data, QUEUE_MAX_SIZE, 222);
 }
 
-volatile struct buffer_t* uart_write_get_buffer ()
+volatile struct queue_t* uart_write_get_queue ()
 {
-  return &buffer;
+  return &queue;
 }
 
 void uart_write_kick ()
 {
   uint8_t symbol;
-  if (buffer_drain_symbol (&buffer, &symbol) == 0)
+  if (queue_drain_symbol (&queue, &symbol) == 0)
     /* empty */
     return;
 
@@ -38,7 +38,7 @@ void uart_write_kick ()
 ISR (USART_UDRE_vect)
 {
   uint8_t symbol;
-  if (buffer_drain_symbol (&buffer, &symbol) == 0) {
+  if (queue_drain_symbol (&queue, &symbol) == 0) {
     /* UCSR0B &= ~INTERRUPT_FLAG;   /\* disable interrupt  *\/ */
     return;
   }

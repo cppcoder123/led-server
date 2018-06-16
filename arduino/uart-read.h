@@ -8,10 +8,10 @@
 
 #include "device-id.h"
 
-#include "buffer.h"
+#include "queue.h"
 
 void uart_read_init ();
 
-volatile struct buffer_t* uart_read_get_buffer ();
+volatile struct queue_t* uart_read_get_queue ();
   
 #endif
