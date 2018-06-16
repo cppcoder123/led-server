@@ -119,10 +119,9 @@ static void parse_body ()
       }
 
       /* -1 due to type */
-      /* fixme : uncomment */
-      /* while (matrix_buffer_update (*matrix_type, data, msg_size - 1) == 0) */
-      /*   /\*Note: hang main thread, probably prev matrix render in progress*\/ */
-      /*   ; */
+      while (matrix_buffer_update (*matrix_type, data, msg_size - 1) == 0)
+        /*Note: hang main thread, probably prev matrix render in progress*/
+        ;
 
       codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_OK);
     }

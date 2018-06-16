@@ -3,19 +3,20 @@
 #
 TARGET = arduino.hex
 
-#OBJECT_LIST = \
+OBJECT_LIST = \
   arduino.o \
-  buffer.o \
   button.o \
   codec.o \
+  queue.o \
   matrix-buffer.o \
+  parse.o \
   render.o \
   self-test.o \
   spi-write.o \
   uart.o \
   uart-read.o \
   uart-write.o
-OBJECT_LIST = \
+#OBJECT_LIST = \
   arduino.o \
   codec.o \
   queue.o \

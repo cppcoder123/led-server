@@ -8,10 +8,10 @@
 
 #include "device-id.h"
 
-#include "buffer.h"
+#include "queue.h"
 #include "spi-write.h"
 
-#define BUFFER_SIZE 48
+#define QUEUE_SIZE 48
 
 #define SPI_SS (1 << PB2)
 #define SPI_MOSI (1 << PB3)
@@ -39,8 +39,8 @@
 
 #define DATA_MASK 0x1
 
-static uint8_t buffer_data[BUFFER_SIZE];
-static volatile struct buffer_t buffer;
+static uint8_t queue_data[QUEUE_SIZE];
+static volatile struct queue_t queue;
 
 static volatile uint8_t send_mode;
 static volatile uint8_t send_count;
@@ -53,7 +53,7 @@ static void reset_send_info ()
 
 void spi_write_init ()
 {
-  buffer_init (&buffer, buffer_data, BUFFER_SIZE);
+  queue_init (&queue, queue_data, QUEUE_SIZE, 0);
   reset_send_info ();
 
   /* 
@@ -92,13 +92,13 @@ static void select_mode (uint8_t mode)
 {
   if ((mode == SEND_COMMAND_MODE)
       || (mode == SEND_DATA_MODE))
-    buffer_fill_symbol (&buffer, mode);
+    queue_fill_symbol (&queue, mode);
 }
 
 static void start_send ()
 {
   if ((send_mode != 0)          /* send in progress */
-      || (buffer_is_drainable (&buffer, 1) == 0)) /* empty buffer */
+      || (queue_is_drainable (&queue, 1) == 0)) /* empty queue */
     return;
 
   /* dummy data to call interrupt */
@@ -107,16 +107,16 @@ static void start_send ()
 
 static void fill_command (uint8_t cmd)
 {
-  buffer_fill_symbol (&buffer, CMD_PREFIX | (cmd >> 3));
-  buffer_fill_symbol (&buffer, (cmd << 5));
+  queue_fill_symbol (&queue, CMD_PREFIX | (cmd >> 3));
+  queue_fill_symbol (&queue, (cmd << 5));
 }
 
 static void fill_data_prefix ()
 {
   /*10 - left 2 bits for 101*/
-  buffer_fill_symbol (&buffer, (1 << 1));
+  queue_fill_symbol (&queue, (1 << 1));
   /* right bit of 101 and zero address*/
-  buffer_fill_symbol (&buffer, (1 << 7));
+  queue_fill_symbol (&queue, (1 << 7));
 }
 
 static void fill_data (uint8_t data)
@@ -129,14 +129,14 @@ static void fill_data (uint8_t data)
     data >>= 1;
   }
 
-  buffer_fill_symbol (&buffer, result);
+  queue_fill_symbol (&queue, result);
 }
 
 ISR (SPI_STC_vect)
 {
   if ((send_count == 0) && (send_mode == 0)) {
     uint8_t mode;
-    if (buffer_drain_symbol (&buffer, &mode) == 0)
+    if (queue_drain_symbol (&queue, &mode) == 0)
       return;
     if ((mode != SEND_COMMAND_MODE)
         || (mode != SEND_DATA_MODE))
@@ -157,7 +157,7 @@ ISR (SPI_STC_vect)
   }
 
   uint8_t data;
-  if (buffer_drain_symbol (&buffer, &data) != 0)
+  if (queue_drain_symbol (&queue, &data) != 0)
     SPDR = data;
 }
 
