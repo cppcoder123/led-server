@@ -99,8 +99,8 @@ namespace led_d
       auto upto = matrix_data.begin ();
       bool last = (matrix_data.size () <= data_size) ? true : false;
       std::advance (upto, last ? matrix_data.size () : data_size);
-      char_t sub_type = (first ? ID_SUB_MATRIX_TYPE_FIRST : 0)
-        | (last ? ID_SUB_MATRIX_TYPE_LAST : 0);
+      char_t sub_type = (first ? ID_SUB_MATRIX_TYPE_FIRST : 0);
+      sub_type |= (last ? ID_SUB_MATRIX_TYPE_LAST : 0);
       sub_type = (sub_type == 0) ? ID_SUB_MATRIX_TYPE_MIDDLE : sub_type;
       submatrix_data.splice (submatrix_data.begin (), matrix_data,
                              matrix_data.begin (), upto);
