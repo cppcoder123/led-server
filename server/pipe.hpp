@@ -33,8 +33,6 @@ namespace led_d
 
     using queue_t = mutex::queue_t<msg_t>;
 
-    //void serve_read_write ();
-
     void write ();
     
     void decode (codec_t::msg_t &msg);

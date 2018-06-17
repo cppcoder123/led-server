@@ -22,17 +22,17 @@ namespace led_d
   public:
     using codec_t = core::device::codec_t;
     using msg_t = codec_t::msg_t;
-    
+
     // read & write-complete callbacks
     using read_t = std::function<void (msg_t &msg)>;
     using write_t = std::function<void ()>;
-    
+
     serial_t (asio::io_service &service, const std::string &device);
     serial_t (const serial_t&) = delete;
     ~serial_t () = default;
 
     bool ready () const {return m_flag.test (bit_ready);};
-    
+
     // incoming info : external communication
     void bind (read_t read_cb, write_t write_cb);
     // outcoming info : async write
@@ -68,6 +68,9 @@ namespace led_d
 
     void decode_initial (msg_t &msg);
 
+    void debug_print (const std::string &tag,
+                      char_t *data, std::size_t data_size);
+
     read_t m_read;
     write_t m_write;
 
@@ -98,7 +101,7 @@ namespace led_d
 
     msg_t m_msg_buffer;         // keep data between asio read calls
   };
-  
+
 } // namespace led_d
 
 #endif

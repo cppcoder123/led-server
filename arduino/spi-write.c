@@ -121,6 +121,7 @@ static void fill_data_prefix ()
 
 static void fill_data (uint8_t data)
 {
+  /* write bits in reverse order */
   uint8_t result = 0;
 
   for (uint8_t i = 0; i < 8; ++i) {

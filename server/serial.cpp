@@ -123,13 +123,7 @@ namespace led_d
 
     m_flag.set (bit_pending_write);
 
-    // log_t::buffer_t b;
-    // b << "serial: writing ";
-    // for (std::size_t i = 0; i < index; ++i) {
-    //   b << (int) m_write_buffer[i] << " ";
-    // }
-    // log_t::error (b);
-
+    debug_print ("writing", m_write_buffer, index);
     
     m_port.async_write_some
       (asio::buffer (m_write_buffer, index),
@@ -213,13 +207,11 @@ namespace led_d
 
   bool serial_t::decode_split (msg_list_t &msg_list, std::size_t bytes_transferred)
   {
-    // log_t::buffer_t buff;
-    // buff << "serial: Reading: ";
-    for (std::size_t i = 0; i < bytes_transferred; ++i) {
-      // buff << (int) m_read_buffer[i] << " ";
-      m_msg_buffer.push_back (m_read_buffer[i]);
-    }
-    // log_t::error (buff);
+    debug_print ("reading", m_read_buffer, bytes_transferred);
+
+    for (std::size_t i = 0; i < bytes_transferred; ++i)
+          m_msg_buffer.push_back (m_read_buffer[i]);
+
     // Note: actually we can read from serial again here
 
     while (m_msg_buffer.size () >= header_left_size + header_right_size) {
@@ -392,6 +384,17 @@ namespace led_d
     private_write (msg);
 
     return true;
+  }
+
+  void serial_t::debug_print (const std::string &tag,
+                              char_t *data, std::size_t data_size)
+  {
+    log_t::buffer_t buf;
+    buf << " Debug: " << tag << ": ";
+    for (std::size_t i = 0; i < data_size; ++i)
+      buf << (int) data[i] << " ";
+
+    log_t::info (buf);
   }
   
 } // namespace led_d
