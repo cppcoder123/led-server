@@ -44,7 +44,7 @@ uint8_t queue_get (volatile struct queue_t *buf, uint8_t index,
 
 uint8_t queue_fill_symbol (volatile struct queue_t *buf, uint8_t symbol)
 {
-  if (buf->size + 1 >= buf->max_size)
+  if (buf->size >= buf->max_size)
     // Do we have space ?
     return 0;
 

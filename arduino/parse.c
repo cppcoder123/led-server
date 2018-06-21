@@ -32,11 +32,11 @@ static void parse_body_0 ()
 {
   switch (msg_id) {
   case ID_INIT:
-    /* spi_write_initialize (); */
+    spi_write_initialize ();
     codec_encode_1 (ID_INIT, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_UNINIT:
-    /* spi_write_uninitialize (); */
+    spi_write_uninitialize ();
     codec_encode_1 (ID_UNINIT, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_HANDSHAKE:
@@ -52,19 +52,19 @@ static void parse_body_1 (uint8_t data)
 {
   switch (msg_id) {
   case ID_PIXEL_DELAY:
-    /* render_pixel_delay (data); */
+    render_pixel_delay (data);
     codec_encode_1 (ID_PIXEL_DELAY, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_PHRASE_DELAY:
-    /* render_phrase_delay (data); */
+    render_phrase_delay (data);
     codec_encode_1 (ID_PHRASE_DELAY, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_STABLE_DELAY:
-    /* render_stable_delay (data); */
+    render_stable_delay (data);
     codec_encode_1 (ID_STABLE_DELAY, msg_serial_id, ID_STATUS_OK);
     break;
   case ID_BRIGHTNESS:
-    /* spi_write_brightness (data); */
+    spi_write_brightness (data);
     codec_encode_1 (ID_BRIGHTNESS, msg_serial_id, ID_STATUS_OK);
     break;
   default:

@@ -54,23 +54,23 @@ uint8_t matrix_buffer_update (uint8_t type, volatile uint8_t *src, uint8_t size)
   return 1;
 }
 
-uint8_t matrix_buffer_update_symbol (uint8_t type, uint8_t symbol)
-{
-  if (state_updateable (type) == 0)
-    return 0;
+/* uint8_t matrix_buffer_update_symbol (uint8_t type, uint8_t symbol) */
+/* { */
+/*   if (state_updateable (type) == 0) */
+/*     return 0; */
 
-  if (buffer_size >= ID_MAX_MATRIX_SIZE)
-    return 0;
+/*   if (buffer_size >= ID_MAX_MATRIX_SIZE) */
+/*     return 0; */
 
-  ATOMIC_BLOCK (ATOMIC_FORCEON) {
-    buffer[buffer_size++] = symbol;
-    state |= type & ID_SUB_MATRIX_TYPE_MASK;
-  }
+/*   ATOMIC_BLOCK (ATOMIC_FORCEON) { */
+/*     buffer[buffer_size++] = symbol; */
+/*     state |= type & ID_SUB_MATRIX_TYPE_MASK; */
+/*   } */
 
-  return 1;
-}
+/*   return 1; */
+/* } */
 
-uint8_t matrix_buffer_drain (matrix_buffer_array_t sink,
+uint8_t matrix_buffer_drain (matrix_array_t sink,
                              volatile uint16_t *size)
 {
   if ((state & ID_SUB_MATRIX_TYPE_LAST) == 0)

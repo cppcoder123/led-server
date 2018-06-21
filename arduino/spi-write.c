@@ -8,14 +8,13 @@
 
 #include "device-id.h"
 
+/* #include "codec.h"              /\* debug *\/ */
 #include "queue.h"
 #include "spi-write.h"
 
-#define QUEUE_SIZE 48
 
 #define SPI_SS (1 << PB2)
 #define SPI_MOSI (1 << PB3)
-#define SPI_MISO (1 << PB4)
 #define SPI_SCK (1 << PB5)
 
 #define SEND_COMMAND_MODE 1
@@ -28,6 +27,7 @@
 #define CMD_SYSTEM_STOP 0x0
 #define CMD_SYSTEM_START 0x1
 #define CMD_NMOS_8COM 0x20
+#define CMD_MASTER_MODE 0x18
 #define CMD_LED_ON 0x3
 #define CMD_BRIGHTNESS_PREFIX 0xA0
 
@@ -37,23 +37,27 @@
 /* b100 shifted 5 times to the left */
 #define CMD_PREFIX 0x80
 
-#define DATA_MASK 0x1
+/* 0b 1010 0000 */
+#define DATA_PREFIX 0xA0
+#define DATA_BUFFER_MASK 0x03
+
+#define QUEUE_SIZE 50
 
 static uint8_t queue_data[QUEUE_SIZE];
 static volatile struct queue_t queue;
 
-static volatile uint8_t send_mode;
 static volatile uint8_t send_count;
+static uint8_t send_size;
 
 static void reset_send_info ()
 {
-  send_mode = 0;
   send_count = 0;
+  send_size = 0;
 }
 
 void spi_write_init ()
 {
-  queue_init (&queue, queue_data, QUEUE_SIZE, 0);
+  queue_init (&queue, queue_data, QUEUE_SIZE, 3);
   reset_send_info ();
 
   /* 
@@ -74,30 +78,27 @@ void spi_write_init ()
    *  SPR01 & SPR00 => f-osc / 128
    *  0 for MSB first
    */
-  SPCR = (1 << SPIE) | (1 << SPE) | (1 << MSTR) | (1 << SPR1) | (1 << SPR0);
+  SPCR = (1 << SPIE) | (1 << SPE) | (1 << MSTR)
+    | (1 << CPOL) | (1 << CPHA)
+    | (1 << SPR1) | (1 << SPR0);
 }
 
 static void activate_ss ()
 {
   /* active level is low, so */
   PORTB &= ~SPI_SS;
+  /* codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, 200); */
 }
 
 static void deactivate_ss ()
 {
   PORTB |= SPI_SS;
-}
-
-static void select_mode (uint8_t mode)
-{
-  if ((mode == SEND_COMMAND_MODE)
-      || (mode == SEND_DATA_MODE))
-    queue_fill_symbol (&queue, mode);
+  /* codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, 100); */
 }
 
 static void start_send ()
 {
-  if ((send_mode != 0)          /* send in progress */
+  if ((send_count > 0)          /* send in progress */
       || (queue_is_drainable (&queue, 1) == 0)) /* empty queue */
     return;
 
@@ -107,50 +108,33 @@ static void start_send ()
 
 static void fill_command (uint8_t cmd)
 {
+  queue_fill_symbol (&queue, LENGTH_COMMAND);
+  /* 100 for command prefix */
   queue_fill_symbol (&queue, CMD_PREFIX | (cmd >> 3));
   queue_fill_symbol (&queue, (cmd << 5));
+
+  start_send ();
 }
 
-static void fill_data_prefix ()
+static uint8_t fill_data (uint8_t data, uint8_t buf)
 {
-  /*10 - left 2 bits for 101*/
-  queue_fill_symbol (&queue, (1 << 1));
-  /* right bit of 101 and zero address*/
-  queue_fill_symbol (&queue, (1 << 7));
-}
-
-static void fill_data (uint8_t data)
-{
-  /* write bits in reverse order */
-  uint8_t result = 0;
-
-  for (uint8_t i = 0; i < 8; ++i) {
-    result <<= 1;       /* zero shift gives zero for first iteration*/
-    result |= data & DATA_MASK;
-    data >>= 1;
-  }
-
-  queue_fill_symbol (&queue, result);
+  /* keep last 2 bits of data */
+  uint8_t tmp = data & DATA_BUFFER_MASK;
+  /* shift data right 2 times and OR with buffer*/
+  queue_fill_symbol (&queue, buf | (data >> 2));
+  /* shift data we want to save to the left */
+  return (tmp << 6);
 }
 
 ISR (SPI_STC_vect)
 {
-  if ((send_count == 0) && (send_mode == 0)) {
-    uint8_t mode;
-    if (queue_drain_symbol (&queue, &mode) == 0)
+  if (send_count == 0) {
+    if (queue_drain_symbol (&queue, &send_size) == 0)
       return;
-    if ((mode != SEND_COMMAND_MODE)
-        || (mode != SEND_DATA_MODE))
-      return;
-    send_mode = mode;
     activate_ss ();
-  } else {
-    /* we are not changing mode => increase count */
-    ++send_count;
   }
 
-  if (((send_mode == SEND_COMMAND_MODE) && (send_count == LENGTH_COMMAND))
-      || ((send_mode == SEND_DATA_MODE) && (send_count == LENGTH_DATA))) {
+  if (send_count >= send_size) {
     deactivate_ss ();
     reset_send_info ();
     SPDR = 0;                   /* dummy data to call interrupt */
@@ -158,55 +142,73 @@ ISR (SPI_STC_vect)
   }
 
   uint8_t data;
-  if (queue_drain_symbol (&queue, &data) != 0)
+  if (queue_drain_symbol (&queue, &data) != 0) {
+    ++send_count;
     SPDR = data;
+  } else {
+    /* we should not get here */
+    /* codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, 201); */
+    deactivate_ss ();
+  }
 }
 
 void spi_write_initialize ()
 {
-  select_mode (SEND_COMMAND_MODE);
-
   fill_command (CMD_SYSTEM_STOP);
   fill_command (CMD_NMOS_8COM);
+  fill_command (CMD_MASTER_MODE); /* ??? */
   fill_command (CMD_SYSTEM_START);
   fill_command (CMD_LED_ON);
   fill_command (CMD_BRIGHTNESS_PREFIX | (BRIGHTNESS_MASK & ID_BRIGHTNESS_MAX));
-
-  start_send ();
+  fill_command (CMD_BRIGHTNESS_PREFIX | (BRIGHTNESS_MASK & ID_BRIGHTNESS_MAX));
 }
 
 void spi_write_uninitialize ()
 {
-  select_mode (SEND_COMMAND_MODE);
-
   fill_command (CMD_SYSTEM_STOP);
-
-  start_send ();
 }
 
 void spi_write_brightness (uint8_t brightness)
 {
-  select_mode (SEND_COMMAND_MODE);
-
   /* 
    * Brightness levels are the same as in device-id, 
    * so no conversion is needed
    */
   fill_command (CMD_BRIGHTNESS_PREFIX | (BRIGHTNESS_MASK & brightness));
+}
 
+void spi_write_matrix (volatile uint8_t *data, uint8_t left_empty, uint8_t data_size)
+{
+  queue_fill_symbol (&queue, LENGTH_DATA);
+  /*101 | 00000 : cmd code + 5 bits of zero address*/
+  queue_fill_symbol (&queue, DATA_PREFIX);
+  uint8_t bits_buf = 0;         /* keep 2 bits from prev data here */
+  uint8_t bits_first = (data[0] >> 2);
+
+  for (uint8_t i = 0; i < SPI_WRITE_MATRIX_SIZE; ++i) {
+    uint8_t symbol = (i < left_empty) ? 0
+      : (i < data_size) ? data[i] : 0;
+    bits_buf = fill_data (symbol, bits_buf);
+  }
+
+  queue_fill_symbol (&queue, bits_buf | bits_first);
+  
   start_send ();
 }
 
-void spi_write_matrix_symbol (uint8_t type, uint8_t symbol)
+void spi_write_matrix_test (uint8_t pattern)
 {
-  if (type == SPI_WRITE_FIRST) {
-    select_mode (SEND_DATA_MODE);
-    fill_data_prefix ();
-  }
+  uint8_t buf[SPI_WRITE_MATRIX_SIZE];
+  for (uint8_t i = 0; i < SPI_WRITE_MATRIX_SIZE; ++i)
+    buf[i] = pattern;
 
-  fill_data (symbol);
-
-  if (type == SPI_WRITE_LAST)
-    start_send ();
+  spi_write_matrix (buf, 0, SPI_WRITE_MATRIX_SIZE);
 }
 
+#if 0
+-  for (uint8_t i = 0; i < 8; ++i) {
+-    result <<= 1;       /* zero shift gives zero for first iteration*/
+-    result |= data & DATA_MASK;
+-    data >>= 1;
+-  }
+#endif

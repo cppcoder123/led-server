@@ -37,7 +37,7 @@ static uint8_t stable_delay;
 
 static volatile uint8_t buffer[ID_MAX_MATRIX_SIZE];
 static volatile uint16_t buffer_size;
-static int16_t buffer_shift;
+static uint16_t buffer_shift;
 
 static volatile uint8_t delay_tick;
 static volatile uint8_t delay_factor;
@@ -53,7 +53,7 @@ static void software_init ()
   state = STATE_EMPTY;
 
   buffer_size = 0;
-  buffer_shift = -ID_MAX_MATRIX_SIZE;
+  buffer_shift = 0;
 
   set_delay (DELAY_TICK_MAX, DELAY_FACTOR_EMPTY);
 }
@@ -99,13 +99,8 @@ static void handle_zero ()
 
 static void handle_stable ()
 {
-  spi_write_matrix_symbol (SPI_WRITE_FIRST, buffer[0]);
+  spi_write_matrix (buffer, 0, SPI_WRITE_MATRIX_SIZE);
 
-  for (uint8_t i = 1; i < SPI_WRITE_MATRIX_SIZE - 1; ++i)
-    spi_write_matrix_symbol (SPI_WRITE_MIDDLE, buffer[i]);
-
-  spi_write_matrix_symbol (SPI_WRITE_LAST, buffer[SPI_WRITE_MATRIX_SIZE - 1]);
-  
   state = STATE_RENDERED;
   
   set_delay (DELAY_TICK_MAX, stable_delay);
@@ -113,14 +108,25 @@ static void handle_stable ()
 
 static void handle_pixel ()
 {
-  int16_t loop_end = buffer_shift + SPI_WRITE_MATRIX_SIZE;
+  uint8_t left_empty
+    = (buffer_shift < SPI_WRITE_MATRIX_SIZE) ? buffer_shift : 0;
+  uint8_t data_size
+    = ((buffer_shift + SPI_WRITE_MATRIX_SIZE) < buffer_size)
+    ? SPI_WRITE_MATRIX_SIZE : (uint8_t) (buffer_size - buffer_shift);
 
-  for (int16_t i = buffer_shift; i < loop_end; ++i) {
-    uint8_t type = (i == buffer_shift) ? SPI_WRITE_FIRST
-      : (i == (loop_end - 1)) ? SPI_WRITE_LAST : SPI_WRITE_MIDDLE;
-    uint8_t data = ((i >= 0) && (i < buffer_size)) ? buffer[i] : 0;
-    spi_write_matrix_symbol (type, data);
-  }
+  spi_write_matrix (buffer + buffer_shift, left_empty, data_size);
+  
+  /* int16_t loop_end = buffer_shift + SPI_WRITE_MATRIX_SIZE; */
+  /* uint8_t data_size = (loop_end <= buffer_size) */
+
+  
+
+  /* for (int16_t i = buffer_shift; i < loop_end; ++i) { */
+  /*   uint8_t type = (i == buffer_shift) ? SPI_WRITE_FIRST */
+  /*     : (i == (loop_end - 1)) ? SPI_WRITE_LAST : SPI_WRITE_MIDDLE; */
+  /*   uint8_t data = ((i >= 0) && (i < buffer_size)) ? buffer[i] : 0; */
+  /*   spi_write_matrix_symbol (type, data); */
+  /* } */
 
   ++buffer_shift;
 

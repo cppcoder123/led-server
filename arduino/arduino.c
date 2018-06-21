@@ -24,12 +24,12 @@
 
 static void init ()
 {
-  button_init ();
+  /* button_init (); */
   codec_init ();
   matrix_buffer_init ();
   parse_init ();
-  spi_write_init ();
   render_init ();
+  spi_write_init ();
   uart_init ();
   /* enable interrupts */
   sei ();
