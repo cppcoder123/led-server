@@ -6,6 +6,8 @@
 #ifndef SELF_TEST_H
 #define SELF_TEST_H
 
-void self_test ();
+#include <stdint.h>
+
+void self_test (uint8_t pattern);
 
 #endif

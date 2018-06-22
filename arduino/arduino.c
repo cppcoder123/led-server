@@ -38,14 +38,16 @@ static void init ()
 int main ()
 {
   init ();
-  self_test ();
+  self_test (0xFF);
 
   while (1) {
     /*
      * uart read/write, spi write and button handling
      * use interrupts, so we only need to parse uart read queue 
      */
+    /* self_test (0x44); */
     parse ();
+    /* self_test (0xAA); */
   }
 
   return 0;

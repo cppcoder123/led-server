@@ -93,7 +93,6 @@ namespace led_d
       matrix_data.push_back (get_char (matrix.get_column (i)));
 
     // 2. split into submatrices
-    msg_t submatrix_data;
     bool first = true;
     while (matrix_data.empty () == false) {
       auto upto = matrix_data.begin ();
@@ -102,12 +101,15 @@ namespace led_d
       char_t sub_type = (first ? ID_SUB_MATRIX_TYPE_FIRST : 0);
       sub_type |= (last ? ID_SUB_MATRIX_TYPE_LAST : 0);
       sub_type = (sub_type == 0) ? ID_SUB_MATRIX_TYPE_MIDDLE : sub_type;
+      msg_t submatrix_data;
       submatrix_data.splice (submatrix_data.begin (), matrix_data,
                              matrix_data.begin (), upto);
       msg_t sub_msg = codec_t::encode
         (get_serial_id (), ID_SUB_MATRIX, sub_type, std::cref (submatrix_data));
 
       m_write_queue.push (sub_msg);
+
+      first = false;
     }
     
     return true;
@@ -129,7 +131,8 @@ namespace led_d
       m_block.tighten (serial_id);
     else {
       log_t::buffer_t buf;
-      buf << "pipe: Failed to write message to serial";
+      buf << "pipe: Failed to write message \""
+          << (int) serial_id << "\" to serial";
       log_t::error (buf);
     }
   }

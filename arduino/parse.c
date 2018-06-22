@@ -166,10 +166,12 @@ void parse ()
     /*header is OK and body length is OK*/
     parse_body ();
 
+    /* codec_encode_1 (ID_STATUS, msg_serial_id, ID_HEADER_SIZE + msg_size); */
     if (queue_drain (read, ID_HEADER_SIZE + msg_size) == 0) {
       codec_encode_1 (ID_STATUS, msg_serial_id, ID_STATUS_DRAIN_FAILURE);
+      /* codec_encode_1 (ID_STATUS, msg_serial_id, read->size); */
       continue;
     }
+    /* codec_encode_1 (ID_STATUS, msg_serial_id, read->size); */
   }
-
 }
