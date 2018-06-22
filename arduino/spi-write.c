@@ -83,17 +83,42 @@ void spi_write_init ()
     | (1 << SPR1) | (1 << SPR0);
 }
 
-static void activate_ss ()
+static void slave_select ()
 {
   /* active level is low, so */
   PORTB &= ~SPI_SS;
   /* codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, 200); */
 }
 
-static void deactivate_ss ()
+static void slave_deselect ()
 {
   PORTB |= SPI_SS;
   /* codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, 100); */
+}
+
+ISR (SPI_STC_vect)
+{
+  if (send_count == 0) {
+    if (queue_drain_symbol (&queue, &send_size) == 0)
+      return;
+    slave_select ();
+  }
+
+  if (send_count >= send_size) {
+    slave_deselect ();
+    reset_send_info ();
+    return;
+  }
+
+  uint8_t data;
+  if (queue_drain_symbol (&queue, &data) != 0) {
+    ++send_count;
+    SPDR = data;
+  } else {
+    /* we should not get here */
+    /* codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, 201); */
+    slave_deselect ();
+  }
 }
 
 static void start_send ()
@@ -114,42 +139,6 @@ static void fill_command (uint8_t cmd)
   queue_fill_symbol (&queue, (cmd << 5));
 
   start_send ();
-}
-
-static uint8_t fill_data (uint8_t data, uint8_t buf)
-{
-  /* keep last 2 bits of data */
-  uint8_t tmp = data & DATA_BUFFER_MASK;
-  /* shift data right 2 times and OR with buffer*/
-  queue_fill_symbol (&queue, buf | (data >> 2));
-  /* shift data we want to save to the left */
-  return (tmp << 6);
-}
-
-ISR (SPI_STC_vect)
-{
-  if (send_count == 0) {
-    if (queue_drain_symbol (&queue, &send_size) == 0)
-      return;
-    activate_ss ();
-  }
-
-  if (send_count >= send_size) {
-    deactivate_ss ();
-    reset_send_info ();
-    SPDR = 0;                   /* dummy data to call interrupt */
-    return;
-  }
-
-  uint8_t data;
-  if (queue_drain_symbol (&queue, &data) != 0) {
-    ++send_count;
-    SPDR = data;
-  } else {
-    /* we should not get here */
-    /* codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, 201); */
-    deactivate_ss ();
-  }
 }
 
 void spi_write_initialize ()
@@ -177,38 +166,82 @@ void spi_write_brightness (uint8_t brightness)
   fill_command (CMD_BRIGHTNESS_PREFIX | (BRIGHTNESS_MASK & brightness));
 }
 
+static uint8_t transpose (uint8_t src)
+{
+  uint8_t low = src & 0xF;
+  uint8_t high = src & 0xF0;
+
+  uint8_t result = (low & 0x1);
+  result <<= 1;
+  result |= (low >>= 1) & 0x1;
+  result <<= 1;
+  result |= (low >>= 1) & 0x1;
+  result <<= 1;
+  result |= (low >>= 1) & 0x1;
+  result <<= 1;
+
+  high >>= 4;
+
+  result |= (high & 0x1);
+  result <<= 1;
+  result |= (high >>= 1) & 0x1;
+  result <<= 1;
+  result |= (high >>= 1) & 0x1;
+  result <<= 1;
+  result |= (high >>= 1) & 0x1;
+
+  return result;
+}
+
+static uint8_t fill_data (uint8_t data, uint8_t buf)
+{
+  /* keep last 2 bits of data */
+  uint8_t tmp = data & DATA_BUFFER_MASK;
+  /* shift data right 2 times and OR with buffer*/
+  queue_fill_symbol (&queue, buf | (data >> 2));
+  /* shift data we want to save to the left */
+  return (tmp << 6);
+}
+
+static uint8_t get_data (volatile uint8_t *data, uint8_t left_empty,
+                         uint8_t data_size, uint8_t index)
+{
+  if (index < left_empty)
+    return 0;
+
+  uint8_t shift = index - left_empty;
+  if (shift < data_size)
+    return data[shift];
+
+  return 0;
+}
+
 void spi_write_matrix (volatile uint8_t *data, uint8_t left_empty, uint8_t data_size)
 {
   queue_fill_symbol (&queue, LENGTH_DATA);
   /*101 | 00000 : cmd code + 5 bits of zero address*/
   queue_fill_symbol (&queue, DATA_PREFIX);
+
   uint8_t bits_buf = 0;         /* keep 2 bits from prev data here */
-  uint8_t bits_first = (data[0] >> 2);
+  uint8_t first_symbol = get_data (data, left_empty, data_size, 0);
+  uint8_t bits_first = (transpose (first_symbol) >> 2);
 
   for (uint8_t i = 0; i < SPI_WRITE_MATRIX_SIZE; ++i) {
-    uint8_t symbol = (i < left_empty) ? 0
-      : (i < data_size) ? data[i] : 0;
-    bits_buf = fill_data (symbol, bits_buf);
+    uint8_t symbol = get_data (data, left_empty, data_size, i);
+    bits_buf = fill_data (transpose (symbol), bits_buf);
   }
 
+  /* codec_encode_1 (ID_STATUS, ID_DEVICE_SERIAL, bits_buf | bits_first); */
   queue_fill_symbol (&queue, bits_buf | bits_first);
   
   start_send ();
 }
 
-void spi_write_matrix_test (uint8_t pattern)
+void spi_write_matrix_test (uint8_t pattern, uint8_t start, uint8_t size)
 {
   uint8_t buf[SPI_WRITE_MATRIX_SIZE];
   for (uint8_t i = 0; i < SPI_WRITE_MATRIX_SIZE; ++i)
     buf[i] = pattern;
 
-  spi_write_matrix (buf, 0, SPI_WRITE_MATRIX_SIZE);
+  spi_write_matrix (buf, start, size);
 }
-
-#if 0
--  for (uint8_t i = 0; i < 8; ++i) {
--    result <<= 1;       /* zero shift gives zero for first iteration*/
--    result |= data & DATA_MASK;
--    data >>= 1;
--  }
-#endif

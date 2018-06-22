@@ -21,8 +21,8 @@ void spi_write_uninitialize ();
 
 void spi_write_brightness (uint8_t brightness);
 
-void spi_write_matrix (volatile uint8_t *data, uint8_t start, uint8_t finish);
+void spi_write_matrix (volatile uint8_t *data, uint8_t start, uint8_t size);
 
-void spi_write_matrix_test (uint8_t pattern);
+void spi_write_matrix_test (uint8_t pattern, uint8_t start, uint8_t size);
 
 #endif
