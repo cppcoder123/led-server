@@ -10,6 +10,9 @@
 #include "render.h"
 #include "spi-write.h"
 
+#define TIMER_ENABLE TCCR0B = (1 << CS02) | (1 << CS00)
+#define TIMER_DISABLE TCCR0B = 0
+
 /* 64 * (10^-6) seconds*/
 #define DELAY_TICK_MIN 255
 /* ~16 * (10^-3) seconds*/
@@ -24,7 +27,6 @@ enum {
   STATE_EMPTY,               /* next state either stable or rolling */
   STATE_STABLE,              /* stable render */
   STATE_PIXEL,               /* rolling render, loop here */
-  /* STATE_PHRASE,              /\* end of rolling *\/ */
   STATE_RENDERED             /* next state is zero */
 };
 
@@ -58,30 +60,6 @@ static void software_init ()
   set_delay (DELAY_TICK_MAX, DELAY_FACTOR_EMPTY);
 }
 
-static void right_shift (uint8_t step, uint8_t fill_pattern)
-{
-  for (uint8_t i = SPI_WRITE_MATRIX_SIZE - step - 1; i >= 0; --i)
-    buffer[i + step] = buffer[i];
-  for (uint8_t j = 0; j < step; ++j)
-    buffer[j] = fill_pattern;
-}
-
-static void center_data ()
-{
-  if (buffer_size >= SPI_WRITE_MATRIX_SIZE)
-    return;
-
-  uint8_t left = (SPI_WRITE_MATRIX_SIZE - (uint8_t)buffer_size) / 2;
-
-  right_shift (left, 0);
-  buffer_size += left;
-
-  for (uint8_t i = buffer_size; i < SPI_WRITE_MATRIX_SIZE; ++i)
-    buffer[i] = 0;
-
-  buffer_size = SPI_WRITE_MATRIX_SIZE;
-}
-
 static void handle_zero ()
 {
   if (matrix_buffer_drain (&buffer, &buffer_size) == 0) {
@@ -89,54 +67,53 @@ static void handle_zero ()
     return;
   }
 
-  state = (buffer_size < SPI_WRITE_MATRIX_SIZE)
+  state = (buffer_size <= SPI_WRITE_MATRIX_SIZE)
     ? STATE_STABLE : STATE_PIXEL;
 
-  center_data ();
-
-  set_delay (DELAY_TICK_MIN, DELAY_FACTOR_ZERO);
+  set_delay (DELAY_TICK_MAX, DELAY_FACTOR_ZERO);
 }
 
 static void handle_stable ()
 {
-  spi_write_matrix (buffer, 0, SPI_WRITE_MATRIX_SIZE);
-
+  TIMER_DISABLE;
+  uint8_t left_shift = (SPI_WRITE_MATRIX_SIZE - (uint8_t) buffer_size) / 2;
+  spi_write_matrix (buffer, left_shift, (uint8_t) buffer_size);
   state = STATE_RENDERED;
   
   set_delay (DELAY_TICK_MAX, stable_delay);
+  TIMER_ENABLE;
 }
 
 static void handle_pixel ()
 {
-  uint8_t left_empty
-    = (buffer_shift < SPI_WRITE_MATRIX_SIZE) ? buffer_shift : 0;
-  uint8_t data_size
-    = ((buffer_shift + SPI_WRITE_MATRIX_SIZE) < buffer_size)
-    ? SPI_WRITE_MATRIX_SIZE : (uint8_t) (buffer_size - buffer_shift);
+  // NOTE: Enable timer at return
+  TIMER_DISABLE;
 
-  spi_write_matrix (buffer + buffer_shift, left_empty, data_size);
+  uint8_t left_empty = (buffer_shift < SPI_WRITE_MATRIX_SIZE)
+    ? (SPI_WRITE_MATRIX_SIZE - buffer_shift) : 0;
+
+  uint16_t data_start = (buffer_shift < SPI_WRITE_MATRIX_SIZE)
+    ? 0 : (buffer_shift - SPI_WRITE_MATRIX_SIZE);
+
+  if (data_start < buffer_size + SPI_WRITE_MATRIX_SIZE) {
+
+    /* spi_write_matrix reads only 32 symbols */
+    uint8_t data_size = ((data_start + SPI_WRITE_MATRIX_SIZE) < buffer_size)
+      ? SPI_WRITE_MATRIX_SIZE : (uint8_t) (buffer_size - data_start);
+
+    spi_write_matrix (buffer + data_start, left_empty, data_size);
   
-  /* int16_t loop_end = buffer_shift + SPI_WRITE_MATRIX_SIZE; */
-  /* uint8_t data_size = (loop_end <= buffer_size) */
+    ++buffer_shift;
+  }
 
-  
-
-  /* for (int16_t i = buffer_shift; i < loop_end; ++i) { */
-  /*   uint8_t type = (i == buffer_shift) ? SPI_WRITE_FIRST */
-  /*     : (i == (loop_end - 1)) ? SPI_WRITE_LAST : SPI_WRITE_MIDDLE; */
-  /*   uint8_t data = ((i >= 0) && (i < buffer_size)) ? buffer[i] : 0; */
-  /*   spi_write_matrix_symbol (type, data); */
-  /* } */
-
-  ++buffer_shift;
-
-  if (buffer_shift >= buffer_size) {
+  if (buffer_shift > buffer_size + SPI_WRITE_MATRIX_SIZE) {
     state = STATE_RENDERED;
     set_delay (DELAY_TICK_MAX, phrase_delay);
-    return;
+  } else {
+    set_delay (DELAY_TICK_MAX, pixel_delay);
   }
-  
-  set_delay (DELAY_TICK_MAX, pixel_delay);
+
+  TIMER_ENABLE;
 }
 
 static void handle_rendered ()
@@ -183,7 +160,8 @@ void render_init ()
   /*
    * Max clock prescaler = 1024
    */
-  TCCR0B = (1 << CS02) | (1 << CS00);
+  /* TCCR0B = (1 << CS02) | (1 << CS00); */
+  TIMER_ENABLE;
 
   /* 
    * Clear interrupt source,
