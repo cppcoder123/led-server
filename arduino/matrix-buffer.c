@@ -9,49 +9,49 @@
 #include "device-id.h"
 
 #include "matrix-buffer.h"
+#include "queue.h"
 
-static volatile uint8_t buffer[ID_MAX_MATRIX_SIZE];
-static uint16_t buffer_size;
-static uint8_t state;
+static volatile uint8_t buffer_data[ID_MAX_BUFFER_SIZE];
+static volatile struct queue_t buffer;
+
+static uint8_t matrix_type;
 
 void matrix_buffer_init ()
 {
   /* debug */
-  for (uint16_t i = 0; i < ID_MAX_MATRIX_SIZE; ++i)
-    buffer[i] = 0xFF;
+  queue_init (&buffer, buffer_data, ID_MAX_BUFFER_SIZE, 0xAA);
 
-  buffer_size = 0;
-
-  state = 0;
+  matrix_type = 0;
 }
 
-static uint8_t state_updateable (uint8_t type)
+/* static uint8_t state_updateable (uint8_t type) */
+/* { */
+/*   /\*first enables update for clean buffer*\/ */
+/*   if ((state == 0) */
+/*       && ((type & ID_SUB_MATRIX_TYPE_FIRST) == 0)) */
+/*     return 0; */
+
+/*   /\*disable update after last*\/ */
+/*   if ((state & ID_SUB_MATRIX_TYPE_LAST) != 0) */
+/*     return 0; */
+
+/*   return 1; */
+/* } */
+
+uint8_t matrix_buffer_fill (uint8_t type, volatile uint8_t *src, uint8_t size)
 {
-  /*first enables update for clean buffer*/
-  if ((state == 0)
-      && ((type & ID_SUB_MATRIX_TYPE_FIRST) == 0))
+  if (matrix_type != 0)
+    /* matrix is not rendered yet */
     return 0;
 
-  /*disable update after last*/
-  if ((state & ID_SUB_MATRIX_TYPE_LAST) != 0)
-    return 0;
-
-  return 1;
-}
-
-uint8_t matrix_buffer_update (uint8_t type, volatile uint8_t *src, uint8_t size)
-{
-  if (state_updateable (type) == 0)
-    return 0;
-
+  uint8_t status = 0;
   ATOMIC_BLOCK (ATOMIC_FORCEON) {
-    for (uint8_t i = 0; i < size; ++i)
-      buffer[buffer_size++] = *(src + i);
-
-    state |= type & ID_SUB_MATRIX_TYPE_MASK;
+    status = queue_refill (&buffer, src, size);
+    
+    matrix_type = type & ID_SUB_MATRIX_TYPE_MASK;
   }
 
-  return 1;
+  return status;
 }
 
 /* uint8_t matrix_buffer_update_symbol (uint8_t type, uint8_t symbol) */
@@ -70,21 +70,17 @@ uint8_t matrix_buffer_update (uint8_t type, volatile uint8_t *src, uint8_t size)
 /*   return 1; */
 /* } */
 
-uint8_t matrix_buffer_drain (matrix_array_t sink,
-                             volatile uint16_t *size)
+uint8_t matrix_buffer_drain (volatile uint8_t *type, volatile struct queue_t *sink)
 {
-  if ((state & ID_SUB_MATRIX_TYPE_LAST) == 0)
-    /*either empty or not completely updated*/
+  if (matrix_type == 0)
     return 0;
 
+  uint8_t status = 0;
   ATOMIC_BLOCK (ATOMIC_FORCEON) {
-    for (uint16_t i = 0; i < buffer_size; ++i)
-      (*sink)[i] = buffer[i];
-
-    *size = buffer_size;
-
-    matrix_buffer_init ();
+    *type = matrix_type;
+    status = queue_move (&buffer, sink);
+    matrix_type = 0;
   }
 
-  return 1;
+  return status;
 }

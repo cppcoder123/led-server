@@ -88,3 +88,47 @@ uint8_t queue_drain (volatile struct queue_t *buf, uint8_t drain_size)
 
   return 1;
 }
+
+uint8_t queue_refill (volatile struct queue_t *buf,
+                      volatile uint8_t *src, uint8_t src_size)
+{
+  if (buf->max_size < src_size)
+    return 0;
+
+  ATOMIC_BLOCK (ATOMIC_FORCEON)
+  {
+    for (uint8_t i = 0; i < src_size; ++i)
+      buf->data[i] = src[i];
+
+    buf->size = src_size;
+  }
+
+  return 1;
+}
+
+uint8_t queue_move (volatile struct queue_t *from,
+                    volatile struct queue_t *to)
+{
+  if (to->max_size < from->size)
+    return 0;
+
+  ATOMIC_BLOCK (ATOMIC_FORCEON)
+  {
+    for (uint8_t i = 0; i < from->size; ++i)
+      to->data[i] = from->data[i];
+    to->size = from->size;
+    from->size = 0;
+  }
+  
+  return 1;
+}
+
+void queue_clear (volatile struct queue_t *buf)
+{
+  buf->size = 0;
+}
+
+uint8_t queue_size (volatile struct queue_t *buf)
+{
+  return buf->size;
+}

@@ -9,6 +9,8 @@ namespace led_d
 {
   bool block_t::can_go () const
   {
+    // std::lock_guard<std::mutex> guard (m_mutex);
+
     return !m_pending;
   }
   
@@ -24,8 +26,8 @@ namespace led_d
     if ((m_pending == true)
         && (m_pending_id != id)) {
       log_t::buffer_t buf;
-      buf << "block: Trying to tighten with new id \"" << id
-          << "\", while old id \"" << m_pending_id << "\" is not relaxed.";
+      buf << "block: Trying to tighten with new id \"" << (int) id
+          << "\", while old id \"" << (int) m_pending_id << "\" is not relaxed.";
       log_t::error (buf);
       return;
     }

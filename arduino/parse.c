@@ -119,7 +119,7 @@ static void parse_body ()
       }
 
       /* -1 due to type */
-      while (matrix_buffer_update (*matrix_type, data, msg_size - 1) == 0)
+      while (matrix_buffer_fill (*matrix_type, data, msg_size - 1) == 0)
         /*Note: hang main thread, probably prev matrix render in progress*/
         ;
 

@@ -185,9 +185,10 @@ namespace led_d
   {
     m_flag.reset (bit_pending_write);
 
-    auto next
-      = core::make_final_action
-      ([this] () { if (ready () == true) m_write ();});
+    // we need to wait for response
+    // auto next
+    //   = core::make_final_action
+    //   ([this] () { if (ready () == true) m_write ();});
 
     if (code) {
       log_t::buffer_t buf;

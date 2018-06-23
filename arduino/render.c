@@ -7,6 +7,7 @@
 #include "device-id.h"
 
 #include "matrix-buffer.h"
+#include "queue.h"
 #include "render.h"
 #include "spi-write.h"
 
@@ -37,12 +38,26 @@ static uint8_t pixel_delay;
 static uint8_t phrase_delay;
 static uint8_t stable_delay;
 
-static volatile uint8_t buffer[ID_MAX_MATRIX_SIZE];
-static volatile uint16_t buffer_size;
-static uint16_t buffer_shift;
+static volatile uint8_t buffer_data[ID_MAX_BUFFER_SIZE];
+static volatile struct queue_t buffer;
+
+static volatile uint8_t data_type;
+
+static uint8_t buffer_shift;
+static uint8_t buffer_shift_max;
 
 static volatile uint8_t delay_tick;
 static volatile uint8_t delay_factor;
+
+
+static void software_init_once ()
+{
+  pixel_delay = 6;
+  phrase_delay = 12;
+  stable_delay = 12;
+
+  queue_init (&buffer, buffer_data, ID_MAX_BUFFER_SIZE, 0xCC);
+}
 
 static void set_delay (uint8_t tick, uint8_t factor)
 {
@@ -54,21 +69,31 @@ static void software_init ()
 {
   state = STATE_EMPTY;
 
-  buffer_size = 0;
+  queue_clear (&buffer);
   buffer_shift = 0;
+  buffer_shift_max = 0;
 
   set_delay (DELAY_TICK_MAX, DELAY_FACTOR_EMPTY);
 }
 
 static void handle_zero ()
 {
-  if (matrix_buffer_drain (&buffer, &buffer_size) == 0) {
+  if (matrix_buffer_drain (&data_type, &buffer) == 0) {
     set_delay (DELAY_TICK_MAX, DELAY_FACTOR_EMPTY);
     return;
   }
 
-  state = (buffer_size <= SPI_WRITE_MATRIX_SIZE)
+  state = (queue_size (&buffer) <= SPI_WRITE_MATRIX_SIZE)
     ? STATE_STABLE : STATE_PIXEL;
+
+  if (state == STATE_PIXEL) {
+    buffer_shift = (data_type & ID_SUB_MATRIX_TYPE_FIRST)
+      ? 0 : SPI_WRITE_MATRIX_SIZE;
+
+    buffer_shift_max = queue_size (&buffer);
+    if (data_type & ID_SUB_MATRIX_TYPE_LAST)
+      buffer_shift_max += SPI_WRITE_MATRIX_SIZE;
+  }
 
   set_delay (DELAY_TICK_MAX, DELAY_FACTOR_ZERO);
 }
@@ -76,8 +101,14 @@ static void handle_zero ()
 static void handle_stable ()
 {
   TIMER_DISABLE;
-  uint8_t left_shift = (SPI_WRITE_MATRIX_SIZE - (uint8_t) buffer_size) / 2;
-  spi_write_matrix (buffer, left_shift, (uint8_t) buffer_size);
+  uint8_t left_shift = (SPI_WRITE_MATRIX_SIZE - queue_size (&buffer)) / 2;
+  volatile uint8_t *data;
+
+  if (queue_get (&buffer, 0, &data) != 0)
+    spi_write_matrix (data, left_shift, queue_size (&buffer));
+
+  queue_clear (&buffer);
+
   state = STATE_RENDERED;
   
   set_delay (DELAY_TICK_MAX, stable_delay);
@@ -95,24 +126,26 @@ static void handle_pixel ()
   uint16_t data_start = (buffer_shift < SPI_WRITE_MATRIX_SIZE)
     ? 0 : (buffer_shift - SPI_WRITE_MATRIX_SIZE);
 
-  if (data_start < buffer_size + SPI_WRITE_MATRIX_SIZE) {
+  if (buffer_shift < buffer_shift_max) {
 
     /* spi_write_matrix reads only 32 symbols */
-    uint8_t data_size = ((data_start + SPI_WRITE_MATRIX_SIZE) < buffer_size)
-      ? SPI_WRITE_MATRIX_SIZE : (uint8_t) (buffer_size - data_start);
+    uint8_t data_size
+      = ((data_start + SPI_WRITE_MATRIX_SIZE) < queue_size (&buffer))
+      ? SPI_WRITE_MATRIX_SIZE : (queue_size (&buffer) - data_start);
 
-    spi_write_matrix (buffer + data_start, left_empty, data_size);
+    volatile uint8_t *data;
+    if (queue_get (&buffer, data_start, &data) != 0)
+      spi_write_matrix (data, left_empty, data_size);
   
     ++buffer_shift;
-  }
-
-  if (buffer_shift > buffer_size + SPI_WRITE_MATRIX_SIZE) {
-    state = STATE_RENDERED;
-    set_delay (DELAY_TICK_MAX, phrase_delay);
   } else {
-    set_delay (DELAY_TICK_MAX, pixel_delay);
+    state = STATE_RENDERED;
   }
 
+  uint8_t long_delay = ((state == STATE_RENDERED)
+                        && (data_type & ID_SUB_MATRIX_TYPE_LAST)) ? 1 : 0;
+  set_delay (DELAY_TICK_MAX, (long_delay != 0) ? phrase_delay : pixel_delay);
+  
   TIMER_ENABLE;
 }
 
@@ -172,11 +205,8 @@ void render_init ()
 
   TCNT0 = DELAY_TICK_MAX;
 
-  /* init delays here because we want to use software_init from other place */
-  pixel_delay = 6;
-  phrase_delay = 12;
-  stable_delay = 12;
-
+  software_init_once ();
+  
   software_init ();
 }
 

@@ -81,8 +81,8 @@ namespace led_d
 
   bool pipe_t::render (const core::matrix_t &matrix)
   {
-    if (matrix.size () > ID_MAX_MATRIX_SIZE)
-      return false;
+    // if (matrix.size () > ID_MAX_MATRIX_SIZE)
+    //   return false;
 
     //header and submatrix-type
     constexpr std::size_t data_size = ID_MAX_SUB_MATRIX_SIZE - ID_HEADER_SIZE - 1;

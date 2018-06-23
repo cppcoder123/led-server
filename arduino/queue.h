@@ -34,4 +34,14 @@ uint8_t queue_drain_symbol (volatile struct queue_t *buf, uint8_t *symbol);
 
 uint8_t queue_drain (volatile struct queue_t *buf, uint8_t drain_size);
 
+/* clear old data and fill new data from src */
+uint8_t queue_refill (volatile struct queue_t *buf,
+                      volatile uint8_t *src, uint8_t src_size);
+
+uint8_t queue_move (volatile struct queue_t *from, volatile struct queue_t *to);
+
+void queue_clear (volatile struct queue_t *queue);
+
+uint8_t queue_size (volatile struct queue_t *queue);
+
 #endif

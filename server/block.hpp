@@ -4,6 +4,8 @@
 #ifndef LED_D_BLOCK_HPP
 #define LED_D_BLOCK_HPP
 
+// #include <mutex>
+
 #include "device-codec.hpp"
 
 namespace led_d
@@ -27,6 +29,8 @@ namespace led_d
     void relax (char_t id);     // error here if id mismatch
 
   private:
+    // std::mutex m_mutex;
+    
     bool m_pending;
     char_t m_pending_id;
   };

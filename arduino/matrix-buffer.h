@@ -9,15 +9,13 @@
 
 #include <stdint.h>
 
-#include "device-id.h"
+#include "queue.h"
 
 void matrix_buffer_init ();
 
-/*type : first or last or middle*/
-uint8_t matrix_buffer_update (uint8_t type, volatile uint8_t *src, uint8_t size);
+/*type : first, last or middle*/
+uint8_t matrix_buffer_fill (uint8_t type, volatile uint8_t *src, uint8_t size);
 
-typedef volatile uint8_t (*matrix_array_t)[ID_MAX_MATRIX_SIZE];
-uint8_t matrix_buffer_drain (matrix_array_t sink,
-                             volatile uint16_t *size);
+uint8_t matrix_buffer_drain (volatile uint8_t *type, volatile struct queue_t *sink);
 
 #endif
