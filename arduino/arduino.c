@@ -10,11 +10,8 @@
 
 #include <stdint.h>
 
-#include "device-id.h"
-
-#include "button.h"
+/* #include "button.h" */
 #include "codec.h"
-#include "matrix-buffer.h"
 #include "parse.h"
 #include "render.h"
 #include "self-test.h"
@@ -26,7 +23,6 @@ static void init ()
 {
   /* button_init (); */
   codec_init ();
-  matrix_buffer_init ();
   parse_init ();
   render_init ();
   spi_write_init ();

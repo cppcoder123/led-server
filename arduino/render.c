@@ -6,7 +6,8 @@
 
 #include "device-id.h"
 
-#include "matrix-buffer.h"
+#include "matrix.h"
+#include "parse.h"
 #include "queue.h"
 #include "render.h"
 #include "spi-write.h"
@@ -38,13 +39,23 @@ static uint8_t pixel_delay;
 static uint8_t phrase_delay;
 static uint8_t stable_delay;
 
-static volatile uint8_t buffer_data[ID_MAX_BUFFER_SIZE];
-static volatile struct queue_t buffer;
+/* SUB_MATRIX_SIZE ? */
+static volatile uint8_t matrix_data_a[ID_MAX_BUFFER_SIZE];
+static volatile uint8_t matrix_data_b[ID_MAX_BUFFER_SIZE];
 
-static volatile uint8_t data_type;
+static volatile struct queue_t matrix_queue_a;
+static volatile struct queue_t matrix_queue_b;
 
-static uint8_t buffer_shift;
-static uint8_t buffer_shift_max;
+static volatile struct matrix_t matrix_buffer_a;
+static volatile struct matrix_t matrix_buffer_b;
+
+static volatile struct matrix_t *matrix_a;
+static volatile struct matrix_t *matrix_b;
+
+static volatile struct matrix_t *parse_matrix;
+
+static uint8_t index_left;      /* number of zeroes at the left */
+static uint8_t index_a;
 
 static volatile uint8_t delay_tick;
 static volatile uint8_t delay_factor;
@@ -56,7 +67,15 @@ static void software_init_once ()
   phrase_delay = 12;
   stable_delay = 12;
 
-  queue_init (&buffer, buffer_data, ID_MAX_BUFFER_SIZE, 0xCC);
+  matrix_init (&matrix_buffer_a,
+               &matrix_queue_a, matrix_data_a, ID_MAX_BUFFER_SIZE, 222);
+  matrix_init (&matrix_buffer_b,
+               &matrix_queue_b, matrix_data_b, ID_MAX_BUFFER_SIZE, 223);
+
+  matrix_a = &matrix_buffer_a;
+  matrix_b = &matrix_buffer_b;
+
+  parse_matrix = parse_get_matrix ();
 }
 
 static void set_delay (uint8_t tick, uint8_t factor)
@@ -69,30 +88,39 @@ static void software_init ()
 {
   state = STATE_EMPTY;
 
-  queue_clear (&buffer);
-  buffer_shift = 0;
-  buffer_shift_max = 0;
-
+  index_left = index_a = 0;
+  
   set_delay (DELAY_TICK_MAX, DELAY_FACTOR_EMPTY);
 }
 
-static void handle_zero ()
+static void swap_matrices ()
 {
-  if (matrix_buffer_drain (&data_type, &buffer) == 0) {
+  volatile struct matrix_t *tmp = matrix_a;
+  matrix_a = matrix_b;
+  matrix_b = tmp;
+}
+
+static void handle_empty ()
+{
+  if ((matrix_size (matrix_a) == 0)
+      && (matrix_size (matrix_b) == 0)) {
     set_delay (DELAY_TICK_MAX, DELAY_FACTOR_EMPTY);
     return;
   }
+  
+  /* swap if needed */
+  if ((matrix_size (matrix_a) == 0)
+      && (matrix_size (matrix_b) != 0))
+    swap_matrices ();
 
-  state = (queue_size (&buffer) <= SPI_WRITE_MATRIX_SIZE)
+  state = (matrix_size (matrix_a) <= SPI_WRITE_MATRIX_SIZE)
     ? STATE_STABLE : STATE_PIXEL;
-
+  
   if (state == STATE_PIXEL) {
-    buffer_shift = (data_type & ID_SUB_MATRIX_TYPE_FIRST)
-      ? 0 : SPI_WRITE_MATRIX_SIZE;
+    index_left = (matrix_a->type & ID_SUB_MATRIX_TYPE_FIRST)
+      ? SPI_WRITE_MATRIX_SIZE : 0;
 
-    buffer_shift_max = queue_size (&buffer);
-    if (data_type & ID_SUB_MATRIX_TYPE_LAST)
-      buffer_shift_max += SPI_WRITE_MATRIX_SIZE;
+    index_a = 0;
   }
 
   set_delay (DELAY_TICK_MAX, DELAY_FACTOR_ZERO);
@@ -100,53 +128,83 @@ static void handle_zero ()
 
 static void handle_stable ()
 {
-  TIMER_DISABLE;
-  uint8_t left_shift = (SPI_WRITE_MATRIX_SIZE - queue_size (&buffer)) / 2;
+  uint8_t left_shift = (SPI_WRITE_MATRIX_SIZE - matrix_size (matrix_a)) / 2;
+
   volatile uint8_t *data;
+  if (matrix_get (matrix_a, 0, &data) != 0)
+    spi_write_matrix (data, left_shift, matrix_size (matrix_a));
 
-  if (queue_get (&buffer, 0, &data) != 0)
-    spi_write_matrix (data, left_shift, queue_size (&buffer));
-
-  queue_clear (&buffer);
+  matrix_clear (matrix_a);
 
   state = STATE_RENDERED;
   
   set_delay (DELAY_TICK_MAX, stable_delay);
-  TIMER_ENABLE;
+}
+
+static uint8_t fill_buffer (uint8_t *data)
+{
+  uint8_t fill_size = SPI_WRITE_MATRIX_SIZE - index_left;
+
+  // at least we have matrix_a
+  uint8_t data_size = (fill_size <= (matrix_size (matrix_a) - index_a))
+    ? fill_size : (matrix_size (matrix_a) - index_a);
+
+  volatile uint8_t *src;
+  if (matrix_get (matrix_a, index_a, &src) != 0)
+    for (uint8_t i = 0; i < data_size; ++i)
+      data[i] = src[i];
+
+  if ((fill_size == data_size)  /* full */
+      || (matrix_a->type & ID_SUB_MATRIX_TYPE_LAST) /* fill zeroes at the right */
+      || (matrix_size (matrix_b) == 0))             /* no matrix-b */
+    return data_size;
+
+  uint8_t fill_b_size = fill_size - data_size;
+  if (fill_b_size > matrix_size (matrix_b))
+    fill_b_size = matrix_size (matrix_b);
+
+  if (matrix_get (matrix_b, 0, &src) != 0)
+    for (uint8_t j = data_size; j < fill_b_size + data_size; ++j)
+      data[j] = src[j - data_size];
+  
+  return data_size + fill_b_size;
+}
+
+static uint8_t increment_index ()
+{
+  if (index_left > 0) {
+    --index_left;
+    return 1;
+  }
+
+  if (index_a < matrix_size (matrix_a)) {
+    ++index_a;
+    return 1;
+  }
+
+  /* index-a >= matrix_size (matrix_a) => drain & swap */
+  uint8_t type = matrix_a->type;
+  matrix_clear (matrix_a);
+  if (type & ID_SUB_MATRIX_TYPE_LAST)
+    return 0;
+
+  swap_matrices ();
+  index_a = 0;
+
+  return matrix_size (matrix_a) != 0;
 }
 
 static void handle_pixel ()
 {
-  // NOTE: Enable timer at return
-  TIMER_DISABLE;
+  uint8_t buffer[SPI_WRITE_MATRIX_SIZE];
+  uint8_t data_size = fill_buffer (buffer);
 
-  uint8_t left_empty = (buffer_shift < SPI_WRITE_MATRIX_SIZE)
-    ? (SPI_WRITE_MATRIX_SIZE - buffer_shift) : 0;
+  spi_write_matrix (buffer, index_left, data_size);
 
-  uint16_t data_start = (buffer_shift < SPI_WRITE_MATRIX_SIZE)
-    ? 0 : (buffer_shift - SPI_WRITE_MATRIX_SIZE);
-
-  if (buffer_shift < buffer_shift_max) {
-
-    /* spi_write_matrix reads only 32 symbols */
-    uint8_t data_size
-      = ((data_start + SPI_WRITE_MATRIX_SIZE) < queue_size (&buffer))
-      ? SPI_WRITE_MATRIX_SIZE : (queue_size (&buffer) - data_start);
-
-    volatile uint8_t *data;
-    if (queue_get (&buffer, data_start, &data) != 0)
-      spi_write_matrix (data, left_empty, data_size);
-  
-    ++buffer_shift;
-  } else {
+  if (increment_index () == 0)
     state = STATE_RENDERED;
-  }
-
-  uint8_t long_delay = ((state == STATE_RENDERED)
-                        && (data_type & ID_SUB_MATRIX_TYPE_LAST)) ? 1 : 0;
-  set_delay (DELAY_TICK_MAX, (long_delay != 0) ? phrase_delay : pixel_delay);
   
-  TIMER_ENABLE;
+  set_delay (DELAY_TICK_MAX, (state == STATE_RENDERED) ? phrase_delay : pixel_delay);
 }
 
 static void handle_rendered ()
@@ -160,11 +218,14 @@ ISR (TIMER0_OVF_vect)
   if (delay_factor > 0) {
     --delay_factor;
     TCNT0 = delay_tick;
+    return;
   }
 
+  TIMER_DISABLE;
+  
   switch (state) {
   case STATE_EMPTY:
-    handle_zero ();
+    handle_empty ();
     break;
   case STATE_STABLE:
     handle_stable ();
@@ -179,7 +240,15 @@ ISR (TIMER0_OVF_vect)
     break;
   }
 
+  if (matrix_size (parse_matrix) != 0) {
+    if (matrix_size (matrix_a) == 0)
+      matrix_move (parse_matrix, matrix_a);
+    else if (matrix_size (matrix_b) == 0)
+      matrix_move (parse_matrix, matrix_b);
+  }
+
   TCNT0 = delay_tick;
+  TIMER_ENABLE;
 }
 
 void render_init ()

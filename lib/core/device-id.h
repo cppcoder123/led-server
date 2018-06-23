@@ -25,9 +25,9 @@
 enum {
   /* ID_MAX_MATRIX_SIZE = 500, */
   ID_MAX_BUFFER_SIZE = 255,     /* max 8 bit */
-  ID_MAX_SUB_MATRIX_SIZE = 248, /* + header-size + eye-catch = 253 < 255*/
+  ID_MAX_SUB_MATRIX_SIZE = 220, /* max 8 bit - led_panel_size */
   ID_HEADER_SIZE = 4,           /* Message header size */
-  ID_EYE_CATCH = 155,           /* eye catch symbol */
+  ID_EYE_CATCH = 247,           /* eye catch symbol */
   ID_DEVICE_SERIAL = 0          /* serial id used by device only */
 };
 

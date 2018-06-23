@@ -19,7 +19,7 @@ TARGET = arduino.hex
 OBJECT_LIST = \
   arduino.o \
   codec.o \
-  matrix-buffer.o \
+  matrix.o \
   parse.o \
   queue.o \
   render.o \

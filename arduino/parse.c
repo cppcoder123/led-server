@@ -5,9 +5,11 @@
  */
 #include <stdint.h>
 
+#include "device-id.h"
+
 #include "codec.h"
 #include "queue.h"
-#include "matrix-buffer.h"
+#include "matrix.h"
 #include "parse.h"
 #include "render.h"
 #include "spi-write.h"
@@ -19,6 +21,10 @@ static volatile uint8_t msg_id;
 static volatile uint8_t msg_size;
 static volatile uint8_t msg_serial_id;
 
+static volatile uint8_t matrix_data[ID_MAX_BUFFER_SIZE];
+static volatile struct queue_t matrix_queue;
+static volatile struct matrix_t matrix;
+
 void parse_init ()
 {
   read = uart_read_get_queue ();
@@ -26,6 +32,13 @@ void parse_init ()
   msg_id = ID_INVALID_MSG;
   msg_size = 0;
   msg_serial_id = 0;
+  /* */
+  matrix_init (&matrix, &matrix_queue, matrix_data, ID_MAX_BUFFER_SIZE, 177);
+}
+
+volatile struct matrix_t* parse_get_matrix ()
+{
+  return &matrix;
 }
 
 static void parse_body_0 ()
@@ -118,8 +131,8 @@ static void parse_body ()
         return;
       }
 
-      /* -1 due to type */
-      while (matrix_buffer_fill (*matrix_type, data, msg_size - 1) == 0)
+      /* -1 due to matrix-type */
+      while (matrix_fill (&matrix, *matrix_type, data, msg_size - 1) == 0)
         /*Note: hang main thread, probably prev matrix render in progress*/
         ;
 
