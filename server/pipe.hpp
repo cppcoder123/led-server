@@ -26,6 +26,8 @@ namespace led_d
 
     bool render (const core::matrix_t &matrix);
 
+    std::size_t queue_size () const;
+
   private:
     using codec_t = core::device::codec_t;
     using char_t = codec_t::char_t;
@@ -46,6 +48,12 @@ namespace led_d
     //
     block_t m_block;
   };
+
+
+  inline std::size_t pipe_t::queue_size () const
+  {
+    return m_write_queue.size ();
+  }
 
 } // namespace led_d
 

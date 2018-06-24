@@ -50,6 +50,11 @@ namespace led_d
     request_t request;
     //
     while (m_go_ahead == true) {
+      std::size_t queue_size = m_pipe_ptr->queue_size ();
+      if (queue_size > max_queue_size) {
+          std::this_thread::sleep_for (std::chrono::milliseconds (500));
+          continue;
+      }
       if ((next (request) == true)
           && (prepare (request) == true)) {
         show (request);
@@ -123,6 +128,12 @@ namespace led_d
     
     ++m_request_iterator;
 
+    // {
+    //   log_t::buffer_t buf;
+    //   buf << "display::next request info : " << request.info;
+    //   log_t::info (buf);
+    // }
+
     return true;
   }
 
@@ -160,13 +171,15 @@ namespace led_d
     //
     // fixme : pass data to hardware dependent library
     //
-    // debug
-    // log_t::buffer_t buf;
-    // buf << " info : " << request.info;
-    // log_t::complain (LOG_INFO, buf.str ());
+    // {
+    //   // debug
+    //   log_t::buffer_t buf;
+    //   buf << "request info: " << request.info;
+    //   log_t::info (buf);
+    // }
     
-    lock_t lock (m_mutex);
-    m_condition.wait_for (lock, std::chrono::milliseconds (request.duration));
+    // lock_t lock (m_mutex);
+    // m_condition.wait_for (lock, std::chrono::milliseconds (request.duration));
   }
 
 } // namespace led_d

@@ -1,5 +1,5 @@
 //
-// either copy or move push/pop arg
+//
 //
 // mutex and list
 //
@@ -39,6 +39,8 @@ namespace mutex
     void notify_one () const;
 
     bool empty () const;
+
+    std::size_t size () const;
 
     // put a record into the queue
     void push (record_t record);
@@ -127,6 +129,13 @@ namespace mutex
   {
     std::lock_guard <std::mutex> lock (m_mutex);
     return m_holder.empty ();
+  }
+
+  template <typename record_t>
+  std::size_t queue_t<record_t>::size () const
+  {
+    std::lock_guard <std::mutex> lock (m_mutex);
+    return m_holder.size ();
   }
   
 } // namespace mutex

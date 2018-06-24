@@ -44,8 +44,9 @@ namespace led_info_d
 
     request.action = core::request_t::action_insert;
     request.tag = time_tag;
+    std::string zero = (tm_.tm_min < 10) ? "0" : "";
     request.info = time_prefix + core::patch::to_string (tm_.tm_hour) + '-'
-      + core::patch::to_string (tm_.tm_min);
+      + zero + core::patch::to_string (tm_.tm_min);
 
     m_daemon.info (priority_t::medium, request);
     

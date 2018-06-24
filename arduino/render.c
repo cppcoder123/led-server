@@ -18,7 +18,7 @@
 /* 64 * (10^-6) seconds*/
 #define DELAY_TICK_MIN 255
 /* ~16 * (10^-3) seconds*/
-#define DELAY_TICK_MAX 0
+#define DELAY_TICK_MAX 127
 
 /* ~0.1 seconds with TICK_MAX */
 #define DELAY_FACTOR_EMPTY 6

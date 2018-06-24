@@ -84,6 +84,8 @@ namespace led_d
     // if (matrix.size () > ID_MAX_MATRIX_SIZE)
     //   return false;
 
+    bool queue_was_empty = m_write_queue.empty ();
+
     //header and submatrix-type
     constexpr std::size_t data_size = ID_MAX_SUB_MATRIX_SIZE - ID_HEADER_SIZE - 1;
 
@@ -111,7 +113,10 @@ namespace led_d
 
       first = false;
     }
-    
+
+    if (queue_was_empty == true)
+      write ();                 // we should kick writing somehow
+
     return true;
   }
 

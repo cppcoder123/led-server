@@ -38,6 +38,8 @@ namespace led_d
     
   private:
 
+    static constexpr std::size_t max_queue_size = 3;
+
     bool next (request_t &info);
     bool prepare (request_t &info) const;
     void show (const request_t &info);

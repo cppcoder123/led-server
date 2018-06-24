@@ -61,7 +61,7 @@ namespace led_d
            m_read_buf = next_msg;
          }
          if (m_read_buf.empty () == false)
-           // incompleted message, continue reading
+           // incomplete message, continue reading
            do_read ();
        }
        );
