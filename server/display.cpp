@@ -171,12 +171,12 @@ namespace led_d
     //
     // fixme : pass data to hardware dependent library
     //
-    // {
-    //   // debug
-    //   log_t::buffer_t buf;
-    //   buf << "request info: " << request.info;
-    //   log_t::info (buf);
-    // }
+    {
+      // debug
+      log_t::buffer_t buf;
+      buf << "request info: " << request.info;
+      log_t::info (buf);
+    }
     
     // lock_t lock (m_mutex);
     // m_condition.wait_for (lock, std::chrono::milliseconds (request.duration));
