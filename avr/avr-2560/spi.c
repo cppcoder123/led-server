@@ -9,9 +9,9 @@
 #include "ring.h"
 #include "spi.h"
 
-#define SPI_MISO PB3
+#define SPI_MISO PORTB3
 /* irq pin is connected to pi's gpio-26 */
-#define SPI_IRQ PB4
+#define SPI_IRQ PORTB4
 
 #define READ_SIZE 255
 #define WRITE_SIZE 255
@@ -44,7 +44,7 @@ void spi_init ()
    * Configure spi,
    * MISO is output, all others are inputs
    */
-  DDRB = (1 << SPI_MISO) | (1 << SPI_IRQ);
+  DDRB |= (1 << SPI_MISO) | (1 << SPI_IRQ);
 
   /*clear*/
   SPDR = 0;

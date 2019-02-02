@@ -17,7 +17,7 @@ void power_init ()
 void power_up ()
 {
   /* assign 0 to switch on */
-  PORTC &= ~(1 << PC0);
+  PORTC &= ~(1 << PORTC0);
 }
 
 void power_down ()

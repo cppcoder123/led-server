@@ -222,6 +222,9 @@ void button_init ()
 
   init_timer ();
   init_adc ();
+
+  /*configure whole port A as output*/
+  PORTA = 0xFF;
 }
 
 ISR (TIMER5_COMPA_vect)
