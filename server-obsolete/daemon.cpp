@@ -30,8 +30,9 @@ namespace led_d
       m_serial = std::make_unique<serial_t>(m_asio_service, arg.device);
       //
       m_network_thread = std::thread (&daemon_t::network_load, this, arg);
-      m_display_thread = std::thread
-        (&display_t::start, &m_display, arg, std::ref(*m_serial));
+      m_content_thread = std::thread
+        (&content_t::start, &m_content, arg, std::ref(*m_serial));
+
       m_update_thread = std::thread (&daemon_t::update_load, this);
 
       m_initial_thread = std::thread
@@ -54,8 +55,8 @@ namespace led_d
     m_message_queue.notify_one ();
     m_update_thread.join ();
 
-    m_display.stop ();
-    m_display_thread.join ();
+    m_content.stop ();
+    m_content_thread.join ();
 
     m_asio_service.stop ();
     m_network_thread.join ();
@@ -114,7 +115,7 @@ namespace led_d
         continue;
       }
 
-      m_display.update (request, response);
+      m_content.update (request, response);
       if (response_codec_t::encode (response, buffer) == true)
         message_ptr->sender->send (buffer);
     }

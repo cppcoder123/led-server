@@ -8,7 +8,7 @@
 
 #include "matrix.hpp"
 
-#include "display.hpp"
+#include "content.hpp"
 #include "idle-request.hpp"
 #include "log-wrapper.hpp"
 #include "pipe.hpp"
@@ -16,18 +16,18 @@
 
 namespace led_d
 {
-  display_t::display_t ()
+  content_t::content_t ()
     : m_go_ahead (true),
       m_request_iterator (m_request_map.end ())
   {
   }
 
-  display_t::~display_t ()
+  content_t::~content_t ()
   {
     // render device closes itself
   }
 
-  void display_t::start (const arg_t &arg, serial_t &serial)
+  void content_t::start (const arg_t &arg, serial_t &serial)
   {
     //
     try {
@@ -68,13 +68,13 @@ namespace led_d
     }
   }
 
-  void display_t::stop ()
+  void content_t::stop ()
   {
     m_go_ahead = false;
     m_condition.notify_one ();
   }
 
-  void display_t::update (const request_t &request, response_t &response)
+  void content_t::update (const request_t &request, response_t &response)
   {
     if (request.action == request_t::action_idle) {
       response.status = response_t::status_ok;
@@ -114,7 +114,7 @@ namespace led_d
     }
   }
 
-  bool display_t::next (request_t &request)
+  bool content_t::next (request_t &request)
   {
     lock_t lock (m_mutex);
     
@@ -130,14 +130,14 @@ namespace led_d
 
     // {
     //   log_t::buffer_t buf;
-    //   buf << "display::next request info : " << request.info;
+    //   buf << "content::next request info : " << request.info;
     //   log_t::info (buf);
     // }
 
     return true;
   }
 
-  bool display_t::prepare (request_t &request) const
+  bool content_t::prepare (request_t &request) const
   {
     if (request.action != request_t::action_insert)
       return false;
@@ -148,7 +148,7 @@ namespace led_d
     return true;
   }
 
-  void display_t::show (const request_t &request)
+  void content_t::show (const request_t &request)
   {
     core::matrix_t matrix;
     if (m_render.pixelize (matrix, request.info, request.format) == false) {

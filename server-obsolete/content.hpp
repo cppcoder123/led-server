@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef LED_D_DISPLAY_HPP
-#define LED_D_DISPLAY_HPP
+#ifndef LED_D_CONTENT_HPP
+#define LED_D_CONTENT_HPP
 
 #include <condition_variable>
 #include <map>
@@ -20,19 +20,19 @@
 
 namespace led_d
 {
-  class display_t
+  class content_t
   {
 
   public:
 
-    display_t ();
-    ~display_t ();
+    content_t ();
+    ~content_t ();
 
     void start (const arg_t &arg, serial_t &serial);
     void stop ();
 
-    typedef core::request_t request_t;
-    typedef core::response_t response_t;
+    using request_t = core::request_t;
+    using response_t = core::response_t;
     
     void update (const request_t &request, response_t &response);
     
@@ -48,15 +48,15 @@ namespace led_d
 
     bool m_go_ahead;
 
-    typedef std::unique_ptr<request_t> request_ptr_t;
-    typedef std::map<std::string/*tag*/,
-                     request_ptr_t/*info*/> request_map_t;
+    using request_ptr_t = std::unique_ptr<request_t> ;
+    using request_map_t = std::map<std::string/*tag*/,
+                                   request_ptr_t/*info*/> ;
     request_map_t m_request_map;
     request_map_t::iterator m_request_iterator;
 
-    typedef std::mutex mutex_t;
-    typedef std::unique_lock<mutex_t> lock_t;
-    typedef std::condition_variable condition_t;
+    using mutex_t = std::mutex;
+    using lock_t = std::unique_lock<mutex_t>;
+    using condition_t = std::condition_variable;
 
     // protect request map & iterator
     mutable mutex_t m_mutex;

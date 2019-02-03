@@ -10,7 +10,7 @@
 #include "asio.hpp"
 
 #include "arg.hpp"
-#include "display.hpp"
+#include "content.hpp"
 #include "initial.hpp"
 #include "message-queue.hpp"
 #include "message-ptr.hpp"
@@ -40,8 +40,8 @@ namespace led_d
     std::unique_ptr <serial_t> m_serial;
     std::thread m_network_thread;
 
-    display_t m_display;
-    std::thread m_display_thread;
+    content_t m_content;
+    std::thread m_content_thread;
 
     std::thread m_update_thread;
     bool m_update_go;

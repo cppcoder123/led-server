@@ -113,7 +113,7 @@ static void init_adc ()
   ADCSRA |= (1 << ADEN) | (1 << ADIE)
     | (1 << ADPS0) | (1 << ADPS1) | (1 << ADPS2);
 
-  /*ref voltage: AVCC, right adjusting result, 8bit is used*/
+  /*ref voltage: AVCC, right adjust result, 8 bits are used*/
   ADMUX |= (1 << REFS0) | (1 << ADLAR);
 
   /*disable digital input on adc pins 0-7*/

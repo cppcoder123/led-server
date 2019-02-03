@@ -9,7 +9,7 @@ TARGET = led-d
 #
 #
 
-OBJECT_LIST = led-d.o arg.o block.o daemon.o display.o font.o font-dir.o hex-font.o \
+OBJECT_LIST = led-d.o arg.o block.o content.o daemon.o font.o font-dir.o hex-font.o \
   log-wrapper.o idle-request.o initial.o network.o pipe.o render.o serial.o session.o
 
 
