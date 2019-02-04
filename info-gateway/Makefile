@@ -13,7 +13,7 @@ OBJECT_LIST = led-info-d.o arg.o clock.o daemon.o init.o log-wrapper.o schedule.
 #COMPILE_FLAGS = -I$(INCLUDE_INT) -I$(INCLUDE_EXT) -std=c++11 -Wall -pedantic -g
 #LINK_FLAGS = $(LIB_DAEMON) -lpthread
 
-CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_CORE) -I $(LIB_ASIO) -I $(LIB_DAEMON)/include \
+CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_ASIO) -I $(LIB_DAEMON)/include \
   -I $(LIB_ROOT)
 
 LDFLAGS = -L $(LIB_DAEMON)/src

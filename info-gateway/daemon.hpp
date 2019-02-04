@@ -7,8 +7,8 @@
 #include <functional>
 #include <memory>
 
-#include "request.hpp"
-#include "client.hpp"
+#include "unix/client.hpp"
+#include "unix/request.hpp"
 
 #include "arg.hpp"
 #include "delay.hpp"

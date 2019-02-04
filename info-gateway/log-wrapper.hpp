@@ -4,7 +4,7 @@
 #ifndef LED_INFO_D_LOG_WRAPPER_HPP
 #define LED_INFO_D_LOG_WRAPPER_HPP
 
-#include "log.hpp"
+#include "unix/log.hpp"
 
 namespace led_info_d
 {

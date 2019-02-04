@@ -7,11 +7,11 @@ ROOT = $(shell pwd)
 export LIB_ROOT = $(ROOT)/lib
 export LIB_ASIO = $(LIB_ROOT)/asio
 export LIB_ARDUINO = $(LIB_ROOT)/arduino
-export LIB_CORE = $(LIB_ROOT)/core
+export LIB_PATH = $(LIB_ROOT)
 export LIB_DAEMON = $(LIB_ROOT)/daemon
 export LIB_TCLAP = $(LIB_ROOT)/tclap
 
-export COMMON_CPPFLAGS = -std=c++17 -Wall -pedantic -g
+export COMMON_CPPFLAGS = -DASIO_STANDALONE -std=c++17 -Wall -pedantic -g
 
 SERVER = $(ROOT)/server
 INFO_GATEWAY = $(ROOT)/info-gateway

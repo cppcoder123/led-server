@@ -15,9 +15,9 @@ static uint8_t encode_msg (data_t msg_id, data_t serial_id, data_t size)
   uint8_t len = 0;
 
   out_buf[len] = ID_CATCH_EYE;
-  out_buf[++len] = msg_id;
   out_buf[++len] = size;
   out_buf[++len] = serial_id;
+  out_buf[++len] = msg_id;
 
   return len;
 }
