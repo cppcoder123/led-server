@@ -20,27 +20,23 @@ namespace led_d
   {
 
   public:
-    spi_t ();                   // fixme: delete this constructor
     spi_t (msg_queue_t &from_queue);
     spi_t (const spi_t&) = delete;
-    ~spi_t ();
+    ~spi_t () {}
 
-    void start (/*pass arg here*/);
+    void start (const std::string &path);
     void stop ();
 
   private:
 
-    //using msg_t = core::device::codec_t::msg_t;
-  
     void write_msg (const msg_t &msg);
-
-    msg_t& query_msg ();
 
     void spi_write ();
 
-    void device_init ();
+    void device_start ();
+    void device_stop ();
 
-    const std::string m_path;   // to device
+    std::string m_path;   // to device
     int m_device;               // file descriptor
 
     bool m_go;

@@ -12,15 +12,15 @@ TARGET = led-d
 #OBJECT_LIST = led-d.o arg.o block.o content.o daemon.o font.o font-dir.o hex-font.o \
   log-wrapper.o idle-request.o initial.o network.o pipe.o render.o serial.o session.o
 
-OBJECT_LIST = arg.o block.o daemon.o font-dir.o font.o hex-font.o led-d.o log-wrapper.o \
-  spi.o
+OBJECT_LIST = arg.o block.o daemon.o font-dir.o font.o hex-font.o led-d.o \
+  log-wrapper.o spi.o spi-gpio.o spi-parse.o
 
 
 #
 #
 #
 
-LDFLAGS = -L $(LIB_DAEMON)/src -ldaemon -lpthread
+LDFLAGS = -L $(LIB_DAEMON)/src -ldaemon -lgpiod -lpthread
 
 CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_DAEMON)/include \
   -I $(LIB_ASIO) -I $(LIB_ROOT)

@@ -33,7 +33,7 @@ namespace led_d
       m_network_thread = std::thread (&network_t::start, &m_network);
       m_handle_thread = std::thread (&handle_t::start, &m_handle);
 
-      m_spi_thread = std::thread (&spi_t::start, &m_spi);
+      m_spi_thread = std::thread (&spi_t::start, &m_spi, arg.device);
     }
 
     catch (std::exception &e) {

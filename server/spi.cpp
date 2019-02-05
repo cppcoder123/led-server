@@ -6,12 +6,15 @@
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
 #include <sys/ioctl.h>
+#include <unistd.h>
 
 #include <thread>
 
 #include "mcu/constant.h"
 
-#include "msg.hpp"
+#include "mcu-decode.hpp"
+#include "mcu-encode.hpp"
+#include "log-wrapper.hpp"
 #include "spi.hpp"
 
 namespace led_d
@@ -31,19 +34,24 @@ namespace led_d
     auto spi_bits = 8;
     auto spi_speed = 1000;
 
-    // const auto buffer_size = 32;
-    // char_t write_buffer[buffer_size];
-    // char_t read_buffer[buffer_size];
-    
   } // namespace anonymous
 
-  void spi_t::start ()
+  spi_t::spi_t (msg_queue_t &from_queue)
+    : m_device (0),
+      m_go (true),
+      m_from_queue (from_queue)
   {
+  }
+  
+  void spi_t::start (const std::string &path)
+  {
+    m_path = path;
+    
     // gpio is first, we need to enable level shifter
     m_gpio.start ();
 
     // open unix device
-    device_init ();
+    device_start ();
 
     while (m_go == true) {
       if (m_block.is_engaged () == true) {
@@ -55,22 +63,32 @@ namespace led_d
         write_msg (*msg);
       else if (m_gpio.is_irq_raised () == true)
         // we are interested in gpio-irq only if 'to_queue' is empty
-        write_msg (query_msg ());
+        write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
       else
         std::this_thread::sleep_for (empty_delay);
     }
   }
 
+  void spi_t::stop ()
+  {
+    m_go = false;
+
+    m_gpio.stop ();
+
+    device_stop ();
+
+    // fixme: smth else ???
+  }
+
   void spi_t::write_msg (const msg_t &msg_src)
   {
-    char_t serial_id = msg_get_serial (msg_src);
+    char_t serial_id = mcu::decode::get_serial (msg_src);
 
     //
     // eye-catch | size | serial | msg-id | xxx
     //
     msg_t msg = msg_src;
-    msg.push_front (msg.size ());
-    msg.push_front (ID_CATCH_EYE);
+    mcu::encode::wrap (msg);
 
     unsigned i = 0;
     for (const auto &byte : msg)
@@ -83,18 +101,19 @@ namespace led_d
 
     for (unsigned j = 0; j < msg.size (); ++j)
       if (m_parse.push (read_buffer[j], msg) == true) {
-        if (msg_get_id (msg) == MSG_ID_STATUS)
-          m_block.relax (msg_get_serial (msg));
-        else
-          m_from_queue.push (msg);
+        char_t serial = 0;
+        char_t msg_id = MSG_ID_EMPTY;
+        if (mcu::decode::split (msg, serial, msg_id) == true) {
+          if (msg_id == MSG_ID_STATUS)
+            m_block.relax (serial);
+          else
+            m_from_queue.push (msg);
+        } else {
+          log_t::buffer_t buf;
+          buf << "spi: Failed to decode mcu message";
+          log_t::error (buf);
+        }
       }
-  }
-
-  msg_t& spi_t::query_msg ()
-  {
-    static msg_t msg{SERIAL_ID_TO_IGNORE, MSG_ID_QUERY, MSG_ID_QUERY};
-
-    return msg;
   }
 
   void spi_t::spi_write ()
@@ -112,7 +131,7 @@ namespace led_d
     }
   }
 
-  void spi_t::device_init ()
+  void spi_t::device_start ()
   {
     m_device = open (m_path.c_str (), O_RDWR);
     if (m_device < 0)
@@ -129,6 +148,14 @@ namespace led_d
       throw std::runtime_error ("Failed to set spi write speed");
     if (ioctl (m_device, SPI_IOC_RD_MAX_SPEED_HZ, &spi_speed) < 0)
       throw std::runtime_error ("Failed to set spi read speed");
+  }
+
+  void spi_t::device_stop ()
+  {
+    if (m_device > 0) {
+      close (m_device);
+      m_device = 0;
+    }
   }
 
 } // namespace led_d
