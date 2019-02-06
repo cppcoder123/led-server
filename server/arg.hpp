@@ -17,7 +17,7 @@ namespace led_d
 
   public:
 
-    typedef core::port_t port_t;
+    using port_t = unix::port_t;
 
     arg_t ();
     ~arg_t () {};

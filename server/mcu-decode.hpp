@@ -20,32 +20,32 @@ namespace led_d
     {
     public:
 
-      static bool unwrap (msg_t &msg);
+      static bool unwrap (mcu_msg_t &msg);
 
       template <typename ...payload_t>
-      static bool split (const msg_t &msg, char_t &serial,
+      static bool split (const mcu_msg_t &msg, char_t &serial,
                          char_t &msg_id, payload_t& ...payload);
 
-      static char_t get_serial (const msg_t &msg);
-      static char_t get_msg_id (const msg_t &msg);
+      static char_t get_serial (const mcu_msg_t &msg);
+      static char_t get_msg_id (const mcu_msg_t &msg);
 
     private:
 
-      using iterator_t = msg_t::const_iterator;
-      static bool do_split (const msg_t &msg, iterator_t &iter, char_t &serial, char_t &msg_id);
+      using iterator_t = mcu_msg_t::const_iterator;
+      static bool do_split (const mcu_msg_t &msg, iterator_t &iter, char_t &serial, char_t &msg_id);
 
       template <typename ...payload_t>
-      static bool do_split (const msg_t &msg, iterator_t &iter,
+      static bool do_split (const mcu_msg_t &msg, iterator_t &iter,
                             char_t& load_1, payload_t& ...payload);
 
-      static bool do_split (const msg_t&, iterator_t&) {return true;};
+      static bool do_split (const mcu_msg_t&, iterator_t&) {return true;};
 
     };
 
     //
     // --------------------------------------------------
     //
-    inline bool decode::unwrap (msg_t &msg)
+    inline bool decode::unwrap (mcu_msg_t &msg)
     {
       while ((msg.empty () == false)
              && (msg.front () != ID_CATCH_EYE))
@@ -58,7 +58,7 @@ namespace led_d
       if (msg.size () < 4)
         return false;
 
-      msg_t::const_iterator iter = msg.cbegin ();
+      mcu_msg_t::const_iterator iter = msg.cbegin ();
       ++iter;
       char_t size = *iter;
 
@@ -72,7 +72,7 @@ namespace led_d
     }
 
     template <typename ...payload_t>
-    bool decode::split (const msg_t &msg, char_t &serial, char_t &msg_id,
+    bool decode::split (const mcu_msg_t &msg, char_t &serial, char_t &msg_id,
                         payload_t& ...payload)
     {
       iterator_t iter;
@@ -82,7 +82,7 @@ namespace led_d
       return do_split (msg, iter, payload...);
     }
 
-    inline char_t decode::get_serial (const msg_t &msg)
+    inline char_t decode::get_serial (const mcu_msg_t &msg)
     {
       char_t serial = 0;
       char_t msg_id = 0;
@@ -93,7 +93,7 @@ namespace led_d
       return serial;
     }
 
-    inline char_t decode::get_msg_id (const msg_t &msg)
+    inline char_t decode::get_msg_id (const mcu_msg_t &msg)
     {
       char_t serial = 0;
       char_t msg_id = 0;
@@ -104,7 +104,7 @@ namespace led_d
       return msg_id;
     }
 
-    inline bool decode::do_split (const msg_t &msg, iterator_t &iter,
+    inline bool decode::do_split (const mcu_msg_t &msg, iterator_t &iter,
                                   char_t &serial, char_t &msg_id)
     {
       iter = msg.cbegin ();
@@ -121,7 +121,7 @@ namespace led_d
     }
 
     template <typename ...payload_t>
-    bool decode::do_split (const msg_t &msg, iterator_t &iter,
+    bool decode::do_split (const mcu_msg_t &msg, iterator_t &iter,
                            char_t& load_1, payload_t& ...payload)
     {
       ++iter;

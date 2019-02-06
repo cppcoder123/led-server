@@ -15,33 +15,33 @@ namespace led_d
     {
     public:
 
-      static void wrap (msg_t &msg);
+      static void wrap (mcu_msg_t &msg);
 
       template <typename ...payload_t>
-      static msg_t join (char_t serial, char_t msg_id, payload_t ...payload);
+      static mcu_msg_t join (char_t serial, char_t msg_id, payload_t ...payload);
 
     private:
 
-      static void do_join (msg_t &msg) {};
+      static void do_join (mcu_msg_t &msg) {};
 
       template <typename ...payload_t>
-      static void do_join (msg_t &msg, char_t load_1, payload_t ...payload);
+      static void do_join (mcu_msg_t &msg, char_t load_1, payload_t ...payload);
     
     };
 
     //
     // --------------------------------------------------
     //
-    inline void encode::wrap (msg_t &msg)
+    inline void encode::wrap (mcu_msg_t &msg)
     {
       msg.push_front (msg.size ());
       msg.push_front (ID_CATCH_EYE);
     }
 
     template <typename ...payload_t>
-    msg_t encode::join (char_t serial, char_t msg_id, payload_t ...payload)
+    mcu_msg_t encode::join (char_t serial, char_t msg_id, payload_t ...payload)
     {
-      msg_t msg;
+      mcu_msg_t msg;
       msg.push_back (serial);
       msg.push_back (msg_id);
 
@@ -51,7 +51,7 @@ namespace led_d
     }
 
     template <typename ...payload_t>
-    void encode::do_join (msg_t &msg, char_t load_1, payload_t ...payload)
+    void encode::do_join (mcu_msg_t &msg, char_t load_1, payload_t ...payload)
     {
       msg.push_back (load_1);
 

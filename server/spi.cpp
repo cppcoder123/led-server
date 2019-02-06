@@ -36,17 +36,18 @@ namespace led_d
 
   } // namespace anonymous
 
-  spi_t::spi_t (msg_queue_t &from_queue)
-    : m_device (0),
+  spi_t::spi_t (const std::string &path,
+                mcu_queue_t &to_queue, mcu_queue_t &from_queue)
+    : m_path (path),
+      m_device (0),
       m_go (true),
+      m_to_queue (to_queue),
       m_from_queue (from_queue)
   {
   }
   
-  void spi_t::start (const std::string &path)
+  void spi_t::start ()
   {
-    m_path = path;
-    
     // gpio is first, we need to enable level shifter
     m_gpio.start ();
 
@@ -80,14 +81,14 @@ namespace led_d
     // fixme: smth else ???
   }
 
-  void spi_t::write_msg (const msg_t &msg_src)
+  void spi_t::write_msg (const mcu_msg_t &msg_src)
   {
     char_t serial_id = mcu::decode::get_serial (msg_src);
 
     //
     // eye-catch | size | serial | msg-id | xxx
     //
-    msg_t msg = msg_src;
+    mcu_msg_t msg = msg_src;
     mcu::encode::wrap (msg);
 
     unsigned i = 0;

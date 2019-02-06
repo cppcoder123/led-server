@@ -1,22 +1,22 @@
 //
 //
 //
-#ifndef CORE_CLIENT_HPP
-#define CORE_CLIENT_HPP
+#ifndef UNIX_CLIENT_HPP
+#define UNIX_CLIENT_HPP
 
 #include <string>
 
 #include "asio/asio.hpp"
 
 #include "log.hpp"
-#include "network-codec.hpp"
+#include "codec.hpp"
 #include "patch.hpp"
 #include "port.hpp"
 #include "refsymbol.hpp"
 #include "request.hpp"
 #include "response.hpp"
 
-namespace core
+namespace unix
 {
 
   class client_t
@@ -62,7 +62,7 @@ namespace core
 
   inline bool client_t::write (const request_t &request, asio::ip::tcp::socket &socket)
   {
-    using codec_t = network::codec_t<refsymbol_t, request_t>;
+    using codec_t = unix::codec_t<refsymbol_t, request_t>;
     std::string msg;
     if (codec_t::encode (request, msg) == false) {
       log_t::error ("Failed to encode request");
@@ -76,7 +76,7 @@ namespace core
 
   inline bool client_t::read (asio::ip::tcp::socket &socket)
   {
-    using codec_t = network::codec_t<refsymbol_t, response_t>;
+    using codec_t = unix::codec_t<refsymbol_t, response_t>;
     char response_buf[codec_t::max_size];
     std::size_t response_size =
       asio::read (socket, asio::buffer (response_buf, codec_t::header_size));
@@ -106,6 +106,6 @@ namespace core
       return true;
   }
   
-}// namespace core
+}// namespace unix
 
 #endif

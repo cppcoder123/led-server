@@ -23,7 +23,6 @@ namespace mutex
   public:
 
     using notify_t = std::function<void ()>;
-
     using mutex_t = std::mutex;
     using unique_lock_t = std::unique_lock<mutex_t>;
     using wait_t = std::function<void (unique_lock_t&)>;
@@ -32,7 +31,8 @@ namespace mutex
     queue_t (const queue_t &) = delete;
     ~queue_t ();
 
-    void set_notify_wait (notify_t notify, wait_t wait);
+    void set_notify (notify_t notify);
+    void set_wait (wait_t wait);
     
     void clear ();
 
@@ -72,9 +72,14 @@ namespace mutex
   }
 
   template <typename record_t>
-  void queue_t<record_t>::set_notify_wait (notify_t notify, wait_t wait)
+  void queue_t<record_t>::set_notify (notify_t notify)
   {
     m_notify = notify;
+  }
+
+  template <typename record_t>
+  void queue_t<record_t>::set_wait (wait_t wait)
+  {
     m_wait = wait;
   }
 

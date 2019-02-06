@@ -24,7 +24,7 @@ namespace led_info_d
     //
     for (map_t::iterator iter = m_map.begin (); iter != m_map.end (); ++iter) {
       request_ptr_t request_ptr (iter->second);
-      request_ptr->action = core::request_t::action_erase;
+      request_ptr->action = unix::request_t::action_erase;
       m_client.send (*request_ptr);
     }
   }
@@ -35,13 +35,13 @@ namespace led_info_d
   }
 
   void daemon_t::info (priority_id_t prio,
-                       const core::request_t &request)
+                       const unix::request_t &request)
   {
     map_t::iterator iter (m_map.find (request.tag));
-    if (request.action == core::request_t::action_insert) {
-      request_ptr_t request_ptr (std::make_unique<core::request_t>(request));
+    if (request.action == unix::request_t::action_insert) {
+      request_ptr_t request_ptr (std::make_unique<unix::request_t>(request));
       m_map[request.tag] = request_ptr;
-    } else if (request.action == core::request_t::action_erase) {
+    } else if (request.action == unix::request_t::action_erase) {
       if (iter != m_map.end ())
         m_map.erase (iter);
     }

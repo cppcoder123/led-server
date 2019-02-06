@@ -4,10 +4,6 @@
 #ifndef LED_D_BLOCK_HPP
 #define LED_D_BLOCK_HPP
 
-// #include <mutex>
-
-#include "mcu/codec.hpp"
-
 #include "type-def.hpp"
 
 namespace led_d

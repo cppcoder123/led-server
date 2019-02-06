@@ -1,15 +1,15 @@
 //
 //
 //
-#ifndef CORE_LOG_HPP
-#define CORE_LOG_HPP
+#ifndef UNIX_LOG_HPP
+#define UNIX_LOG_HPP
 
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-namespace core
+namespace unix
 {
   class log_t
   {

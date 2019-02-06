@@ -41,7 +41,7 @@ int main (int argc, char **argv)
   buf << "Launching process in " << ((arg.foreground) ? "foreground" : "background");
   led_info_d::log_t::info (buf);
 
-  core::launch_t launch
+  unix::launch_t launch
     (std::bind (&led_info_d::daemon_t::start, &daemon),
      std::bind (&led_info_d::daemon_t::stop, &daemon));
 

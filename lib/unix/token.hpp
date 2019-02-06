@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef CORE_TOKEN_HPP
-#define CORE_TOKEN_HPP
+#ifndef UNIX_TOKEN_HPP
+#define UNIX_TOKEN_HPP
 
 #include <string>
 #include <utility>
@@ -10,7 +10,7 @@
 
 #include "patch.hpp"
 
-namespace core
+namespace unix
 {
 
   class token_t
@@ -160,6 +160,6 @@ namespace core
     return true;
   }
   
-} // namespace core
+} // namespace unix
 
 #endif

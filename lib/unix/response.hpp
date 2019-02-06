@@ -1,14 +1,14 @@
 //
 //
 //
-#ifndef CORE_RESPONSE_HPP
-#define CORE_RESPONSE_HPP
+#ifndef UNIX_RESPONSE_HPP
+#define UNIX_RESPONSE_HPP
 
 #include <string>
 
 #include "token.hpp"
 
-namespace core
+namespace unix
 {
 
   struct response_t
@@ -51,6 +51,6 @@ namespace core
     return msg;
   }
   
-} // namespace core
+} // namespace unix
 
 #endif

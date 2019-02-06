@@ -26,9 +26,9 @@ namespace led_info_d
       TCLAP::SwitchArg kill
         ("k", "kill", "Kill old process", parser, false);
 
-      TCLAP::ValueArg<core::port_t::value_t> port
+      TCLAP::ValueArg<unix::port_t::value_t> port
         ("p", "port", "Port to connect",
-         false, core::port_t::default_port (), "integer", parser);
+         false, unix::port_t::default_port (), "integer", parser);
       TCLAP::ValueArg<std::string> host
         ("o", "host", "Host to connect",
          false, "localhost", "hostname", parser);

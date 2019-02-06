@@ -26,7 +26,7 @@ namespace led_d
 
       TCLAP::ValueArg<port_t::value_t>
         port ("p", "port", "Port to listen",
-                  false, core::port_t::default_port (), "integer", parser);
+                  false, unix::port_t::default_port (), "integer", parser);
       TCLAP::SwitchArg
         foreground
         ("f", "foreground", "Run daemon in foreground", parser, false);

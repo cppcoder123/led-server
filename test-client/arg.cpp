@@ -25,9 +25,9 @@ namespace led
     try {
       TCLAP::CmdLine parser ("xxx", ' ', "0.0.1");
 
-      TCLAP::ValueArg<core::port_t::value_t>
+      TCLAP::ValueArg<unix::port_t::value_t>
         port_arg ("p", "port", "Port to listen",
-                  false, core::port_t::default_port (), "integer", parser);
+                  false, unix::port_t::default_port (), "integer", parser);
 
       TCLAP::ValueArg<std::string>
         host_arg ("o", "host", "Host to connect",
@@ -46,9 +46,9 @@ namespace led
       TCLAP::ValueArg<std::string>
         info_arg ("i", "info", "info", false, "", "string", parser);
 
-      TCLAP::ValueArg<core::request_t::duration_t>
+      TCLAP::ValueArg<unix::request_t::duration_t>
         duration_arg ("d", "duration", "info duration", false,
-                      core::request_t::max_duration, "unsigned", parser);
+                      unix::request_t::max_duration, "unsigned", parser);
       
     
       parser.parse (argc, argv);
@@ -62,8 +62,8 @@ namespace led
         return false;
       }
       arg.m_request.action = (buf == "insert")
-        ? core::request_t::action_insert : core::request_t::action_erase;
-      arg.m_request.tag = core::refsymbol_t::validate (tag_arg.getValue ());
+        ? unix::request_t::action_insert : unix::request_t::action_erase;
+      arg.m_request.tag = unix::refsymbol_t::validate (tag_arg.getValue ());
       if (arg.m_request.tag.empty () == true) {
         std::cout << "Empty tag is not allowed, exiting\n";
         return false;
@@ -73,9 +73,9 @@ namespace led
       if (buf.empty () == false) // Note: do not try assign "" here
         arg.m_request.format = buf;
 
-      arg.m_request.info = core::refsymbol_t::validate (info_arg.getValue ());
+      arg.m_request.info = unix::refsymbol_t::validate (info_arg.getValue ());
       if (arg.m_request.info.empty () == true) {
-        if (arg.m_request.action == core::request_t::action_insert) {
+        if (arg.m_request.action == unix::request_t::action_insert) {
           std::cout << "Empty 'info' is not allowed for 'insert' action\n";
           return false;
         } else {

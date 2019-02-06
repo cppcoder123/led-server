@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef CORE_MATRIX_HPP
-#define CORE_MATRIX_HPP
+#ifndef UNIX_MATRIX_HPP
+#define UNIX_MATRIX_HPP
 
 #include <algorithm>
 #include <bitset>
@@ -12,7 +12,7 @@
 
 #include "row-help.hpp"
 
-namespace core
+namespace unix
 {
 
   class matrix_t
@@ -124,6 +124,6 @@ namespace core
                    });
   }
   
-} // namespace core
+} // namespace unix
 
 #endif

@@ -1,10 +1,10 @@
 //
 //
 //
-#ifndef CORE_FINAL_ACTION_HPP
-#define CORE_FINAL_ACTION_HPP
+#ifndef UNIX_FINAL_ACTION_HPP
+#define UNIX_FINAL_ACTION_HPP
 
-namespace core
+namespace unix
 {
   template <typename action_t>
   struct final_action_t
@@ -22,6 +22,6 @@ namespace core
     return final_action_t<action_t>(action);
   }
   
-} // namespace core
+} // namespace unix
 
 #endif

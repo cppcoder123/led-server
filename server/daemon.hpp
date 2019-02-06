@@ -11,7 +11,6 @@
 
 #include "arg.hpp"
 #include "content.hpp"
-#include "message-ptr.hpp"
 #include "network.hpp"
 #include "handle.hpp"
 #include "spi.hpp"
@@ -25,26 +24,25 @@ namespace led_d
 
   public:
 
-    daemon_t ();
+    daemon_t (const arg_t &arg);
     daemon_t (const daemon_t &arg) = delete;
     ~daemon_t ();
     
-    int start (const arg_t &arg);
+    int start ();
     void stop ();
 
   private:
 
-    // fixme: add separate 'notify' function for queues
-    // to be able to wait on it
-    message_queue_t m_network_queue; // from network
-    msg_queue_t m_spi_queue;         // from spi
+    unix_queue_t m_network_queue; // from network
+    mcu_queue_t m_from_spi_queue;
+    mcu_queue_t m_to_spi_queue;
 
     asio::io_context m_asio_context;
 
     network_t m_network;
     content_t m_content;
-    spi_t m_spi;
     handle_t m_handle;
+    spi_t m_spi;
     
     std::thread m_network_thread;
     std::thread m_handle_thread;

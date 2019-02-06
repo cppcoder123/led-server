@@ -1,12 +1,12 @@
 //
 //
 //
-#ifndef CORE_REFSYMBOL_HPP
-#define CORE_REFSYMBOL_HPP
+#ifndef UNIX_REFSYMBOL_HPP
+#define UNIX_REFSYMBOL_HPP
 
 #include <string>
 
-namespace core
+namespace unix
 {
 
   struct refsymbol_t
@@ -33,7 +33,7 @@ namespace core
   }
 
   
-} // namespace core
+} // namespace unix
 
 
 #endif

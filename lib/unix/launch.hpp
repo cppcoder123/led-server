@@ -1,8 +1,8 @@
 //
 // launch daemon in background or foreground mode
 //
-#ifndef CORE_LAUNCH_HPP
-#define CORE_LAUNCH_HPP
+#ifndef UNIX_LAUNCH_HPP
+#define UNIX_LAUNCH_HPP
 
 #include <errno.h>
 #include <signal.h>
@@ -18,7 +18,7 @@
 #include "log.hpp"
 
 
-namespace core
+namespace unix
 {
 
   class launch_t
@@ -194,6 +194,6 @@ namespace core
   }
 
     
-} // namespace core
+} // namespace unix
 
 #endif

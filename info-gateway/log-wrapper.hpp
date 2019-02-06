@@ -17,7 +17,7 @@ namespace led_info_d
     
   };
 
-  typedef core::log_t log_t;
+  typedef unix::log_t log_t;
   
 } // namespace led_info_d
 

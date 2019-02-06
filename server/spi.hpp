@@ -6,9 +6,8 @@
 
 #include <string>
 
-//#include "device-codec.hpp"
-
 #include "block.hpp"
+#include "handle.hpp"
 #include "spi-gpio.hpp"
 #include "spi-parse.hpp"
 #include "type-def.hpp"
@@ -20,29 +19,30 @@ namespace led_d
   {
 
   public:
-    spi_t (msg_queue_t &from_queue);
+    spi_t (const std::string &path,
+           mcu_queue_t &to_queue, mcu_queue_t &from_queue);
     spi_t (const spi_t&) = delete;
     ~spi_t () {}
 
-    void start (const std::string &path);
+    void start ();
     void stop ();
 
   private:
 
-    void write_msg (const msg_t &msg);
+    void write_msg (const mcu_msg_t &msg);
 
     void spi_write ();
 
     void device_start ();
     void device_stop ();
 
-    std::string m_path;   // to device
+    const std::string m_path;   // to device
     int m_device;               // file descriptor
 
     bool m_go;
 
-    msg_queue_t m_to_queue;     // to spi
-    msg_queue_t &m_from_queue;  // from spi
+    mcu_queue_t &m_to_queue;    // to spi
+    mcu_queue_t &m_from_queue;  // from spi
 
     spi_gpio_t m_gpio;
     block_t m_block;

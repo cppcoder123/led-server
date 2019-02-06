@@ -15,7 +15,7 @@
 namespace led_d
 {
 
-  class font_t : public core::matrix_t
+  class font_t : public unix::matrix_t
   {
 
   public:

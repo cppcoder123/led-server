@@ -23,11 +23,11 @@ namespace led
 
     static bool init (arg_t &arg, int argc, char **argv);
 
-    core::port_t::value_t port;
+    unix::port_t::value_t port;
 
     std::string host;
 
-    core::request_t m_request;
+    unix::request_t m_request;
   };
 } // namespace led_d
 

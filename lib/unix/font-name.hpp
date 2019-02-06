@@ -1,13 +1,13 @@
 //
 //
 //
-#ifndef CORE_FONT_NAME
-#define CORE_FONT_NAME
+#ifndef UNIX_FONT_NAME
+#define UNIX_FONT_NAME
 
 #include <string>
 #include <vector>
 
-namespace core
+namespace unix
 {
   class font_name_t
   {
@@ -71,6 +71,6 @@ namespace core
     return result;
   }
   
-} // namespace core
+} // namespace unix
 
 #endif

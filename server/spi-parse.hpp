@@ -15,10 +15,10 @@ namespace led_d
     spi_parse_t () = default;
     ~spi_parse_t () = default;
 
-    bool push (char_t info, msg_t &msg);
+    bool push (char_t info, mcu_msg_t &msg);
 
   private:
-    msg_t m_buf;
+    mcu_msg_t m_buf;
   };
   
 } // namespace led_d

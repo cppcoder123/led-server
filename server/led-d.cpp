@@ -38,9 +38,9 @@ int main (int argc, char **argv)
       << " with port " << arg.port;
   led_d::log_t::info (buf);
 
-  led_d::daemon_t daemon;
-  core::launch_t launch
-    (std::bind (&led_d::daemon_t::start, &daemon, std::ref(arg)),
+  led_d::daemon_t daemon (arg);
+  unix::launch_t launch
+    (std::bind (&led_d::daemon_t::start, &daemon),
      std::bind (&led_d::daemon_t::stop, &daemon));
   
   return (arg.foreground == true)

@@ -20,7 +20,7 @@ namespace led_d
   {
     m_vector[get_symbol_index (s)]
       // base object call
-      = symbol_t (core::matrix_t::size (), matrix.size ());
+      = symbol_t (unix::matrix_t::size (), matrix.size ());
     add (matrix);
   }
 

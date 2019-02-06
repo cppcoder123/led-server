@@ -1,28 +1,26 @@
 //
 //
 //
-#ifndef LED_D_MESSAGE_HPP
-#define LED_D_MESSAGE_HPP
+#ifndef UNIX_MSG_HPP
+#define UNIX_MSG_HPP
 
 #include <memory>
 #include <string>
-
-//#include "session.hpp"
 
 namespace led_d
 {
   class session_t;
 
-  struct message_t
+  struct unix_msg_t
   {
-    message_t () = delete;
+    unix_msg_t () = delete;
 
     using session_ptr_t = std::shared_ptr<session_t>;
-    message_t (const std::string &text, session_ptr_t session)
+    unix_msg_t (const std::string &text, session_ptr_t session)
       : info (text),
         sender (session)
     {}
-    ~message_t () {};
+    ~unix_msg_t () {};
     
     std::string info;           // encoded msg
     session_ptr_t sender;       // ability to send reply

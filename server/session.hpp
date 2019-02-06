@@ -10,7 +10,7 @@
 
 #include "asio.hpp"
 
-#include "message-queue.hpp"
+#include "type-def.hpp"
 
 namespace led_d
 {
@@ -19,7 +19,7 @@ namespace led_d
     
   public:
     
-    session_t (asio::ip::tcp::socket socket, message_queue_t &queue)
+    session_t (asio::ip::tcp::socket socket, unix_queue_t &queue)
       : m_socket (std::move (socket)),
         m_queue (queue)
     {
@@ -46,12 +46,12 @@ namespace led_d
 
     std::string m_read_buf, m_write_buf;
 
-    typedef std::mutex mutex_t;
-    typedef std::lock_guard<mutex_t> guard_t;
+    //typedef std::mutex mutex_t;
+    //typedef std::lock_guard<mutex_t> guard_t;
 
-    mutex_t m_write_mutex;
+    //mutex_t m_write_mutex;
 
-    message_queue_t &m_queue;
+    unix_queue_t &m_queue;
   };
 
   using session_ptr_t = std::shared_ptr<session_t>;

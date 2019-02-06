@@ -1,16 +1,16 @@
 //
-// Default port value for led7-d and led7 apps
+// Default port value for led-d
 //
-#ifndef CORE_PORT_HPP
-#define CORE_PORT_HPP
+#ifndef UNIX_PORT_HPP
+#define UNIX_PORT_HPP
 
-namespace core
+namespace unix
 {
 
   struct port_t
   {
 
-    typedef unsigned short int value_t;
+    using value_t = unsigned short int;
     //
     static value_t default_port ();
   };

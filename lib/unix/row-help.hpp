@@ -1,10 +1,10 @@
 //
 //
 //
-#ifndef CORE_ROW_HELP_HPP
-#define CORE_ROW_HELP_HPP
+#ifndef UNIX_ROW_HELP_HPP
+#define UNIX_ROW_HELP_HPP
 
-namespace core
+namespace unix
 {
   namespace row
   {
@@ -26,6 +26,6 @@ namespace core
     // };
 
   } // namespace row
-} // namespace core
+} // namespace unix
 
 #endif

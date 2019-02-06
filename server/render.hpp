@@ -20,12 +20,12 @@ namespace led_d
 
   public:
 
-    render_t () {}
+    render_t (const std::string &default_font);
     ~render_t () {}
 
-    bool init (const arg_t &arg);
+    //bool init (const arg_t &arg);
     
-    typedef core::matrix_t matrix_t;
+    using matrix_t = unix::matrix_t;
     bool pixelize (matrix_t &dst,
                    const std::string &text, const std::string &format) const;
 
@@ -33,7 +33,7 @@ namespace led_d
 
   private:
 
-    typedef core::format_t format_t;
+    using format_t = unix::format_t;
     bool pixelize (matrix_t &matrix,
                    const std::string &text, const format_t &format) const;
 

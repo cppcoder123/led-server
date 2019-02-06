@@ -1,10 +1,10 @@
 //
 //
 //
-#ifndef CORE_FORMAT_ENTRY_HPP
-#define CORE_FORMAT_ENTRY_HPP
+#ifndef UNIX_FORMAT_ENTRY_HPP
+#define UNIX_FORMAT_ENTRY_HPP
 
-namespace core
+namespace unix
 {
   namespace format
   {
@@ -27,6 +27,6 @@ namespace core
     };
     
   } // namespace format
-} // namespace core
+} // namespace unix
 
 #endif

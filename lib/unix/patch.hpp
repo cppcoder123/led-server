@@ -1,12 +1,12 @@
 //
 //
 //
-#ifndef CORE_PATCH_HPP
-#define CORE_PATCH_HPP
+#ifndef UNIX_PATCH_HPP
+#define UNIX_PATCH_HPP
 
 #include <sstream>
 
-namespace core
+namespace unix
 {
   namespace patch
   {
@@ -20,6 +20,6 @@ namespace core
     }
     
   } // namespace patch
-} // namespace core
+} // namespace unix
 
 #endif
