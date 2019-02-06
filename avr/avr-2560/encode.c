@@ -2,7 +2,8 @@
  *
  */
 
-#include "constant.h"
+#include "mcu/constant.h"
+
 #include "encode.h"
 #include "spi.h"
 

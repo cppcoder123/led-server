@@ -4,7 +4,7 @@
 #include <avr/interrupt.h>
 #include <stdint.h>
 
-#include "constant.h"
+#include "mcu/constant.h"
 #include "encode.h"
 #include "button.h"
 

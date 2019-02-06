@@ -3,9 +3,9 @@
  */
 
 #include <util/atomic.h>
-/* #define ATOMIC_BLOCK(x) */
 
-#include "constant.h"
+#include "mcu/constant.h"
+
 #include "ring.h"
 
 /*
