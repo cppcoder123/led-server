@@ -46,10 +46,10 @@ namespace led_d
 
     std::string m_read_buf, m_write_buf;
 
-    //typedef std::mutex mutex_t;
-    //typedef std::lock_guard<mutex_t> guard_t;
+    using mutex_t  = std::mutex;
+    using guard_t = std::lock_guard<mutex_t>;
 
-    //mutex_t m_write_mutex;
+    mutex_t m_write_mutex;
 
     unix_queue_t &m_queue;
   };

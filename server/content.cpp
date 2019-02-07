@@ -43,8 +43,8 @@ namespace led_d
     mcu_msg_t column_msg (char_t info)
     {
       static char_t serial_id (0);
-      if (++serial_id == 0)
-        serial_id = 1;
+      if (++serial_id == SERIAL_ID_TO_IGNORE)
+        serial_id = SERIAL_ID_TO_IGNORE + 1;
       return mcu::encode::join (serial_id, MSG_ID_MONO_LED, info);
     }
   } // namespace anonymous

@@ -19,12 +19,12 @@ namespace led_d
 
   public:
 
-    font_dir_t ();
+    font_dir_t (const std::string &default_font);
     ~font_dir_t () {}
 
     typedef std::shared_ptr<font_t> font_ptr_t;
 
-    bool init (const std::string &default_font_name);
+    //bool init (const std::string &default_font_name);
     
     bool is_font (const std::string &name) const;
     const font_ptr_t get_font (const std::string &name) const;

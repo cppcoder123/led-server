@@ -10,8 +10,8 @@ TARGET = led-d
 #
 
 OBJECT_LIST = arg.o block.o content.o daemon.o font-dir.o font.o handle.o \
-  hex-font.o idle-request.o led-d.o log-wrapper.o network.o spi.o \
-  spi-gpio.o spi-parse.o
+  hex-font.o idle-request.o led-d.o log-wrapper.o network.o render.o \
+  session.o spi.o spi-gpio.o spi-parse.o
 
 
 #
