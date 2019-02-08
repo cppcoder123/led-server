@@ -16,7 +16,9 @@ namespace unix
 
   public:
 
-    typedef std::ostringstream buffer_t;
+    using buffer_t = std::ostringstream;
+
+    static void clear (buffer_t &buf);
 
     static void error (const buffer_t &buf);
     static void info (const buffer_t &buf);
@@ -25,7 +27,7 @@ namespace unix
     static void info (const std::string &buf);
 
     // 
-    typedef std::function<void (const char*)> media_t;
+    using media_t = std::function<void (const char*)>;
 
     // If no media were provided, msgs go into std::cout
     static void init (media_t error_media, media_t info_media);
@@ -37,6 +39,11 @@ namespace unix
 
     static void log_message (const std::string &buf, media_t media, bool error);
   };
+
+  inline void log_t::clear (buffer_t &buf)
+  {
+    buf.str ("");
+  }
 
   inline void log_t::error (const buffer_t &buf)
   {

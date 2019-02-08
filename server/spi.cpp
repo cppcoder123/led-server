@@ -44,15 +44,22 @@ namespace led_d
       m_to_queue (to_queue),
       m_from_queue (from_queue)
   {
-  }
-  
-  void spi_t::start ()
-  {
     // gpio is first, we need to enable level shifter
     m_gpio.start ();
 
     // open unix device
     device_start ();
+  }
+
+  spi_t::~spi_t ()
+  {
+    device_stop ();
+
+    m_gpio.stop ();
+  }
+
+  void spi_t::start ()
+  {
 
     while (m_go == true) {
       if (m_block.is_engaged () == true) {
@@ -73,10 +80,6 @@ namespace led_d
   void spi_t::stop ()
   {
     m_go = false;
-
-    m_gpio.stop ();
-
-    device_stop ();
 
     // fixme: smth else ???
   }

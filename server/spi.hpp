@@ -22,7 +22,7 @@ namespace led_d
     spi_t (const std::string &path,
            mcu_queue_t &to_queue, mcu_queue_t &from_queue);
     spi_t (const spi_t&) = delete;
-    ~spi_t () {}
+    ~spi_t ();
 
     void start ();
     void stop ();
