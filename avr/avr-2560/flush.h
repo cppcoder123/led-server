@@ -10,12 +10,8 @@ void flush_init ();
 
 uint8_t flush_push_mono (data_t symbol);
 
-enum {
-  FLUSH_SHIFT,
-  FLUSH_CLEAR,
-  FLUSH_DISABLED
-};
-void flush_enable (uint8_t /*SHIFT/CLEAR*/);
+void flush_enable_shift ();
+void flush_enable_clear ();
 
 void flush_try ();
 

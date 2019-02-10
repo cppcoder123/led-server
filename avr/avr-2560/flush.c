@@ -12,7 +12,22 @@
 #define MONO_SIZE 255
 
 volatile data_t mono_data[MONO_SIZE];
+
+enum {
+  FLUSH_SHIFT,
+  FLUSH_CLEAR,
+  FLUSH_DISABLED
+};
 volatile uint8_t mode;
+
+static void mode_change (uint8_t new_mode)
+{
+  if ((mode != FLUSH_DISABLED)
+      || (ring_size (mono_data) < MATRIX_SIZE))
+    return;
+
+  mode = new_mode;
+}
 
 void flush_init ()
 {
@@ -26,15 +41,14 @@ uint8_t flush_push_mono (data_t symbol)
   return ring_symbol_fill (mono_data, symbol);
 }
 
-void flush_enable (uint8_t new_mode)
+void flush_enable_shift ()
 {
-  if ((mode != FLUSH_DISABLED)
-      || ((new_mode != FLUSH_SHIFT)
-          && (new_mode != FLUSH_CLEAR))
-      || (ring_size (mono_data) < MATRIX_SIZE))
-    return;
+  mode_change (FLUSH_SHIFT);
+}
 
-  mode = new_mode;
+void flush_enable_clear ()
+{
+  mode_change (FLUSH_CLEAR);
 }
 
 void flush_try ()

@@ -13,10 +13,10 @@ OBJECT_LIST = \
   encode.o \
   flush.o \
   flush-hw.o \
-  flush-timer.o \
   power.o \
   ring.o \
-  spi.o
+  spi.o \
+  timer.o
 
 MCU = atmega2560
 
