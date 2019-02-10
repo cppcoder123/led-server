@@ -8,12 +8,14 @@ TARGET_ELF = $(TARGET).elf
 OBJECT_LIST = \
   avr.o \
   button.o \
+  clock.o \
   buzz.o \
   decode.o \
   encode.o \
   flush.o \
   flush-hw.o \
   power.o \
+  render.o \
   ring.o \
   spi.o \
   timer.o

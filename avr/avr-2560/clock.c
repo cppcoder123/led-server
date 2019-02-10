@@ -1,0 +1,65 @@
+/*
+ *
+ *
+ */
+
+#include "clock.h"
+#include "flush.h"
+#include "render.h"
+#include "timer.h"
+
+volatile data_t v_hour;
+volatile data_t v_min;
+volatile data_t v_sec;
+
+/*return 1 if we need to refresh display, 0 otherwise*/
+static uint8_t time_advance ()
+{
+  if (v_sec == 59)
+    v_sec = 0;
+  else {
+    ++v_sec;
+    return 0;
+  }
+
+  if (v_min == 59)
+    v_min = 0;
+  else {
+    ++v_min;
+    return 1;
+  }
+
+  if (v_hour == 23)
+    v_hour = 0;
+  else
+    ++v_hour;
+
+  return 1;
+}
+
+static void advance ()
+{
+  if (time_advance () != 0) {
+    /*fixme: convert time to pixels & put them into flush*/;
+    uint8_t symbol = (v_hour / 10);
+    symbol = (symbol) ? RENDER_SPACE : render_id (symbol);
+    render (symbol);
+    render (render_id (v_hour % 10));
+    render (RENDER_COLON);
+    render (render_id (v_min / 10));
+    render (render_id (v_min % 10));
+
+    /*fixme: Should we place it outside of 'if' ?*/
+    flush_enable_clear ();
+  }
+
+}
+
+void clock_sync (data_t hour, data_t min, data_t sec)
+{
+  v_hour = hour;
+  v_min = min;
+  v_sec = sec;
+
+  timer_enable (TIMER_ONE_PER_SECOND, &advance);
+}

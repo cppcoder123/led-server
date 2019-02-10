@@ -11,7 +11,6 @@
 #include "flush-hw.h"
 #include "power.h"
 #include "spi.h"
-#include "timer.h"
 
 static void init ()
 {
@@ -23,8 +22,8 @@ static void init ()
   power_init ();
   spi_init ();
 
-  /* fixme: it should be switchable, for now it is for r-pi only */
-  timer_enable (TIMER_TEN_PER_SECOND, &flush_enable_shift);
+  /* enable r-pi */
+  power_up ();
 
   sei ();
 }
