@@ -8,7 +8,7 @@
 
 #include "block.hpp"
 #include "handle.hpp"
-#include "spi-gpio.hpp"
+#include "gpio.hpp"
 #include "spi-parse.hpp"
 #include "type-def.hpp"
 
@@ -44,7 +44,7 @@ namespace led_d
     mcu_queue_t &m_to_queue;    // to spi
     mcu_queue_t &m_from_queue;  // from spi
 
-    spi_gpio_t m_gpio;
+    gpio_t m_gpio;
     block_t m_block;
     spi_parse_t m_parse;
 

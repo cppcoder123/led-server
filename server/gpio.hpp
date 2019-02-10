@@ -1,19 +1,19 @@
 /*
  *
  */
-#ifndef SPI_GPIO_HPP
-#define SPI_GPIO_HPP
+#ifndef GPIO_HPP
+#define GPIO_HPP
 
 #include <gpiod.h>
 
 namespace led_d
 {
 
-  class spi_gpio_t
+  class gpio_t
   {
   public:
-    spi_gpio_t ();
-    ~spi_gpio_t () {};
+    gpio_t ();
+    ~gpio_t () {};
 
     void start ();
     void stop ();

@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 #include "log-wrapper.hpp"
-#include "spi-gpio.hpp"
+#include "gpio.hpp"
 
 namespace
 {
@@ -22,14 +22,14 @@ namespace
 
 namespace led_d
 {
-  spi_gpio_t::spi_gpio_t ()
+  gpio_t::gpio_t ()
     : m_chip (NULL),
       m_enable (NULL),
       m_irq (NULL)
   {
   }
   
-  void spi_gpio_t::start ()
+  void gpio_t::start ()
   {
     m_chip = gpiod_chip_open_by_name (chip_name);
     if (m_chip == NULL)
@@ -50,7 +50,7 @@ namespace led_d
       throw std::runtime_error ("gpio: Failed to configure irq for input");
   }
 
-  void spi_gpio_t::stop ()
+  void gpio_t::stop ()
   {
     if (m_enable)
       gpiod_line_release (m_enable);
@@ -61,7 +61,7 @@ namespace led_d
       gpiod_chip_close (m_chip);
   }
 
-  bool spi_gpio_t::is_irq_raised ()
+  bool gpio_t::is_irq_raised ()
   {
     int res = gpiod_line_get_value (m_irq);
     if (res == 0)
