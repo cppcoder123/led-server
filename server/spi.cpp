@@ -67,7 +67,7 @@ namespace led_d
         continue;
       }
       auto msg = m_to_queue.pop ();
-      if (msg.has_value () == true)
+      if (msg)
         write_msg (*msg);
       else if (m_gpio.is_irq_raised () == true)
         // we are interested in gpio-irq only if 'to_queue' is empty

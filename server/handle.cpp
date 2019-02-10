@@ -33,13 +33,13 @@ namespace led_d
       auto mcu_msg = m_mcu_queue.pop ();
       if ((!unix_msg)
           && (!mcu_msg)) {
-        std::unique_lock lock (m_mutex);
+        std::unique_lock<std::mutex> lock (m_mutex);
         m_condition.wait (lock);
         continue;
       }
-      if (unix_msg.has_value () == true)
+      if (unix_msg)
         handle_unix (**unix_msg);
-      if (mcu_msg.has_value () == true)
+      if (mcu_msg)
         handle_mcu (*mcu_msg);
     }
   }

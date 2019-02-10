@@ -11,7 +11,7 @@
 namespace
 {
 
-  auto chip_name = "xxx";
+  auto chip_name = "gpiochip0";
 
   auto enable_offset = 5;       // fixme: check
   auto irq_offset = 26;         // fixme: check

@@ -10,7 +10,8 @@
 #include <functional>
 #include <list>
 #include <mutex>
-#include <optional>
+
+#include "unix/optional.hpp"
 
 
 namespace mutex
@@ -46,7 +47,7 @@ namespace mutex
     void push (record_t record);
 
     // extract record from a queue
-    std::optional<record_t> pop ();
+    optional_t<record_t> pop ();
 
   private:
     
@@ -99,7 +100,7 @@ namespace mutex
   }
 
   template <typename record_t>
-  std::optional<record_t> queue_t<record_t>::pop ()
+  optional_t<record_t> queue_t<record_t>::pop ()
   {
     std::unique_lock<std::mutex> lock (m_mutex);
 
@@ -112,7 +113,7 @@ namespace mutex
     record_t record = std::move (m_holder.front ());
     m_holder.pop_front ();
 
-    return std::optional<record_t>(std::move (record));
+    return optional_t<record_t>(std::move (record));
   }
 
   template <typename record_t>
