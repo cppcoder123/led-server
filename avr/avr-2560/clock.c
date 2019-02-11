@@ -41,6 +41,9 @@ static void advance ()
 {
   if (time_advance () != 0) {
     /*fixme: convert time to pixels & put them into flush*/;
+    render_clear ();
+    /* 5 * 5 columns = 25, but we need 32, add zeros, 4 here and 3 at the end*/
+    render_direct (0, 4);
     uint8_t symbol = (v_hour / 10);
     symbol = (symbol) ? RENDER_SPACE : render_id (symbol);
     render (symbol);
@@ -48,6 +51,7 @@ static void advance ()
     render (RENDER_COLON);
     render (render_id (v_min / 10));
     render (render_id (v_min % 10));
+    render_direct (0, 3);
 
     /*fixme: Should we place it outside of 'if' ?*/
     flush_enable_clear ();

@@ -21,11 +21,15 @@ enum {
   RENDER_COLON
 };
 
+void render_clear ();
+
 /*convert 0-9 to RENDER_xxx, except space & colon*/
 uint8_t render_id (uint8_t digit);
 
 /*conevrt RENDER_XXX to stream of bytes and push them into flush*/
 void render (uint8_t symbol);
+
+void render_direct (uint8_t symbol, uint8_t times);
 
 
 #endif
