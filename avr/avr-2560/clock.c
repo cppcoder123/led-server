@@ -37,26 +37,30 @@ static uint8_t time_advance ()
   return 1;
 }
 
+static void update_screen ()
+{
+  render_clear ();
+  /* 5 * 5 columns = 25, but we need 32 => add zeros, 4 here and 3 at the end*/
+  render_direct (0, 4);
+  uint8_t symbol = (v_hour / 10);
+  symbol = (symbol) ? RENDER_SPACE : render_id (symbol);
+  render (symbol);
+  render (render_id (v_hour % 10));
+  render (RENDER_COLON);
+  render (render_id (v_min / 10));
+  render (render_id (v_min % 10));
+  render_direct (0, 3);
+
+  /*fixme: Should we place it outside of this function ?*/
+  flush_enable_clear ();
+}
+
 static void advance ()
 {
   if (time_advance () != 0) {
     /*fixme: convert time to pixels & put them into flush*/;
-    render_clear ();
-    /* 5 * 5 columns = 25, but we need 32, add zeros, 4 here and 3 at the end*/
-    render_direct (0, 4);
-    uint8_t symbol = (v_hour / 10);
-    symbol = (symbol) ? RENDER_SPACE : render_id (symbol);
-    render (symbol);
-    render (render_id (v_hour % 10));
-    render (RENDER_COLON);
-    render (render_id (v_min / 10));
-    render (render_id (v_min % 10));
-    render_direct (0, 3);
-
-    /*fixme: Should we place it outside of 'if' ?*/
-    flush_enable_clear ();
+    update_screen ();
   }
-
 }
 
 void clock_sync (data_t hour, data_t min, data_t sec)
@@ -64,6 +68,8 @@ void clock_sync (data_t hour, data_t min, data_t sec)
   v_hour = hour;
   v_min = min;
   v_sec = sec;
+
+  update_screen ();
 
   timer_enable (TIMER_ONE_PER_SECOND, &advance);
 }
