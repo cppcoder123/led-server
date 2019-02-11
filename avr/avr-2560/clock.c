@@ -39,7 +39,6 @@ static uint8_t time_advance ()
 
 static void update_screen ()
 {
-  render_clear ();
   /* 5 * 5 columns = 25, but we need 32 => add zeros, 4 here and 3 at the end*/
   render_direct (0, 4);
   uint8_t symbol = (v_hour / 10);
@@ -68,6 +67,8 @@ void clock_sync (data_t hour, data_t min, data_t sec)
   v_hour = hour;
   v_min = min;
   v_sec = sec;
+
+  render_clear ();
 
   update_screen ();
 
