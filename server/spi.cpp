@@ -15,6 +15,7 @@
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"
 #include "log-wrapper.hpp"
+#include "serial-id.hpp"
 #include "spi.hpp"
 
 namespace led_d
@@ -152,6 +153,9 @@ namespace led_d
       throw std::runtime_error ("Failed to set spi write speed");
     if (ioctl (m_device, SPI_IOC_RD_MAX_SPEED_HZ, &spi_speed) < 0)
       throw std::runtime_error ("Failed to set spi read speed");
+
+    m_to_queue.push
+      (mcu::encode::join (serial::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
   }
 
   void spi_t::device_stop ()

@@ -19,5 +19,5 @@ namespace led_d
       log_t::init (std::bind (&daemon_log, LOG_ERR, std::placeholders::_1),
                    std::bind (&daemon_log, LOG_INFO, std::placeholders::_1));
   }
-  
+
 } // namespace led_d

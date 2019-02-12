@@ -4,6 +4,8 @@
 #ifndef MCU_ENCODE_HPP
 #define MCU_ENCODE_HPP
 
+#include "mcu/constant.h"
+
 #include "type-def.hpp"
 
 namespace led_d
@@ -18,7 +20,8 @@ namespace led_d
       static void wrap (mcu_msg_t &msg);
 
       template <typename ...payload_t>
-      static mcu_msg_t join (char_t serial, char_t msg_id, payload_t ...payload);
+      static
+      mcu_msg_t join (char_t serial, char_t msg_id, payload_t ...payload);
 
     private:
 
@@ -26,7 +29,7 @@ namespace led_d
 
       template <typename ...payload_t>
       static void do_join (mcu_msg_t &msg, char_t load_1, payload_t ...payload);
-    
+
     };
 
     //

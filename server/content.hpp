@@ -35,9 +35,9 @@ namespace led_d
 
     using request_t = unix::request_t;
     using response_t = unix::response_t;
-    
+
     void update (const request_t &request, response_t &response);
-    
+
   private:
 
     using request_ptr_t = std::unique_ptr<request_t> ;
@@ -46,7 +46,7 @@ namespace led_d
     static constexpr std::size_t max_queue_size = 3;
 
     void cycle (const asio::error_code &error);
-    
+
     bool next (request_t &info);
     bool prepare (request_t &info) const;
     void show (const request_t &info);
@@ -55,7 +55,7 @@ namespace led_d
     asio::io_context &m_context;
     asio::steady_timer m_timer;
     mcu_queue_t &m_to_spi_queue;
-    
+
     bool m_go;
 
     request_map_t m_request_map;

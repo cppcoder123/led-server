@@ -48,7 +48,7 @@ namespace led_d
     std::mutex m_mutex;
     std::condition_variable m_condition;
   };
-  
+
 } // namespace led_d
 
 #endif

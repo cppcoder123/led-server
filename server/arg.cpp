@@ -41,7 +41,7 @@ namespace led_d
       TCLAP::ValueArg<std::string>
         device ("s", "device", "Render device, e.g \"/dev/ttyXXX\"",
                     true, "", "dev-name", parser);
-      
+
       parser.parse (argc, argv);
 
       arg.port = port.getValue ();
@@ -57,8 +57,8 @@ namespace led_d
                 << e.argId () << std::endl;
       return false;
     }
-    
+
     return true;
   }
-  
+
 } // namespace led_d

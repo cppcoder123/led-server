@@ -2,19 +2,18 @@
 //
 //
 
-#include <bitset>
 #include <chrono>
 #include <functional>
 #include <stdexcept>
 #include <thread>
 
-#include "mcu/constant.h"
 #include "unix/matrix.hpp"
 
 #include "content.hpp"
 #include "idle-request.hpp"
 #include "log-wrapper.hpp"
 #include "mcu-encode.hpp"
+#include "serial-id.hpp"
 #include "type-def.hpp"
 
 
@@ -40,13 +39,6 @@ namespace led_d
       return res;
     }
 
-    mcu_msg_t column_msg (char_t info)
-    {
-      static char_t serial_id (0);
-      if (++serial_id == SERIAL_ID_TO_IGNORE)
-        serial_id = SERIAL_ID_TO_IGNORE + 1;
-      return mcu::encode::join (serial_id, MSG_ID_MONO_LED, info);
-    }
   } // namespace anonymous
 
   content_t::content_t (const std::string &default_font,
@@ -138,7 +130,7 @@ namespace led_d
   bool content_t::next (request_t &request)
   {
     lock_t lock (m_mutex);
-    
+
     if (m_request_map.empty () == true)
       return false;
 
@@ -146,7 +138,7 @@ namespace led_d
       m_request_iterator = m_request_map.begin ();
 
     request = *(m_request_iterator->second);
-    
+
     ++m_request_iterator;
 
     // {
@@ -180,10 +172,13 @@ namespace led_d
     }
 
     for (std::size_t i = 0; i < space_length; ++i)
-      m_to_spi_queue.push (column_msg (0));
-    
+      m_to_spi_queue.push
+        (mcu::encode::join (serial::get (), MSG_ID_MONO_LED, 0));
+
     for (std::size_t i = 0; i < matrix.size (); ++i)
-      m_to_spi_queue.push (column_msg (get_char (matrix.get_column (i))));
+      m_to_spi_queue.push
+        (mcu::encode::join
+         (serial::get (), MSG_ID_MONO_LED, get_char (matrix.get_column (i))));
 
     {
       // fixme: debug
@@ -192,7 +187,7 @@ namespace led_d
       log_t::info (buf);
     }
   }
-  
+
 #if 0
   void content_t::start ()
   {
@@ -285,7 +280,7 @@ namespace led_d
   bool content_t::next (request_t &request)
   {
     lock_t lock (m_mutex);
-    
+
     if (m_request_map.empty () == true)
       return false;
 
@@ -293,7 +288,7 @@ namespace led_d
       m_request_iterator = m_request_map.begin ();
 
     request = *(m_request_iterator->second);
-    
+
     ++m_request_iterator;
 
     // {
@@ -333,7 +328,7 @@ namespace led_d
       log_t::error (buf);
       return;
     }
-    
+
     /*fixme: pass to hw library*/
     // matrix.dump ();
     //
@@ -345,7 +340,7 @@ namespace led_d
       buf << "request info: " << request.info;
       log_t::info (buf);
     }
-    
+
     // lock_t lock (m_mutex);
     // m_condition.wait_for (lock, std::chrono::milliseconds (request.duration));
   }

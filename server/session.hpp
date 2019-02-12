@@ -16,9 +16,9 @@ namespace led_d
 {
   class session_t : public std::enable_shared_from_this<session_t>
   {
-    
+
   public:
-    
+
     session_t (asio::ip::tcp::socket socket, unix_queue_t &queue)
       : m_socket (std::move (socket)),
         m_queue (queue)
@@ -31,7 +31,7 @@ namespace led_d
     void start ();
 
     void send (const std::string &info);
-    
+
   private:
 
     void do_read ();
@@ -55,7 +55,7 @@ namespace led_d
   };
 
   using session_ptr_t = std::shared_ptr<session_t>;
-  
+
 } // namespace led_d
 
 #endif

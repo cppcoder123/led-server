@@ -21,11 +21,11 @@ namespace led_d
         sender (session)
     {}
     ~unix_msg_t () {};
-    
+
     std::string info;           // encoded msg
     session_ptr_t sender;       // ability to send reply
   };
-    
+
 } // namespace led_d
 
 #endif

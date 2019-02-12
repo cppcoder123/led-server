@@ -26,7 +26,7 @@ namespace led_d
 
   private:
     // std::mutex m_mutex;
-    
+
     bool m_pending;
     char_t m_pending_id;
   };

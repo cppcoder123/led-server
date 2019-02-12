@@ -4,6 +4,8 @@
 #ifndef CONSTANT_H
 #define CONSTANT_H
 
+#define PROTOCOL_VERSION 1
+
 #define ID_CATCH_EYE 250
 #define SPI_READ_OVERFLOW 245   /* an error */
 #define SPI_WRITE_UNDERFLOW 240 /* not an error */
@@ -18,6 +20,7 @@ enum {
   MSG_ID_PING,
   MSG_ID_QUERY,                 /* serial should be in, no response from avr */
   MSG_ID_STATUS,
+  MSG_ID_VERSION,               /* protocol version, first message */
 };
 
 enum {

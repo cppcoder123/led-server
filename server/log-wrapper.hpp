@@ -18,8 +18,7 @@ namespace led_d
   };
 
   using log_t = unix::log_t;
-  
-  
+
 } // namespace led_d
 
 #endif

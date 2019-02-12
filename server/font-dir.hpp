@@ -25,7 +25,7 @@ namespace led_d
     typedef std::shared_ptr<font_t> font_ptr_t;
 
     //bool init (const std::string &default_font_name);
-    
+
     bool is_font (const std::string &name) const;
     const font_ptr_t get_font (const std::string &name) const;
     const font_ptr_t get_font () const; // default
@@ -38,7 +38,7 @@ namespace led_d
     font_ptr_t m_default_font;
 
     using font_name_t = unix::font_name_t;
-    
+
   };
 
   //
@@ -47,7 +47,7 @@ namespace led_d
   inline bool font_dir_t::is_font (const std::string &name) const
   {
     font_name_t::id_t id (font_name_t::get (name));
-    
+
     return (id != font_name_t::id_unknown) ? true : false;
   }
 
@@ -55,7 +55,7 @@ namespace led_d
   {
     return m_default_font;
   }
- 
+
 } // namespace led_d
 
 

@@ -38,7 +38,7 @@ namespace led_d
       log_t::error (buf);
     }
   }
-  
+
   // bool font_dir_t::init (const std::string &default_name)
   // {
   //   if (default_name.empty () == true)

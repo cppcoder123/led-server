@@ -27,7 +27,7 @@ namespace led_d
 
   void handle_t::start ()
   {
-    
+
     while (m_go == true) {
       auto unix_msg = m_unix_queue.pop ();
       auto mcu_msg = m_mcu_queue.pop ();
@@ -69,7 +69,7 @@ namespace led_d
     response_t response;
 
     std::string buffer;
-    // 
+    //
     if (request_codec_t::decode (msg.info, request) == false) {
       response.status = 1;
       response.reason = "Failed to decode request message";

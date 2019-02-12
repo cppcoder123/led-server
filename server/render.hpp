@@ -24,12 +24,10 @@ namespace led_d
     ~render_t () {}
 
     //bool init (const arg_t &arg);
-    
+
     using matrix_t = unix::matrix_t;
     bool pixelize (matrix_t &dst,
                    const std::string &text, const std::string &format) const;
-
-    
 
   private:
 
@@ -39,7 +37,7 @@ namespace led_d
 
     font_dir_t m_font_dir;
   };
-  
+
 } // namespace led_d
 
 #endif

@@ -43,7 +43,7 @@ namespace led_d
   void session_t::do_read ()
   {
     using codec_t = unix::codec_t<unix::refsymbol_t, unix::request_t>;
-    
+
     session_ptr_t session_ptr (shared_from_this ());
     m_socket.async_read_some
       (asio::buffer (m_raw_read_buf, m_max_size),
@@ -58,7 +58,8 @@ namespace led_d
          std::string current_msg, next_msg;
          //
          while (codec_t::decode (m_read_buf, current_msg, next_msg) == true) {
-           m_queue.push (std::make_unique<unix_msg_t>(current_msg, session_ptr));
+           m_queue.push
+             (std::make_unique<unix_msg_t>(current_msg, session_ptr));
            m_read_buf = next_msg;
          }
          if (m_read_buf.empty () == false)
@@ -111,5 +112,4 @@ namespace led_d
       });
   }
 
-  
 } // namespace led_d

@@ -17,24 +17,24 @@
 namespace mutex
 {
 
-  template <typename record_t> 
+  template <typename record_t>
   class queue_t
   {
-    
+
   public:
 
     using notify_t = std::function<void ()>;
     using mutex_t = std::mutex;
     using unique_lock_t = std::unique_lock<mutex_t>;
     using wait_t = std::function<void (unique_lock_t&)>;
-    
+
     queue_t ();
     queue_t (const queue_t &) = delete;
     ~queue_t ();
 
     void set_notify (notify_t notify);
     void set_wait (wait_t wait);
-    
+
     void clear ();
 
     void notify_one () const;
@@ -50,7 +50,7 @@ namespace mutex
     optional_t<record_t> pop ();
 
   private:
-    
+
     mutable mutex_t m_mutex;
 
     using holder_t = std::list<record_t>;
@@ -59,7 +59,7 @@ namespace mutex
     notify_t m_notify;
     wait_t m_wait;
   };
-  
+
   template <typename record_t>
   queue_t<record_t>::queue_t ()
     : m_notify ([](){}),
@@ -84,7 +84,7 @@ namespace mutex
     m_wait = wait;
   }
 
-  template <typename record_t> 
+  template <typename record_t>
   void queue_t<record_t>::push (record_t record)
   {
     std::size_t len (0);
@@ -143,7 +143,7 @@ namespace mutex
     std::lock_guard <std::mutex> lock (m_mutex);
     return m_holder.size ();
   }
-  
+
 } // namespace mutex
 
 #endif

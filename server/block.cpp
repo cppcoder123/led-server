@@ -15,7 +15,7 @@ namespace led_d
 
     return m_pending;
   }
-  
+
   void block_t::engage (char_t id)
   {
     if (id == SERIAL_ID_TO_IGNORE) {
@@ -44,7 +44,7 @@ namespace led_d
         || (m_pending == false))
       // not an error
       return;
-    
+
     if (m_pending_id != id) {
       log_t::buffer_t buf;
       buf << "block: Trying to relax with wrong id \""

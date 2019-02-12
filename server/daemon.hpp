@@ -27,7 +27,7 @@ namespace led_d
     daemon_t (const arg_t &arg);
     daemon_t (const daemon_t &arg) = delete;
     ~daemon_t ();
-    
+
     int start ();
     void stop ();
 
@@ -43,7 +43,7 @@ namespace led_d
     content_t m_content;
     handle_t m_handle;
     spi_t m_spi;
-    
+
     std::thread m_network_thread;
     std::thread m_handle_thread;
     std::thread m_spi_thread;

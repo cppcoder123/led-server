@@ -28,7 +28,7 @@ namespace led_d
       m_irq (NULL)
   {
   }
-  
+
   void gpio_t::start ()
   {
     m_chip = gpiod_chip_open_by_name (chip_name);
@@ -72,8 +72,8 @@ namespace led_d
     log_t::buffer_t buf;
     buf << "gpio: Error while accessing gpio line";
     log_t::error (buf);
-    
+
     return false;
   }
-  
+
 } // namespace led_d

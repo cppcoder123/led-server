@@ -10,7 +10,7 @@ namespace led_d
     : m_vector (max_index, symbol_t (0, 0))
   {
   }
-  
+
   font_t::symbol_t font_t::get_symbol (char s) const
   {
     return m_vector[get_symbol_index (s)];

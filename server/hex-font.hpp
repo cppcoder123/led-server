@@ -15,7 +15,7 @@ namespace led_d
   {
     class font_t
     {
-      
+
     public:
 
       using font_name_t = unix::font_name_t;
@@ -42,10 +42,8 @@ namespace led_d
                         const hex_font_t &hex_font, std::size_t shift);
       static bool fill (led_d::font_t &font,
                         const column_vector_t &hex_font, std::size_t shift);
-      
     };
 
-    
   }
 }
 

@@ -32,7 +32,7 @@ namespace led_d
   private:
 
     static std::size_t get_symbol_index (char s);
-    
+
     typedef std::vector<symbol_t> vector_t;
     vector_t m_vector;
 
@@ -42,7 +42,7 @@ namespace led_d
     = static_cast<std::size_t>(std::numeric_limits<char>::max ()
                                - std::numeric_limits<char>::min () + 1);
   };
-  
+
 } // namespace led_d
 
 #endif

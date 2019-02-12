@@ -24,7 +24,7 @@ namespace led_d
 
     void start ();
     void stop ();
-    
+
   private:
 
     void do_accept ();

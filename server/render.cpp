@@ -16,7 +16,7 @@ namespace led_d
   // {
   //   return m_font_dir.init (arg.default_font);
   // }
-    
+
   bool render_t::pixelize (matrix_t &matrix, const std::string &text,
                            const std::string &format_string) const
   {
@@ -65,5 +65,4 @@ namespace led_d
     return true;
   }
 
-  
 } // namespace led_d

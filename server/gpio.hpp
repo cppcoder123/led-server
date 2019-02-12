@@ -26,9 +26,9 @@ namespace led_d
 
     gpiod_line *m_enable;
     gpiod_line *m_irq;
-    
+
   };
-  
+
 } // namespace led_d
 
 #endif
