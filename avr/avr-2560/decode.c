@@ -33,17 +33,16 @@ static uint8_t is_decodable (data_t msg_id)
 
 static void decode ()
 {
+  uint8_t status = STATUS_FAIL;
 
   switch (msg_id) {
   case MSG_ID_MONO_LED:         /* monochrome */
-    {
-        uint8_t status = (flush_push_mono (in_buf[0]) == 1)
-          ? STATUS_SUCCESS : STATUS_FAIL;
-        encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
-    }
+    status = (flush_push_mono (in_buf[0]) == 1) ? STATUS_SUCCESS : STATUS_FAIL;
+    encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
     break;
-  case MSG_ID_PING:
-    encode_msg_1 (MSG_ID_STATUS, msg_serial, STATUS_SUCCESS);
+  case MSG_ID_VERSION:
+    status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
+    encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
     break;
   case MSG_ID_QUERY:
     // just ignore, other party tries to read smth
@@ -75,7 +74,7 @@ void decode_try ()
     data_t symbol;
     if (spi_read_symbol (&symbol) == 0)
       return;                   /* wait */
-    if (symbol != ID_CATCH_EYE)
+    if (symbol != EYE_CATCH)
       return;                   /* ignore */
     decoded |= CATCH_DECODED;
   }

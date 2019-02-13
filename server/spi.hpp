@@ -4,6 +4,8 @@
 #ifndef SPI_HPP
 #define SPI_HPP
 
+#include <stdint.h>
+
 #include <string>
 
 #include "block.hpp"
@@ -31,7 +33,7 @@ namespace led_d
 
     void write_msg (const mcu_msg_t &msg);
 
-    void spi_write ();
+    void spi_write (uint32_t msg_size);
 
     void device_start ();
     void device_stop ();

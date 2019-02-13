@@ -38,7 +38,7 @@ namespace led_d
     inline void encode::wrap (mcu_msg_t &msg)
     {
       msg.push_front (msg.size ());
-      msg.push_front (ID_CATCH_EYE);
+      msg.push_front (EYE_CATCH);
     }
 
     template <typename ...payload_t>

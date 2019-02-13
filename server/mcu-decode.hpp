@@ -26,6 +26,9 @@ namespace led_d
       static bool split (const mcu_msg_t &msg, char_t &serial,
                          char_t &msg_id, payload_t& ...payload);
 
+      template <typename ...payload_t>
+      static bool split_payload (const mcu_msg_t &msg, payload_t& ...payload);
+
       static char_t get_serial (const mcu_msg_t &msg);
       static char_t get_msg_id (const mcu_msg_t &msg);
 
@@ -48,7 +51,7 @@ namespace led_d
     inline bool decode::unwrap (mcu_msg_t &msg)
     {
       while ((msg.empty () == false)
-             && (msg.front () != ID_CATCH_EYE))
+             && (msg.front () != EYE_CATCH))
         msg.pop_front ();
 
       if (msg.empty () == true)
@@ -82,6 +85,14 @@ namespace led_d
       return do_split (msg, iter, payload...);
     }
 
+    template <typename ...payload_t>
+    bool decode::split_payload (const mcu_msg_t &msg, payload_t& ...payload)
+    {
+      char_t serial = 0;
+      char_t msg_id = 0;
+      return split (msg, serial, msg_id, payload...);
+    }
+
     inline char_t decode::get_serial (const mcu_msg_t &msg)
     {
       char_t serial = 0;
@@ -99,7 +110,7 @@ namespace led_d
       char_t msg_id = 0;
 
       if (split (msg, serial, msg_id) == false)
-        return false;
+        return MSG_ID_EMPTY;
 
       return msg_id;
     }

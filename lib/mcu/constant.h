@@ -6,7 +6,7 @@
 
 #define PROTOCOL_VERSION 1
 
-#define ID_CATCH_EYE 250
+#define EYE_CATCH 250
 #define SPI_READ_OVERFLOW 245   /* an error */
 #define SPI_WRITE_UNDERFLOW 240 /* not an error */
 #define RING_INIT_PATTERN 235
@@ -14,13 +14,26 @@
 #define SERIAL_ID_TO_IGNORE 0
 
 enum {
+  /*should not be sent in either direction, initialization*/
   MSG_ID_EMPTY,
+
+  /*avr=>pi: button(s) is(are) pressed*/
   MSG_ID_BUTTON,
+
+  /*pi=>avr: one column as payload,*/
+  /*avr=>pi: STATUS*/
   MSG_ID_MONO_LED,
-  MSG_ID_PING,
-  MSG_ID_QUERY,                 /* serial should be in, no response from avr */
+
+  /*pi=>avr: No response from avr is expected, SERIAL_ID_TO_IGNORE should be used*/
+  /*aux message to enable spi slave (avr) to master (pi) transfer*/
+  MSG_ID_QUERY,
+
+  /*avr=>pi: see status below*/
   MSG_ID_STATUS,
-  MSG_ID_VERSION,               /* protocol version, first message */
+
+  /*pi=>avr: PROTOCOL_VERSION as payload, */
+  /*avr=>pi: VERSION: STATUS_SUCCESS(os STATUS_FAIL) as payload*/
+  MSG_ID_VERSION,
 };
 
 enum {

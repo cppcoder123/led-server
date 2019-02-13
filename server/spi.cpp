@@ -95,23 +95,23 @@ namespace led_d
     mcu_msg_t msg = msg_src;
     mcu::encode::wrap (msg);
 
-    unsigned i = 0;
+    uint32_t msg_size = 0;
     for (const auto &byte : msg)
-      write_buffer[i++] = byte;
+      write_buffer[msg_size++] = byte;
 
     if (serial_id != SERIAL_ID_TO_IGNORE)
       m_block.engage (serial_id);
 
-    spi_write ();
+    spi_write (msg_size);
 
     for (unsigned j = 0; j < msg.size (); ++j)
       if (m_parse.push (read_buffer[j], msg) == true) {
         char_t serial = 0;
         char_t msg_id = MSG_ID_EMPTY;
         if (mcu::decode::split (msg, serial, msg_id) == true) {
-          if (msg_id == MSG_ID_STATUS)
-            m_block.relax (serial);
-          else
+          m_block.relax (serial);
+          if (msg_id != MSG_ID_STATUS)
+            // special handling is needed, otherwise just drop msg
             m_from_queue.push (msg);
         } else {
           log_t::buffer_t buf;
@@ -121,18 +121,20 @@ namespace led_d
       }
   }
 
-  void spi_t::spi_write ()
+  void spi_t::spi_write (uint32_t msg_size)
   {
     spi_ioc_transfer buf;
     buf.tx_buf =  (unsigned long) write_buffer;
     buf.rx_buf =  (unsigned long) read_buffer;
-    buf.len = buffer_size;
+    buf.len = msg_size;
     buf.delay_usecs = spi_delay;
     buf.speed_hz = 0;
     buf.bits_per_word = 0;
 
     if (ioctl (m_device, SPI_IOC_MESSAGE (1), &buf) < 0) {
-      // fixme: log complain
+      log_t::buffer_t buf;
+      buf << "spi: Failed to send spi message to mcu";
+      log_t::error (buf);
     }
   }
 

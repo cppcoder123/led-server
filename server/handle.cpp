@@ -11,9 +11,28 @@
 
 #include "handle.hpp"
 #include "log-wrapper.hpp"
+#include "mcu-decode.hpp"
 
 namespace led_d
 {
+  namespace
+  {
+    void handle_version (const mcu_msg_t &msg)
+    {
+      char_t status = 0;
+      if (mcu::decode::split_payload (msg, status) == false) {
+        log_t::buffer_t buf;
+        buf << "handle: Failed to decode \"version\" message";
+        log_t::error (buf);
+        return;
+      }
+
+      if (status != STATUS_SUCCESS)
+        throw std::runtime_error
+          ("handle: Pi & Mcu protocol version mismatch, can't continue...");
+    }
+  } // namespace
+
   handle_t::handle_t (unix_queue_t &unix_queue,
                       mcu_queue_t &mcu_queue, content_t &content)
     : m_unix_queue (unix_queue),
@@ -84,11 +103,21 @@ namespace led_d
       msg.sender->send (buffer);
   }
 
-  void handle_t::handle_mcu (mcu_msg_t &/*msg*/)
+  void handle_t::handle_mcu (mcu_msg_t &msg)
   {
-    //fixme: implement mcu msg handling here
-    log_t::buffer_t buf;
-    buf << "\"handle_mcu\" is called, but it is not yet implemented";
-    log_t::error (buf);
+    char_t msg_id = mcu::decode::get_msg_id (msg);
+
+    switch (msg_id) {
+    case MSG_ID_VERSION:
+      handle_version (msg);
+      break;
+    default:
+      {
+        log_t::buffer_t buf;
+        buf << "handle: Unknown message from mcu is arrived";
+        log_t::error (buf);
+      }
+      break;
+    }
   }
 } // namespace led_d
