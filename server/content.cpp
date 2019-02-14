@@ -7,11 +7,11 @@
 #include <stdexcept>
 #include <thread>
 
-#include "unix/matrix.hpp"
 
 #include "content.hpp"
 #include "idle-request.hpp"
 #include "log-wrapper.hpp"
+#include "matrix.hpp"
 #include "mcu-encode.hpp"
 #include "serial-id.hpp"
 #include "type-def.hpp"
@@ -27,17 +27,17 @@ namespace led_d
     std::size_t space_length = 4;
 
     // fixme: matrix should hold chars?
-    char_t get_char (const unix::matrix_t::column_t &column)
-    {
-      char_t res = 0, mask = 1;
-      for (std::size_t bit = 0; bit < unix::matrix_t::column_size; ++bit) {
-        if (column.test (bit) == true)
-          res |= mask;
-        mask <<= 1;
-      }
+    // char_t get_char (const unix::matrix_t::column_t &column)
+    // {
+    //   char_t res = 0, mask = 1;
+    //   for (std::size_t bit = 0; bit < unix::matrix_t::column_size; ++bit) {
+    //     if (column.test (bit) == true)
+    //       res |= mask;
+    //     mask <<= 1;
+    //   }
 
-      return res;
-    }
+    //   return res;
+    // }
 
   } // namespace anonymous
 
@@ -163,7 +163,7 @@ namespace led_d
 
   void content_t::show (const request_t &request)
   {
-    unix::matrix_t matrix;
+    matrix_t matrix;
     if (m_render.pixelize (matrix, request.info, request.format) == false) {
       log_t::buffer_t buf;
       buf << "Failed to pixelize info related to \"" << request.tag << "\"";
@@ -178,7 +178,8 @@ namespace led_d
     for (std::size_t i = 0; i < matrix.size (); ++i)
       m_to_spi_queue.push
         (mcu::encode::join
-         (serial::get (), MSG_ID_MONO_LED, get_char (matrix.get_column (i))));
+         // fixme
+         (serial::get (), MSG_ID_MONO_LED, 1/*get_char (matrix.get_column (i))*/));
 
     {
       // fixme: debug

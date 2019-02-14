@@ -19,8 +19,7 @@ namespace unix
       id_greek = id_zero,
       id_ibm,
       id_slim,
-      id_unknown,               // keep before last
-      id_size = id_unknown      // keep last
+      id_size                   // keep last
     };
 
     static const std::string& get (id_t id);
@@ -57,7 +56,7 @@ namespace unix
         return id;
     }
 
-    return id_unknown;
+    return id_ibm;
   }
   
   inline font_name_t::vector_t font_name_t::init ()

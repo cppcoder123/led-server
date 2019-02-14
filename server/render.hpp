@@ -7,10 +7,10 @@
 #include <string>
 
 #include "unix/format.hpp"
-#include "unix/matrix.hpp"
 
 #include "arg.hpp"
 #include "font-dir.hpp"
+#include "matrix.hpp"
 
 namespace led_d
 {
@@ -25,7 +25,7 @@ namespace led_d
 
     //bool init (const arg_t &arg);
 
-    using matrix_t = unix::matrix_t;
+    //    using matrix_t = unix::matrix_t;
     bool pixelize (matrix_t &dst,
                    const std::string &text, const std::string &format) const;
 

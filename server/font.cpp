@@ -6,27 +6,19 @@
 
 namespace led_d
 {
-  font_t::font_t ()
-    : m_vector (max_index, symbol_t (0, 0))
+  const matrix_t& font_t::get (char s) const
   {
+    static matrix_t unknown_symbol{0xFF, 0xFF, 0xFF};
+
+    auto iter = m_map.find (s);
+    if (iter == m_map.cend ())
+      return unknown_symbol;
+
+    return iter->second;
   }
 
-  font_t::symbol_t font_t::get_symbol (char s) const
+  void font_t::add (char s, const matrix_t &matrix)
   {
-    return m_vector[get_symbol_index (s)];
+    m_map.emplace (s, matrix);
   }
-
-  void font_t::add_symbol (char s, const matrix_t &matrix)
-  {
-    m_vector[get_symbol_index (s)]
-      // base object call
-      = symbol_t (unix::matrix_t::size (), matrix.size ());
-    add (matrix);
-  }
-
-  std::size_t font_t::get_symbol_index (char s)
-  {
-    return static_cast<std::size_t>(shift + static_cast<int>(s));
-  }
-
 } // namespace led_d

@@ -43,8 +43,7 @@ namespace led_d
                            const std::string &text,
                            const format_t &format) const
   {
-    typedef font_dir_t::font_ptr_t font_ptr_t;
-    const font_ptr_t font (m_font_dir.get_font (format.get_font ()));
+    auto font = m_font_dir.get_font (format.get_font ());
 
     std::size_t info_start (format.get_start ());
     std::size_t info_finish (info_start);
@@ -53,14 +52,15 @@ namespace led_d
 
     matrix_t tmp_matrix;
     for (std::size_t pos = info_start; pos < info_finish; ++pos) {
-      font_t::symbol_t symbol (font->get_symbol (text[pos]));
-      tmp_matrix.add (*font, symbol.first, symbol.second);
+      auto symbol = font.get (text[pos]);
+      tmp_matrix.insert (tmp_matrix.end (), symbol.begin (), symbol.end ());
     }
 
-    if (format.get_inversion () == true)
-      tmp_matrix.invert ();
+    // fixme: symbol inversion
+    // if (format.get_inversion () == true)
+    //   tmp_matrix.invert ();
 
-    matrix.add (tmp_matrix);
+    matrix.insert (matrix.end (), tmp_matrix.begin (), tmp_matrix.end ());
 
     return true;
   }

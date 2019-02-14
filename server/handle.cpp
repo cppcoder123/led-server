@@ -30,6 +30,10 @@ namespace led_d
       if (status != STATUS_SUCCESS)
         throw std::runtime_error
           ("handle: Pi & Mcu protocol version mismatch, can't continue...");
+
+      log_t::buffer_t buf;
+      buf << "handle: Protocol \"version\" is correct!";
+      log_t::info (buf);
     }
   } // namespace
 

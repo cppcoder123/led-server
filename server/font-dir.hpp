@@ -4,9 +4,9 @@
 #ifndef LED_D_FONT_DIR_HPP
 #define LED_D_FONT_DIR_HPP
 
+#include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "unix/font-name.hpp"
 
@@ -22,39 +22,20 @@ namespace led_d
     font_dir_t (const std::string &default_font);
     ~font_dir_t () {}
 
-    typedef std::shared_ptr<font_t> font_ptr_t;
-
-    //bool init (const std::string &default_font_name);
-
-    bool is_font (const std::string &name) const;
-    const font_ptr_t get_font (const std::string &name) const;
-    const font_ptr_t get_font () const; // default
+    const font_t& get_font (const std::string &name) const;
+    const font_t& get_font () const {return m_default_font;}
 
   private:
 
-    typedef std::vector<font_ptr_t> vector_t;
-    vector_t m_vector;
-
-    font_ptr_t m_default_font;
-
     using font_name_t = unix::font_name_t;
+    using map_t = std::map<font_name_t::id_t, font_t>;
+
+    static font_t get_info (font_name_t::id_t id);
+    
+    const map_t m_font_map;
+    const font_t& m_default_font;
 
   };
-
-  //
-  //
-  //
-  inline bool font_dir_t::is_font (const std::string &name) const
-  {
-    font_name_t::id_t id (font_name_t::get (name));
-
-    return (id != font_name_t::id_unknown) ? true : false;
-  }
-
-  inline const font_dir_t::font_ptr_t font_dir_t::get_font () const
-  {
-    return m_default_font;
-  }
 
 } // namespace led_d
 
