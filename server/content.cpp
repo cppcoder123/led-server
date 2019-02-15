@@ -32,7 +32,7 @@ namespace led_d
                         mcu_queue_t &to_spi_queue)
     : m_default_font (default_font),
       m_context (io_context),
-      m_timer (m_context, show_delay),
+      m_timer (m_context),
       m_to_spi_queue (to_spi_queue),
       m_go (true),
       m_request_iterator (m_request_map.end ()),
@@ -48,7 +48,8 @@ namespace led_d
   void content_t::start ()
   {
     m_timer.expires_at (std::chrono::steady_clock::now () + show_delay);
-    m_timer.async_wait (std::bind (&content_t::cycle, this, std::placeholders::_1));
+    m_timer.async_wait
+      (std::bind (&content_t::cycle, this, std::placeholders::_1));
   }
 
   void content_t::stop ()
@@ -111,6 +112,10 @@ namespace led_d
       if (prepare (idle_request) == true)
         show (idle_request);
     }
+
+    m_timer.expires_at (std::chrono::steady_clock::now () + show_delay);
+    m_timer.async_wait
+      (std::bind (&content_t::cycle, this, std::placeholders::_1));
   }
 
   bool content_t::next (request_t &request)
