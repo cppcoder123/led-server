@@ -25,20 +25,6 @@ namespace led_d
     std::chrono::seconds show_delay (5);
     std::size_t max_spi_queue_size = 50;
     std::size_t space_length = 4;
-
-    // fixme: matrix should hold chars?
-    // char_t get_char (const unix::matrix_t::column_t &column)
-    // {
-    //   char_t res = 0, mask = 1;
-    //   for (std::size_t bit = 0; bit < unix::matrix_t::column_size; ++bit) {
-    //     if (column.test (bit) == true)
-    //       res |= mask;
-    //     mask <<= 1;
-    //   }
-
-    //   return res;
-    // }
-
   } // namespace anonymous
 
   content_t::content_t (const std::string &default_font,
@@ -177,9 +163,7 @@ namespace led_d
 
     for (std::size_t i = 0; i < matrix.size (); ++i)
       m_to_spi_queue.push
-        (mcu::encode::join
-         // fixme
-         (serial::get (), MSG_ID_MONO_LED, 1/*get_char (matrix.get_column (i))*/));
+        (mcu::encode::join (serial::get (), MSG_ID_MONO_LED, matrix[i]));
 
     {
       // fixme: debug

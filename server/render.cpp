@@ -52,13 +52,12 @@ namespace led_d
 
     matrix_t tmp_matrix;
     for (std::size_t pos = info_start; pos < info_finish; ++pos) {
-      auto symbol = font.get (text[pos]);
+      auto &symbol = font.get (text[pos]);
       tmp_matrix.insert (tmp_matrix.end (), symbol.begin (), symbol.end ());
     }
 
-    // fixme: symbol inversion
-    // if (format.get_inversion () == true)
-    //   tmp_matrix.invert ();
+    if (format.get_inversion () == true)
+      matrix_invert (tmp_matrix);
 
     matrix.insert (matrix.end (), tmp_matrix.begin (), tmp_matrix.end ());
 

@@ -15,6 +15,17 @@ namespace led_d
   using matrix_column_t = char_t;
   using matrix_t = std::vector<char_t>;
 
+  void matrix_invert (matrix_t &matrix);
+
+  //
+  // --------------------------------------------------
+  //
+  inline void matrix_invert (matrix_t &matrix)
+  {
+    for (auto &x : matrix)
+      x = ~x;
+  }
+
 } // namespace unix
 
 #endif
