@@ -32,7 +32,7 @@ namespace led_d
           ("handle: Pi & Mcu protocol version mismatch, can't continue...");
 
       log_t::buffer_t buf;
-      buf << "handle: Protocol \"version\" is correct!";
+      buf << "handle: Protocol version is confirmed!";
       log_t::info (buf);
     }
   } // namespace

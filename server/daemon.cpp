@@ -28,7 +28,9 @@ namespace led_d
       // perhaps 2 threads are enough ?
       // 1  for network and 1 for spi
       // with 2 threads we can avoid using mutexes in content module
-      m_network_thread = std::thread (&network_t::start, &m_network);
+
+      //m_network_thread = std::thread (&network_t::start, &m_network);
+      m_network.start ();
       m_handle_thread = std::thread (&handle_t::start, &m_handle);
       m_spi_thread = std::thread (&spi_t::start, &m_spi);
       m_content.start ();
@@ -49,7 +51,7 @@ namespace led_d
     m_handle.stop ();
     m_spi.stop ();
 
-    m_network_thread.join ();
+    //m_network_thread.join ();
     m_handle_thread.join ();
     m_spi_thread.join ();
   }

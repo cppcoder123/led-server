@@ -8,7 +8,7 @@ namespace led_d
 {
   const matrix_t& font_t::get (char s) const
   {
-    static matrix_t unknown_symbol{0xFF, 0xFF, 0xFF};
+    static matrix_t unknown_symbol{0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
 
     auto iter = m_map.find (s);
     if (iter == m_map.cend ())

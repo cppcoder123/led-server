@@ -4,7 +4,8 @@
 
 #include <functional>
 
-#include "unix/launch.hpp"
+//#include "unix/launch.hpp"
+#include "unix/timer-launch.hpp"
 
 #include "arg.hpp"
 #include "daemon.hpp"
@@ -45,11 +46,24 @@ int main (int argc, char **argv)
   int status = 0;
   try {
     daemon_t daemon (arg);
-    unix::launch_t launch
-      (std::bind (&daemon_t::start, &daemon),
-       std::bind (&daemon_t::stop, &daemon));
-    status = (arg.foreground == true)
-      ? launch.foreground () : launch.background ();
+    auto &context = daemon.get_context ();
+
+    unix::timer_launch_t launch
+      (arg.foreground,
+       std::bind (&daemon_t::start, &daemon),
+       std::bind (&daemon_t::stop, &daemon),
+       context, 500/*2 times per second*/);
+
+    if (launch.start () == false) {
+      log_t::buffer_t buf;
+      buf << "led-d: Failed to start daemon";
+      log_t::error (buf);
+    } else 
+      context.run ();
+
+    log_t::buffer_t buf;
+    buf << "Daemon is stopped, exiting";
+    log_t::info (buf);
   }
   catch (std::exception &e) {
     status = 128;

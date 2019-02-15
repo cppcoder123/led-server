@@ -21,31 +21,23 @@ namespace led_d
 
   void network_t::start ()
   {
-    {
-      log_t::buffer_t buf;
-      buf << "network: Starting service...";
-      log_t::info (buf);
-    }
-
-    try {
-      m_context.run ();
-    }
-    catch (std::exception &e) {
-      log_t::buffer_t buf;
-      buf << "network: Exception - " << e.what ();
-      log_t::error (buf);
-    }
-
-    {
-      log_t::buffer_t buf;
-      buf << "network: Service is stopped";
-      log_t::info (buf);
-    }
+    log_t::buffer_t buf;
+    buf << "network: Starting service...";
+    log_t::info (buf);
   }
 
   void network_t::stop ()
   {
+    log_t::buffer_t buf;
+    buf << "network: Stopping the service...";
+    log_t::info (buf);
+
     m_context.stop ();
+
+    log_t::clear (buf);
+    buf << "network: Service is stopped";
+    log_t::info (buf);
+
     // fixme: Do we need to do smth else here?
   }
 

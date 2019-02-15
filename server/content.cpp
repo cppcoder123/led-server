@@ -314,11 +314,6 @@ namespace led_d
       return;
     }
 
-    /*fixme: pass to hw library*/
-    // matrix.dump ();
-    //
-    // fixme : pass data to hardware dependent library
-    //
     {
       // debug
       log_t::buffer_t buf;

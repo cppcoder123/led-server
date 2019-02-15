@@ -31,6 +31,8 @@ namespace led_d
     int start ();
     void stop ();
 
+    asio::io_context& get_context () {return m_asio_context;}
+
   private:
 
     unix_queue_t m_network_queue; // from network
@@ -44,7 +46,7 @@ namespace led_d
     handle_t m_handle;
     spi_t m_spi;
 
-    std::thread m_network_thread;
+    //std::thread m_network_thread;
     std::thread m_handle_thread;
     std::thread m_spi_thread;
   };
