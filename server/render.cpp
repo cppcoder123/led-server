@@ -12,11 +12,6 @@ namespace led_d
   {
   }
 
-  // bool render_t::init (const arg_t &arg)
-  // {
-  //   return m_font_dir.init (arg.default_font);
-  // }
-
   bool render_t::pixelize (matrix_t &matrix, const std::string &text,
                            const std::string &format_string) const
   {
