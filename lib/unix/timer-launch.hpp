@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <signal.h>
 #include <string.h>
+#include <sys/select.h>
 
 #include <chrono>
 #include <functional>
@@ -30,7 +31,7 @@ namespace unix
 
   public:
 
-    using start_t = std::function<int (void)>;
+    using start_t = std::function<bool (void)>;
     using stop_t = std::function<void (void)>;
 
     timer_launch_t (bool foreground,
@@ -91,7 +92,7 @@ namespace unix
 
   inline bool timer_launch_t::foreground ()
   {
-    if (m_start_function () != 0)
+    if (m_start_function () == false)
       return false;
 
     if (signal_init () == false)
@@ -186,13 +187,16 @@ namespace unix
   bool timer_launch_t::need_exit ()
   {
     int fd = daemon_signal_fd ();
-    fd_set initial_set;
+    fd_set sig_set;
 
-    FD_ZERO (&initial_set);
-    FD_SET (fd, &initial_set);
+    FD_ZERO (&sig_set);
+    FD_SET (fd, &sig_set);
 
-    fd_set current_set = initial_set;
-    if (select (FD_SETSIZE, &current_set, 0, 0, 0) < 0) {
+    timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+
+    if (select (FD_SETSIZE, &sig_set, 0, 0, &timeout) < 0) {
       if (errno == EINTR)
         return false;
       log_t::buffer_t msg;
@@ -201,7 +205,7 @@ namespace unix
       return true;
     }
 
-    if (FD_ISSET (fd, &current_set)) {
+    if (FD_ISSET (fd, &sig_set)) {
       int sig = SIGINT;
 
       while ((sig = daemon_signal_next ()) > 0) {

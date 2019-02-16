@@ -28,7 +28,7 @@ namespace led_d
     daemon_t (const daemon_t &arg) = delete;
     ~daemon_t ();
 
-    int start ();
+    bool start ();
     void stop ();
 
     asio::io_context& get_context () {return m_asio_context;}

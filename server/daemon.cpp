@@ -22,7 +22,7 @@ namespace led_d
   {
   }
 
-  int daemon_t::start ()
+  bool daemon_t::start ()
   {
     try {
       // perhaps 2 threads are enough ?
@@ -35,13 +35,12 @@ namespace led_d
       m_spi_thread = std::thread (&spi_t::start, &m_spi);
       m_content.start ();
     }
-
     catch (std::exception &e) {
       log_t::error (std::string ("Daemon: ") + e.what ());
-      return 11;
+      return false;
     }
 
-    return 0;
+    return true;
   }
 
   void daemon_t::stop ()
