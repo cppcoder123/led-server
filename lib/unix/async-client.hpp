@@ -13,7 +13,7 @@
 
 #include "log.hpp"
 #include "codec.hpp"
-#include "final.hpp"
+#include "final-action.hpp"
 #include "patch.hpp"
 #include "port.hpp"
 #include "refsymbol.hpp"
@@ -33,11 +33,11 @@ namespace unix
     using receive_t = std::function<void (const response_t&)>;
     
     async_client_t (asio::io_context &context,
-              port_t::value_t port,
-              const std::string &host,
-              notify_t connected,
-              notify_t written,
-              receive_t receive);
+                    port_t::value_t port,
+                    const std::string &host,
+                    notify_t connected,
+                    notify_t written,
+                    receive_t receive);
     ~async_client_t () {}
 
     // connect and handle connection then
@@ -46,8 +46,7 @@ namespace unix
 
   private:
 
-    void connect_completed (const asio::error_code &error,
-                            tcp::resolver::results_type::iterator iterator);
+    void connect_completed (const asio::error_code &error);
     void write_completed (const asio::error_code &error, std::size_t len);
     void read_completed (const asio::error_code &error, std::size_t len);
 
@@ -71,30 +70,32 @@ namespace unix
 
     // buffers
     static const std::size_t m_buf_size = 255;
-
     // raw buffers we can pass to asio
     using buffer_t = std::array<char, m_buf_size>;
     buffer_t m_write_buf;
     buffer_t m_read_buf;
-
-    // extendible buffers
+    // rubber buffers
     std::string m_out_buf;
     std::string m_in_buf;
+
+    static constexpr std::size_t m_connect_delay = 1; // second
+    asio::steady_timer m_connect_timer;
   };
 
   inline async_client_t::async_client_t (asio::io_context &context,
-                             port_t::value_t port,
-                             const std::string &host,
-                             notify_t connected,
-                             notify_t written,
-                             receive_t receive)
+                                         port_t::value_t port,
+                                         const std::string &host,
+                                         notify_t connected,
+                                         notify_t written,
+                                         receive_t receive)
     : m_context (context),
       m_port (port),
       m_host (host),
       m_connected (connected),
       m_written (written),
       m_receive (receive),
-      m_socket (m_context)
+      m_socket (m_context),
+      m_connect_timer (m_context)
   {
   }
 
@@ -107,7 +108,7 @@ namespace unix
 
     m_flag.set (CONNECT_STARTED);
 
-    static asio::ip::tcp::resolver resolver (io_context);
+    static asio::ip::tcp::resolver resolver (m_context);
     std::string port_string (patch::to_string (m_port));
     static asio::ip::tcp::resolver::query
       query (asio::ip::tcp::v4 (), m_host, port_string);
@@ -115,8 +116,8 @@ namespace unix
 
     asio::async_connect
       (m_socket, iterator,
-       std::bind (&async_client_t::connect_completed, this,
-                  std::placeholders::_1, std::placeholders::_2));
+       std::bind
+       (&async_client_t::connect_completed, this, std::placeholders::_1));
   }
 
   inline bool async_client_t::send (const request_t &request)
@@ -214,19 +215,22 @@ namespace unix
   }
 #endif
 
-  void async_client_t::
-  connect_completed (const asio::error_code &error,
-                     tcp::resolver::results_type::iterator iterator)
+  inline void async_client_t::
+  connect_completed (const asio::error_code &error)
   {
     if (error) {
-      m_timer.expires_at (std::chrono::steady_clock::now () + m_connect_delay);
-      m_timer.async_wait (&async_client_t::connect, this, true);
+      m_connect_timer.expires_at (std::chrono::steady_clock::now ()
+                                  + std::chrono::seconds (m_connect_delay));
+      m_connect_timer.async_wait
+        (std::bind (&async_client_t::connect, this, true));
       return;
     }
 
+    m_connected ();
+
     // we can expect messages now
     asio::async_read
-      (m_socket, asio::buffer (m_read_buf, m_max_size),
+      (m_socket, asio::buffer (m_read_buf, m_read_buf.size ()),
        std::bind (&async_client_t::read_completed, this,
                   std::placeholders::_1, std::placeholders::_2));
 
@@ -234,13 +238,15 @@ namespace unix
     m_flag.set (CONNECTED);
   }
 
-  vodi async_client_t::
+  inline void async_client_t::
   write_completed (const asio::error_code &error, std::size_t/*not used*/)
   {
     if (error)
       return;
 
     if (m_out_buf.empty ()) {
+      // write is completed
+      m_written ();
       m_flag.reset (WRITE_STARTED);
       return;
     }
@@ -254,7 +260,7 @@ namespace unix
                   std::placeholders::_1, std::placeholders::_2));
   }
   
-  void async_client_t::
+  inline void async_client_t::
   read_completed (const asio::error_code &error, std::size_t len)
   {
     if (error)
@@ -265,17 +271,16 @@ namespace unix
     using codec_t = unix::codec_t<refsymbol_t, response_t>;
 
     // 1. decode header
-    std::size_t len = 0;
-    if ((codec_t::decode (m_in_buf, len) == false)
-        || (m_msg_buf.size () < len))
+    if ((codec_t::decode (m_in_buf, len) == false) // re-use len
+        || (m_in_buf.size () < len))
       return;
 
     // we need to clear buf sometimes
     final_action_t at_exit
-      = make_final_action ([](){m_in_buf.clear ();});
+      = make_final_action ([this](){m_in_buf.clear ();});
 
     response_t response;
-    if (codec_t::decode (m_msg_buf, response) == false) {
+    if (codec_t::decode (m_in_buf, response) == false) {
         log_t::error ("Failed to decode reply");
         return;
     }
