@@ -39,7 +39,7 @@ $(TARGET): $(OBJECT_LIST) $(LIB_CORE)/*
 
 
 %.o: %.cpp $(wildcard *.hpp)
-	$(CXX) $(CPPFLAGS) -c $<
+	+$(CXX) $(CPPFLAGS) -c $<
 
 
 .PHONY: clean tar

@@ -18,17 +18,23 @@ SERVER = $(ROOT)/server
 GATEWAY = $(ROOT)/gateway
 TEST_CLIENT = $(ROOT)/test-client
 
-# lib(s) first
+LIB_DAEMON_OBJECT = $(LIB_DAEMON)/src/libdaemon.a
+
+LIB_PATH_LIST = $(LIB_DAEMON)
 #TARGET_PATH_LIST = $(LIB_DAEMON) $(TEST_CLIENT) $(INFO_GATEWAY) $(SERVER)
-TARGET_PATH_LIST = $(LIB_DAEMON) $(TEST_CLIENT) $(GATEWAY) $(SERVER)
+TARGET_PATH_LIST = $(TEST_CLIENT) $(GATEWAY) $(SERVER)
 
 ALL: $(TARGET_PATH_LIST)
 
-$(TARGET_PATH_LIST):
-	cd $@ && make && cd $(ROOT)
+$(TARGET_PATH_LIST): $(LIB_DAEMON_OBJECT)
+	+cd $@ && make && cd $(ROOT)
+
+$(LIB_DAEMON_OBJECT):
+	cd $(LIB_DAEMON) && make && cd $(ROOT)
 
 clean:
 	$(foreach dir, $(TARGET_PATH_LIST), cd $(dir) && make clean;)
+	$(foreach dir, $(LIB_PATH_LIST), cd $(dir) && make clean;)
 	-find . -iname "*~" | xargs rm -f
 
 .PHONY: clean $(TARGET_PATH_LIST)

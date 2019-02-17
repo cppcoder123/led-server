@@ -25,7 +25,7 @@ $(TARGET): $(OBJECT_LIST)
 
 
 %.o: %.cpp $(HEADER_LIST)
-	$(CXX) $(CPPFLAGS) -c $<
+	+$(CXX) $(CPPFLAGS) -c $<
 
 
 .PHONY: clean tar
