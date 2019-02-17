@@ -136,11 +136,11 @@ namespace unix
     m_flag.set (WRITE_STARTED);
 
     // 2. put into buffer
-    string_move (msg, m_write_buf, m_out_buf);
+    auto len = string_move (msg, m_write_buf, m_out_buf);
 
     // 3. start async writing
     asio::async_write
-      (m_socket, asio::buffer (m_write_buf, size),
+      (m_socket, asio::buffer (m_write_buf.data (), len),
        std::bind (&async_client_t::write_completed, this,
                   std::placeholders::_1, std::placeholders::_2));
 
@@ -245,11 +245,11 @@ namespace unix
       return;
     }
 
-    string_move (m_out_buf, m_write_buf);
+    auto array_size = string_move (m_out_buf, m_write_buf);
 
     asio::async_write
       (m_socket,
-       asio::buffer (m_write_buf.data (), m_write_buf.size),
+       asio::buffer (m_write_buf.data (), array_size),
        std::bind (&async_client_t::write_completed, this,
                   std::placeholders::_1, std::placeholders::_2));
   }
@@ -260,7 +260,7 @@ namespace unix
     if (error)
       return;
 
-    string_move (m_read_buf, len, m_in_buf);
+    string_move_append (m_read_buf, len, m_in_buf);
 
     using codec_t = unix::codec_t<refsymbol_t, response_t>;
 
