@@ -7,7 +7,6 @@
 
 #include "arg.hpp"
 #include "daemon.hpp"
-#include "init.hpp"
 #include "log-wrapper.hpp"
 
 int main (int argc, char **argv)
@@ -35,7 +34,6 @@ int main (int argc, char **argv)
   }
 
   led_info_d::daemon_t daemon (arg);
-  led_info_d::init_t::init (daemon);
 
   led_info_d::log_t::buffer_t buf;
   buf << "Launching process in " << ((arg.foreground) ? "foreground" : "background");

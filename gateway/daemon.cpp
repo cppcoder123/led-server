@@ -4,6 +4,7 @@
 // To do: handle priority properly
 //
 #include "daemon.hpp"
+#include "init.hpp"
 #include "log-wrapper.hpp"
 
 namespace led_info_d
@@ -63,6 +64,8 @@ namespace led_info_d
     log_t::buffer_t buf;
     buf << "daemon: Gateway is connected to Led server";
     log_t::info (buf);
+
+    init (*this);
   }
 
   void daemon_t::notify_write ()
