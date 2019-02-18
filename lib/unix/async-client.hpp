@@ -1,6 +1,10 @@
 //
 //
 //
+// To do:  Client shoud accept strings for reading/writing,
+//   encode/decode should be done outside of it in order
+//   to use somewhere else
+//
 #ifndef UNIX_ASYNC_CLIENT_HPP
 #define UNIX_ASYNC_CLIENT_HPP
 
@@ -42,7 +46,7 @@ namespace unix
 
     // connect and handle connection then
     void connect (bool force = false);
-    bool send (const request_t &request);
+    bool write (const request_t &request);
 
   private:
 
@@ -120,7 +124,7 @@ namespace unix
        (&async_client_t::connect_completed, this, std::placeholders::_1));
   }
 
-  inline bool async_client_t::send (const request_t &request)
+  inline bool async_client_t::write (const request_t &request)
   {
     if ((m_flag.test (CONNECTED) == false)
         || (m_flag.test (WRITE_STARTED) == true))

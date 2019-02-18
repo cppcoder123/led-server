@@ -34,7 +34,7 @@ namespace led_info_d
     for (map_t::iterator iter = m_map.begin (); iter != m_map.end (); ++iter) {
       request_ptr_t request_ptr (iter->second);
       request_ptr->action = unix::request_t::action_erase;
-      m_client.send (*request_ptr);
+      m_client.write (*request_ptr);
     }
   }
 
@@ -56,7 +56,7 @@ namespace led_info_d
         m_map.erase (iter);
     }
     
-    m_client.send (request);
+    m_client.write (request);
   }
 
   void daemon_t::notify_connect ()
