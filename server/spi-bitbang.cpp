@@ -43,12 +43,19 @@ namespace led_d
 
   void spi_bitbang_t::stop ()
   {
-    std::list <gpiod_line*> line_list = {m_ss, m_mosi, m_clk, m_miso};
-    for (auto &line : line_list)
-      if (line != NULL) {
+    auto release = [](gpiod_line *&line)
+      {
+        if (line == NULL)
+          return;
+
         gpiod_line_release (line);
         line = NULL;
-      }
+      };
+
+    release (m_ss);
+    release (m_mosi);
+    release (m_clk);
+    release (m_miso);
   }
 
   void spi_bitbang_t::transfer (const mcu_msg_t &out, mcu_msg_t &in)
