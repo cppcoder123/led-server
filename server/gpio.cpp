@@ -44,7 +44,7 @@ namespace led_d
       throw std::runtime_error ("gpio: Failed to open irq line");
 
     // configure enable for output and set to 1
-    if (gpiod_line_request_output (m_enable, consumer, 1) != 0)
+    if (gpiod_line_request_output (m_enable, get_consumer (), 1) != 0)
       throw std::runtime_error ("gpio: Failed to configure enable for output");
     if (gpiod_line_request_input (m_irq, consumer) != 0)
       throw std::runtime_error ("gpio: Failed to configure irq for input");

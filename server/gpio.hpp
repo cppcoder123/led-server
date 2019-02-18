@@ -20,6 +20,10 @@ namespace led_d
 
     bool is_irq_raised ();
 
+    gpiod_chip* get_chip () {return m_chip;}
+
+    static constexpr const char* get_consumer () {return "led-d";}
+
   private:
 
     gpiod_chip *m_chip;

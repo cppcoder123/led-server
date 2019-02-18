@@ -11,6 +11,7 @@
 #include "block.hpp"
 #include "handle.hpp"
 #include "gpio.hpp"
+#include "spi-bitbang.hpp"
 #include "spi-parse.hpp"
 #include "type-def.hpp"
 
@@ -33,13 +34,12 @@ namespace led_d
 
     void write_msg (const mcu_msg_t &msg);
 
-    void spi_write (uint32_t msg_size);
+    // void spi_write (uint32_t msg_size);
+    // void device_start ();
+    // void device_stop ();
 
-    void device_start ();
-    void device_stop ();
-
-    const std::string m_path;   // to device
-    int m_device;               // file descriptor
+    // const std::string m_path;   // to device
+    // int m_device;               // file descriptor
 
     bool m_go;
 
@@ -47,6 +47,8 @@ namespace led_d
     mcu_queue_t &m_from_queue;  // from spi
 
     gpio_t m_gpio;
+    spi_bitbang_t m_bitbang;
+
     block_t m_block;
     spi_parse_t m_parse;
 
