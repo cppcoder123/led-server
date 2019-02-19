@@ -4,8 +4,7 @@
 
 #include <functional>
 
-//#include "unix/launch.hpp"
-#include "unix/timer-launch.hpp"
+#include "unix/launch.hpp"
 
 #include "arg.hpp"
 #include "daemon.hpp"
@@ -48,7 +47,7 @@ int main (int argc, char **argv)
     daemon_t daemon (arg);
     auto &context = daemon.get_context ();
 
-    unix::timer_launch_t launch
+    unix::launch_t launch
       (arg.foreground,
        std::bind (&daemon_t::start, &daemon),
        std::bind (&daemon_t::stop, &daemon),

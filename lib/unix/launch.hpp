@@ -1,13 +1,17 @@
 //
-// launch daemon in background or foreground mode
+// Handle exiting signals signals
 //
-#ifndef UNIX_LAUNCH_HPP
-#define UNIX_LAUNCH_HPP
+// fixme: rename to 'launch.hpp' later
+//
+#ifndef LAUNCH_HPP
+#define LAUNCH_HPP
 
 #include <errno.h>
 #include <signal.h>
 #include <string.h>
+#include <sys/select.h>
 
+#include <chrono>
 #include <functional>
 
 #include "dexec.h"
@@ -15,8 +19,9 @@
 #include "dpid.h"
 #include "dsignal.h"
 
-#include "log.hpp"
+#include "asio/asio.hpp"
 
+#include "log.hpp"
 
 namespace unix
 {
@@ -26,62 +31,91 @@ namespace unix
 
   public:
 
-    typedef std::function<int (void)> start_t;
-    typedef std::function<void (void)> stop_t;
+    using start_t = std::function<bool (void)>;
+    using stop_t = std::function<void (void)>;
 
-    launch_t (start_t start_function, stop_t stop_function);
+    launch_t (bool foreground,
+              start_t start_function,
+              stop_t stop_function,
+              asio::io_context &context,
+              unsigned int timer_interval/*milliseconds*/);
     ~launch_t () {}
 
-    
-    int foreground ();
-    int background ();
+    bool start ();
 
   private:
 
-    int cleanup (bool fground);
-    bool signal_init ();
-    void wait_for_signal ();
+    void stop (bool clean_pid_file, bool invoke_stop_callback);
 
+    bool foreground ();
+    bool background ();
+
+    bool signal_init ();
+
+    bool need_exit ();
+    void check_signal (const asio::error_code &error);
+
+    bool m_foreground;
     start_t m_start_function;
     stop_t m_stop_function;
+
+    asio::io_context &m_context;
+    asio::steady_timer m_timer;
+    const std::chrono::milliseconds m_delay;
   };
 
 
-  inline launch_t::launch_t (start_t start_function,
-                             stop_t stop_function)
-    : m_start_function (start_function),
-      m_stop_function (stop_function)
+  inline launch_t::launch_t (bool fground,
+                             start_t start_function,
+                             stop_t stop_function,
+                             asio::io_context &context,
+                             unsigned int timer_interval)
+    : m_foreground (fground),
+      m_start_function (start_function),
+      m_stop_function (stop_function),
+      m_context (context),
+      m_timer (context),
+      m_delay (timer_interval)
   {
   }
 
-  inline int launch_t::foreground ()
+  inline bool launch_t::start ()
   {
-    if (m_start_function () != 0)
-      return 201;
+    bool status = (m_foreground == true) ? foreground () : background ();
+    if (status == false)
+      return false;
+
+    check_signal (asio::error_code {});
+
+    return true;
+  }
+
+  inline bool launch_t::foreground ()
+  {
+    if (m_start_function () == false)
+      return false;
 
     if (signal_init () == false)
-      return 202;
+      return false;
 
-    wait_for_signal ();
-
-    return cleanup (true);
+    return true;
   }
 
-  inline int launch_t::background ()
+  inline bool launch_t::background ()
   {
     daemon_retval_init ();
     pid_t pid = 0;
     if ((pid = daemon_fork ()) < 0) {
       // failed to fork
       daemon_retval_done ();
-      return 111;
+      return false;
     } else if (pid != 0) { // the parent
       int status = 0;
       // wait 20 seconds
       if ((status = daemon_retval_wait (20)) < 0) {
         log_t::error
           ("Failed to receive return value from daemon process");
-        return 112;
+        return false;
       }
       log_t::buffer_t msg;
       msg << "Daemon returned " << status << " as return value ";
@@ -89,46 +123,51 @@ namespace unix
         log_t::info (msg);
       else
         log_t::error (msg);
-      return status;              // parent exit
+      return (status == 0) ? true : false; // parent exit
     } else { // the daemon
       if (daemon_pid_file_create () < 0) {
         log_t::buffer_t msg;
         msg << "Failed to create PID file - " << strerror (errno);
         log_t::error (msg);
         daemon_retval_send (1);
-        return cleanup (false);
+        stop (false, false);
+        return false;
       }
-      
+
       if (signal_init () == false) {
         daemon_retval_send (2);
-        return cleanup (false);
+        stop (true, false);
+        return false;
       }
-      
+
       if (m_start_function () == false) {
         daemon_retval_send (3);
-        return cleanup (false);
+        stop (true, false);
+        return false;
       }
-      
+
       daemon_retval_send (0);
 
-      log_t::info ("Successfully started");
-      
-      wait_for_signal ();
-      
-      return cleanup (false);
+      log_t::info ("Daemon successfully started");
+
+      return true;
     }
   }
 
-  int launch_t::cleanup (bool fground)
+  void launch_t::stop (bool pid_file, bool stop_callback)
   {
     log_t::info ("Exiting...");
-    m_stop_function ();
+
+    m_timer.cancel ();
+
+    if (stop_callback == true)
+      m_stop_function ();
+
     daemon_signal_done ();
 
-    if (fground == false)
+    if ((m_foreground == false)
+        && (pid_file == true))
       daemon_pid_file_remove ();
-
-    return 0;
   }
 
   bool launch_t::signal_init ()
@@ -141,59 +180,74 @@ namespace unix
       log_t::error (msg.str ());
       status = false;
     }
-  
+
     return status;
   }
 
-  void launch_t::wait_for_signal ()
+  bool launch_t::need_exit ()
   {
-    bool quit = false;
     int fd = daemon_signal_fd ();
-    fd_set initial_set;
+    fd_set sig_set;
 
-    FD_ZERO (&initial_set);
-    FD_SET (fd, &initial_set);
+    FD_ZERO (&sig_set);
+    FD_SET (fd, &sig_set);
 
-    while (quit == false) {
-      fd_set current_set = initial_set;
-      if (select (FD_SETSIZE, &current_set, 0, 0, 0) < 0) {
-        if (errno == EINTR)
-          continue;
-        log_t::buffer_t msg;
-        msg << "select (): " << strerror (errno);
-        log_t::error (msg);
-        break;
-      }
-      if (FD_ISSET (fd, &current_set)) {
-        int sig = SIGINT;
-        
-        if ((sig = daemon_signal_next ()) <= 0) { //  '<=' or '<'
-          log_t::error ("daemon_signal_next () failed.");
-          break;
-        }
+    timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
 
+    if (select (FD_SETSIZE, &sig_set, 0, 0, &timeout) < 0) {
+      if (errno == EINTR)
+        return false;
+      log_t::buffer_t msg;
+      msg << "select (): " << strerror (errno);
+      log_t::error (msg);
+      return true;
+    }
+
+    if (FD_ISSET (fd, &sig_set)) {
+      int sig = SIGINT;
+
+      while ((sig = daemon_signal_next ()) > 0) {
         switch (sig) {
         case SIGINT:
         case SIGQUIT:
         case SIGTERM:
           log_t::info ("SIGINT/SIGQUIT/SIGTERM has arrived");
-          quit = true;
+          return true;
           break;
-          
         case SIGHUP:
           log_t::info ("SIGHUP has arrived");
-          //daemon_exec ("/", 0, "/bin/ls", "ls", 0); 
+          //daemon_exec ("/", 0, "/bin/ls", "ls", 0);
           break;
-          
         default:
           log_t::info ("Unknown signal has arrived");
           break;
         }
       }
     }
+
+    return false;
   }
 
-    
-} // namespace unix
+  void launch_t::check_signal (const asio::error_code &error)
+  {
+    if (error) {
+      // asio error ?
+      stop (true, true);
+      return;
+    }
+
+    if (need_exit () == false) {
+      // just reschedule
+      m_timer.expires_at (std::chrono::steady_clock::now () + m_delay);
+      m_timer.async_wait
+        (std::bind
+         (&launch_t::check_signal, this, std::placeholders::_1));
+    } else
+      stop (true, true);
+  }
+
+}// namespace unix
 
 #endif

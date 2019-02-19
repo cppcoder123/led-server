@@ -1,2 +1,2 @@
 # led-server
-Server to handle LED matrix (or small lcd) with raspberry pi or openwrt hardware
+Server to handle LED matrix with raspberry pi

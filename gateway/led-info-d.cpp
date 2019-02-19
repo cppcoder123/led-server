@@ -3,7 +3,7 @@
 //
 #include <functional>
 
-#include "unix/timer-launch.hpp"
+#include "unix/launch.hpp"
 
 #include "arg.hpp"
 #include "daemon.hpp"
@@ -40,7 +40,7 @@ int main (int argc, char **argv)
   led_info_d::log_t::info (buf);
 
   auto &context = daemon.get_context ();
-  unix::timer_launch_t launch
+  unix::launch_t launch
     (arg.foreground,
      std::bind (&led_info_d::daemon_t::start, &daemon),
      std::bind (&led_info_d::daemon_t::stop, &daemon),

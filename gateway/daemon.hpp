@@ -10,7 +10,7 @@
 
 #include "asio/asio.hpp"
 
-#include "unix/async-client.hpp"
+#include "unix/client.hpp"
 #include "unix/request.hpp"
 #include "unix/response.hpp"
 
@@ -48,7 +48,7 @@ namespace led_info_d
     
     asio::io_context m_context;
     asio::steady_timer m_timer;
-    unix::async_client_t m_client;
+    unix::client_t m_client;
 
     using request_ptr_t = std::shared_ptr<unix::request_t>;
     using map_t = std::map<std::string/*tag*/, request_ptr_t>;
