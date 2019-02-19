@@ -5,6 +5,7 @@
 #define LED_INFO_D_DAEMON_HPP
 
 #include <functional>
+#include <list>
 #include <map>
 #include <memory>
 #include <string>
@@ -55,7 +56,8 @@ namespace led_info_d
     using request_ptr_t = std::shared_ptr<unix::request_t>;
     using map_t = std::map<std::string/*tag*/, request_ptr_t>;
     map_t m_map;
-    
+
+    std::list<std::string> m_write_queue;
   };
   
 } // namespace led_info_d

@@ -74,9 +74,17 @@ namespace led_info_d
 
   void daemon_t::notify_write ()
   {
-    log_t::buffer_t buf;
-    buf << "daemon: notify_write - not implemented";
-    log_t::info (buf);
+    if (m_write_queue.empty () == true)
+      return;
+
+    auto msg = m_write_queue.front ();
+    m_write_queue.pop_front ();
+
+    if (m_client.write (msg) == false) {
+      log_t::buffer_t buf;
+      buf << "daemon: notify_write - internal error, we shouldn't be here";
+      log_t::error (buf);
+    }
   }
 
   void daemon_t::notify_read (std::string &in)
@@ -100,12 +108,13 @@ namespace led_info_d
       return;
     }
 
-    m_client.write (msg);
+    if (m_write_queue.empty () == false) {
+      m_write_queue.emplace_back (msg);
+      return;
+    }
 
-    // // fixme
-    // log_t::buffer_t buf;
-    // buf << "daemon: write - not implemented";
-    // log_t::error (buf);
+    if (m_client.write (msg) == false)
+      m_write_queue.emplace_back (msg);
   }
 
 } // namespace led_info_d
