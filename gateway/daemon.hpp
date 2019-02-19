@@ -7,6 +7,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <string>
 
 #include "asio/asio.hpp"
 
@@ -43,12 +44,13 @@ namespace led_info_d
 
     void notify_connect ();
     void notify_write ();
-    void notify_read (const unix::response_t &response);
+    void notify_read (std::string &response);
 
-    
+    void write (const unix::request_t &request);
+
     asio::io_context m_context;
     asio::steady_timer m_timer;
-    unix::client_t m_client;
+    unix::client_t<255> m_client;
 
     using request_ptr_t = std::shared_ptr<unix::request_t>;
     using map_t = std::map<std::string/*tag*/, request_ptr_t>;

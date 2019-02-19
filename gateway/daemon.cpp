@@ -3,6 +3,10 @@
 //
 // To do: handle priority properly
 //
+
+#include "unix/codec.hpp"
+#include "unix/refsymbol.hpp"
+
 #include "daemon.hpp"
 #include "init.hpp"
 #include "log-wrapper.hpp"
@@ -34,7 +38,7 @@ namespace led_info_d
     for (map_t::iterator iter = m_map.begin (); iter != m_map.end (); ++iter) {
       request_ptr_t request_ptr (iter->second);
       request_ptr->action = unix::request_t::action_erase;
-      m_client.write (*request_ptr);
+      write (*request_ptr);
     }
   }
 
@@ -55,8 +59,8 @@ namespace led_info_d
       if (iter != m_map.end ())
         m_map.erase (iter);
     }
-    
-    m_client.write (request);
+
+    write (request);
   }
 
   void daemon_t::notify_connect ()
@@ -75,11 +79,33 @@ namespace led_info_d
     log_t::info (buf);
   }
 
-  void daemon_t::notify_read (const unix::response_t&)
+  void daemon_t::notify_read (std::string &in)
   {
+    // fixme
+    // make it empty now
+    in = "";
+
     log_t::buffer_t buf;
     buf << "daemon: notify_read - not implemented";
     log_t::error (buf);
   }
-  
+
+  void daemon_t::write (const unix::request_t &request)
+  {
+    using codec_t = unix::codec_t<unix::refsymbol_t, unix::request_t>;
+
+    std::string msg;
+    if (codec_t::encode (request, msg) == false) {
+      log_t::error ("Failed to encode request");
+      return;
+    }
+
+    m_client.write (msg);
+
+    // // fixme
+    // log_t::buffer_t buf;
+    // buf << "daemon: write - not implemented";
+    // log_t::error (buf);
+  }
+
 } // namespace led_info_d
