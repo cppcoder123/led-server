@@ -83,7 +83,7 @@ namespace led_d
       write_line (m_clk, low);
       write_line (m_mosi, ((out & mask) != 0) ? high : low);
       write_line (m_clk, high);
-      int read = read_line (m_mosi);
+      int read = read_line (m_miso);
       if (read != 0)
         in |= mask;
 
