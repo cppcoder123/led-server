@@ -17,9 +17,9 @@ namespace unix
   struct request_t
   {
     enum {
-      action_idle = 0,
-      action_insert,
-      action_erase
+      idle = 0,
+      insert,
+      erase
     };
 
     typedef unsigned duration_t;
@@ -43,7 +43,7 @@ namespace unix
   };
 
   inline request_t::request_t ()
-    : action (action_idle),
+    : action (idle),
       format (format_t::encode_empty ()),
       duration (request_t::max_duration)
   {

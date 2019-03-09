@@ -9,7 +9,7 @@ namespace led_d
 
   idle_request_t::idle_request_t ()
   {
-    action = request_t::action_insert;
+    action = request_t::insert;
     info = "Nothing to display";
   }
 

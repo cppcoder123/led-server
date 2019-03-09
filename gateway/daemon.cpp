@@ -37,7 +37,7 @@ namespace led_info_d
     //
     for (map_t::iterator iter = m_map.begin (); iter != m_map.end (); ++iter) {
       request_ptr_t request_ptr (iter->second);
-      request_ptr->action = unix::request_t::action_erase;
+      request_ptr->action = unix::request_t::erase;
       write (*request_ptr);
     }
   }
@@ -52,10 +52,10 @@ namespace led_info_d
                        const unix::request_t &request)
   {
     map_t::iterator iter (m_map.find (request.tag));
-    if (request.action == unix::request_t::action_insert) {
+    if (request.action == unix::request_t::insert) {
       request_ptr_t request_ptr (std::make_unique<unix::request_t>(request));
       m_map[request.tag] = request_ptr;
-    } else if (request.action == unix::request_t::action_erase) {
+    } else if (request.action == unix::request_t::erase) {
       if (iter != m_map.end ())
         m_map.erase (iter);
     }

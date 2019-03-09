@@ -48,7 +48,7 @@ namespace led_info_d
 
     unix::request_t request;
 
-    request.action = unix::request_t::action_insert;
+    request.action = unix::request_t::insert;
     request.tag = time_tag;
     std::string zero = (tm_.tm_min < 10) ? "0" : "";
     request.info = time_prefix + unix::patch::to_string (tm_.tm_hour) + '-'
@@ -75,7 +75,7 @@ namespace led_info_d
                       + ' ' + month_vector[tm_.tm_mon]);
 
     unix::request_t request;
-    request.action = unix::request_t::action_insert;
+    request.action = unix::request_t::insert;
     request.tag = date_tag;
     request.info = info;
 
@@ -98,7 +98,7 @@ namespace led_info_d
        "Wednesday", "Thursday", "Friday", "Saturday"};
 
     unix::request_t request;
-    request.action = unix::request_t::action_insert;
+    request.action = unix::request_t::insert;
     request.tag = day_tag;
     request.info = day_vector[tm_.tm_wday];
 

@@ -59,7 +59,7 @@ namespace led_d
 
   void content_t::update (const request_t &request, response_t &response)
   {
-    if (request.action == request_t::action_idle) {
+    if (request.action == request_t::idle) {
       response.status = response_t::status_ok;
       response.reason = "idle action";
       return;
@@ -69,14 +69,14 @@ namespace led_d
 
     request_map_t::iterator iter (m_request_map.find (request.tag));
     if (iter == m_request_map.end ()) {
-      if (request.action == request_t::action_insert) {
+      if (request.action == request_t::insert) {
         m_request_iterator =
           (m_request_map.insert
            (request_map_t::value_type
             (request.tag, request_ptr_t (new request_t (request))))).first;
         response.status = response_t::status_ok;
         response.reason = "New entry is inserted";
-      } else if (request.action == request_t::action_erase) {
+      } else if (request.action == request_t::erase) {
         log_t::buffer_t buf;
         buf << "Can't erase tag \"" << request.tag << "\" related info";
         log_t::info (buf);
@@ -84,11 +84,11 @@ namespace led_d
         response.reason = buf.str ();
       }
     } else {                    // tag exists in the map
-      if (request.action == request_t::action_insert) {
+      if (request.action == request_t::insert) {
         iter->second = request_ptr_t (new request_t (request));
         response.reason = "Info map entry is updated";
         m_request_iterator = iter;
-      } else if (request.action == request_t::action_erase) {
+      } else if (request.action == request_t::erase) {
         m_request_map.erase (iter);
         response.reason = "Info map entry is erased";
         m_request_iterator = m_request_map.end ();
@@ -143,7 +143,7 @@ namespace led_d
 
   bool content_t::prepare (request_t &request) const
   {
-    if (request.action != request_t::action_insert)
+    if (request.action != request_t::insert)
       return false;
 
     if (request.duration > request_t::max_duration)
@@ -229,7 +229,7 @@ namespace led_d
 
   void content_t::update (const request_t &request, response_t &response)
   {
-    if (request.action == request_t::action_idle) {
+    if (request.action == request_t::idle) {
       response.status = response_t::status_ok;
       response.reason = "idle action";
       return;
@@ -239,14 +239,14 @@ namespace led_d
 
     request_map_t::iterator iter (m_request_map.find (request.tag));
     if (iter == m_request_map.end ()) {
-      if (request.action == request_t::action_insert) {
+      if (request.action == request_t::insert) {
         m_request_iterator =
           (m_request_map.insert
            (request_map_t::value_type
             (request.tag, request_ptr_t (new request_t (request))))).first;
         response.status = response_t::status_ok;
         response.reason = "New entry is inserted";
-      } else if (request.action == request_t::action_erase) {
+      } else if (request.action == request_t::erase) {
         log_t::buffer_t buf;
         buf << "Can't erase tag \"" << request.tag << "\" related info";
         log_t::info (buf);
@@ -254,11 +254,11 @@ namespace led_d
         response.reason = buf.str ();
       }
     } else {                    // tag exists in the map
-      if (request.action == request_t::action_insert) {
+      if (request.action == request_t::insert) {
         iter->second = request_ptr_t (new request_t (request));
         response.reason = "Info map entry is updated";
         m_request_iterator = iter;
-      } else if (request.action == request_t::action_erase) {
+      } else if (request.action == request_t::erase) {
         m_request_map.erase (iter);
         response.reason = "Info map entry is erased";
         m_request_iterator = m_request_map.end ();
@@ -292,7 +292,7 @@ namespace led_d
 
   bool content_t::prepare (request_t &request) const
   {
-    if (request.action != request_t::action_insert)
+    if (request.action != request_t::insert)
       return false;
 
     if (request.duration > request_t::max_duration)
