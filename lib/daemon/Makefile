@@ -30,7 +30,7 @@ $(TARGET): $(OBJECT_SRC_LIST)
 
 
 src/%.o: src/%.c $(HEADER_SRC_LIST)
-	gcc $(CFLAGS) -c $< -o $@
+	+gcc $(CFLAGS) -c $< -o $@
 
 
 .PHONY: clean
