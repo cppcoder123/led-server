@@ -95,8 +95,8 @@ namespace led_d
     //
     if (request_codec_t::decode (msg.info, request) == false) {
       response.status = 1;
-      response.reason = "Failed to decode request message";
-      log_t::error (response.reason);
+      response.string_data = "Failed to decode request message";
+      log_t::error (response.string_data);
       if (response_codec_t::encode (response, buffer) == true)
         msg.sender->send (buffer);
       return;

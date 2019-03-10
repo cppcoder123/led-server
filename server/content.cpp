@@ -60,8 +60,8 @@ namespace led_d
   void content_t::update (const request_t &request, response_t &response)
   {
     if (request.action == request_t::idle) {
-      response.status = response_t::status_ok;
-      response.reason = "idle action";
+      response.status = response_t::ok;
+      response.string_data = "idle action";
       return;
     }
 
@@ -74,26 +74,26 @@ namespace led_d
           (m_request_map.insert
            (request_map_t::value_type
             (request.tag, request_ptr_t (new request_t (request))))).first;
-        response.status = response_t::status_ok;
-        response.reason = "New entry is inserted";
+        response.status = response_t::ok;
+        response.string_data = "New entry is inserted";
       } else if (request.action == request_t::erase) {
         log_t::buffer_t buf;
         buf << "Can't erase tag \"" << request.tag << "\" related info";
         log_t::info (buf);
-        response.status = response_t::status_error;
-        response.reason = buf.str ();
+        response.status = response_t::error;
+        response.string_data = buf.str ();
       }
     } else {                    // tag exists in the map
       if (request.action == request_t::insert) {
         iter->second = request_ptr_t (new request_t (request));
-        response.reason = "Info map entry is updated";
+        response.string_data = "Info map entry is updated";
         m_request_iterator = iter;
       } else if (request.action == request_t::erase) {
         m_request_map.erase (iter);
-        response.reason = "Info map entry is erased";
+        response.string_data = "Info map entry is erased";
         m_request_iterator = m_request_map.end ();
       }
-      response.status = response_t::status_ok;
+      response.status = response_t::ok;
     }
   }
 
@@ -230,8 +230,8 @@ namespace led_d
   void content_t::update (const request_t &request, response_t &response)
   {
     if (request.action == request_t::idle) {
-      response.status = response_t::status_ok;
-      response.reason = "idle action";
+      response.status = response_t::ok;
+      response.string_data = "idle action";
       return;
     }
 
@@ -244,26 +244,26 @@ namespace led_d
           (m_request_map.insert
            (request_map_t::value_type
             (request.tag, request_ptr_t (new request_t (request))))).first;
-        response.status = response_t::status_ok;
-        response.reason = "New entry is inserted";
+        response.status = response_t::ok;
+        response.string_data = "New entry is inserted";
       } else if (request.action == request_t::erase) {
         log_t::buffer_t buf;
         buf << "Can't erase tag \"" << request.tag << "\" related info";
         log_t::info (buf);
-        response.status = response_t::status_error;
-        response.reason = buf.str ();
+        response.status = response_t::error;
+        response.string_data = buf.str ();
       }
     } else {                    // tag exists in the map
       if (request.action == request_t::insert) {
         iter->second = request_ptr_t (new request_t (request));
-        response.reason = "Info map entry is updated";
+        response.string_data = "Info map entry is updated";
         m_request_iterator = iter;
       } else if (request.action == request_t::erase) {
         m_request_map.erase (iter);
-        response.reason = "Info map entry is erased";
+        response.string_data = "Info map entry is erased";
         m_request_iterator = m_request_map.end ();
       }
-      response.status = response_t::status_ok;
+      response.status = response_t::ok;
     }
   }
 
