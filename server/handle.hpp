@@ -33,6 +33,10 @@ namespace led_d
     void handle_unix (unix_msg_t &msg);
     void handle_mcu (mcu_msg_t &msg);
 
+    // handle messages
+    void mcu_version (const mcu_msg_t &msg);
+    void mcu_poll (const mcu_msg_t &msg);
+
     unix_queue_t &m_unix_queue;
     mcu_queue_t &m_mcu_queue;
 

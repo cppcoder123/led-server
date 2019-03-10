@@ -2,6 +2,9 @@
  *
  */
 
+#include "mcu/constant.h"
+
+#include "encode.h"
 #include "flush.h"
 #include "flush-hw.h"
 #include "ring.h"
@@ -13,6 +16,9 @@
 
 volatile data_t mono_data[MONO_SIZE];
 
+static uint8_t data_polled;
+static uint8_t poll_id;
+
 enum {
   FLUSH_SHIFT,
   FLUSH_CLEAR,
@@ -22,8 +28,7 @@ volatile uint8_t mode;
 
 static void mode_change (uint8_t new_mode)
 {
-  if ((mode != FLUSH_DISABLED)
-      || (ring_size (mono_data) < MATRIX_SIZE))
+  if (mode != FLUSH_DISABLED)
     return;
 
   mode = new_mode;
@@ -33,6 +38,8 @@ void flush_init ()
 {
   /*fixme*/
   ring_init (mono_data, MONO_SIZE);
+  data_polled = 0;
+  poll_id = 0;
   mode = FLUSH_DISABLED;
 }
 
@@ -53,9 +60,20 @@ void flush_enable_clear ()
 
 void flush_try ()
 {
-  if ((mode == FLUSH_DISABLED)
-      || (ring_size (mono_data) < MATRIX_SIZE))
+  if (mode == FLUSH_DISABLED)
+    /*we are not ready*/
     return;
+
+  if (ring_size (mono_data) < MATRIX_SIZE) {
+    encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, poll_id);
+    data_polled = 1;
+    return;
+  }
+
+  if (data_polled != 0) {
+    ++poll_id;
+    data_polled = 0;
+  }
 
   flush_hw_mono_start ();
 

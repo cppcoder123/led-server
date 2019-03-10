@@ -27,9 +27,9 @@ namespace unix
                  const token_t::pair_vector_t &token_vector);
     std::string encode (char refsymbol) const;
     
-    int status;                 // see enum above
+    unsigned status;            // see enum above
     std::string string_data;
-    int int_data;
+    unsigned int_data;
   };
 
   //

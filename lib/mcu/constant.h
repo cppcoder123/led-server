@@ -32,8 +32,11 @@ enum {
   MSG_ID_STATUS,
 
   /*pi=>avr: PROTOCOL_VERSION as payload, */
-  /*avr=>pi: VERSION: STATUS_SUCCESS(os STATUS_FAIL) as payload*/
+  /*avr=>pi: VERSION: STATUS_SUCCESS(or STATUS_FAIL) as payload*/
   MSG_ID_VERSION,
+
+  /* avr=>pi: request data to display, 0 as payload */
+  MSG_ID_POLL,
 };
 
 enum {

@@ -15,28 +15,12 @@
 
 namespace led_d
 {
-  namespace
-  {
-    void mcu_version (const mcu_msg_t &msg)
-    {
-      char_t status = 0;
-      if (mcu::decode::split_payload (msg, status) == false) {
-        log_t::buffer_t buf;
-        buf << "handle: Failed to decode \"version\" message";
-        log_t::error (buf);
-        return;
-      }
-
-      if (status != STATUS_SUCCESS)
-        throw std::runtime_error
-          ("handle: Pi & Mcu protocol version mismatch, can't continue...");
-
-      log_t::buffer_t buf;
-      buf << "handle: Protocol version is confirmed!";
-      log_t::info (buf);
-    }
-  } // namespace
-
+  using refsymbol_t = unix::refsymbol_t;
+  using request_t = unix::request_t;
+  using response_t = unix::response_t;
+  using request_codec_t = unix::codec_t<refsymbol_t, request_t>;
+  using response_codec_t = unix::codec_t<refsymbol_t, response_t>;
+  
   handle_t::handle_t (unix_queue_t &unix_queue,
                       mcu_queue_t &mcu_queue, content_t &content)
     : m_unix_queue (unix_queue),
@@ -81,13 +65,6 @@ namespace led_d
 
   void handle_t::handle_unix (unix_msg_t &msg)
   {
-    using refsymbol_t = unix::refsymbol_t;
-    using request_t = unix::request_t;
-    using response_t = unix::response_t;
-    using request_codec_t = unix::codec_t<refsymbol_t, request_t>;
-    using response_codec_t = unix::codec_t<refsymbol_t, response_t>;
-    //
-
     request_t request;
     response_t response;
 
@@ -115,6 +92,9 @@ namespace led_d
     case MSG_ID_VERSION:
       mcu_version (msg);
       break;
+    case MSG_ID_POLL:
+      mcu_poll (msg);
+      break;
     default:
       {
         log_t::buffer_t buf;
@@ -124,4 +104,59 @@ namespace led_d
       break;
     }
   }
+
+  void handle_t::mcu_version (const mcu_msg_t &msg)
+  {
+    char_t status = 0;
+    if (mcu::decode::split_payload (msg, status) == false) {
+      log_t::buffer_t buf;
+      buf << "handle: Failed to decode \"version\" message";
+      log_t::error (buf);
+      return;
+    }
+
+    if (status != STATUS_SUCCESS)
+      throw std::runtime_error
+        ("handle: Pi & Mcu protocol version mismatch, can't continue...");
+
+    log_t::buffer_t buf;
+    buf << "handle: Protocol version is confirmed!";
+    log_t::info (buf);
+  }
+
+  void handle_t::mcu_poll (const mcu_msg_t &msg)
+  {
+    if (!m_client)
+      return;
+
+    char_t poll_id = 0;
+    if (mcu::decode::split_payload (msg, poll_id) == false) {
+      log_t::buffer_t buf;
+      buf << "handle: Failed to decode \"poll\" message";
+      log_t::error (buf);
+      return;
+    }
+
+    // Note: client is not zero, so we can ignore extra polls here
+    //
+    // initial value should not match initial value in avr
+    static char_t s_poll_id (255);
+    if (s_poll_id == poll_id)
+      return;
+
+    s_poll_id = poll_id;
+
+    response_t response;
+    response.status = response_t::poll;
+
+    std::string buf;
+    if (response_codec_t::encode (response, buf) == true)
+      m_client->write (buf);
+    else {
+      log_t::buffer_t buf;
+      buf << "handle: Failed to encode \"poll\" response";
+      log_t::error (buf);
+    }
+  }
+
 } // namespace led_d
