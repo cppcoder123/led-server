@@ -19,11 +19,11 @@ namespace unix
     enum {
       idle = 0,
       insert,
-      erase
+      erase,
+      subscribe
     };
 
-    typedef unsigned duration_t;
-    typedef unsigned action_t;
+    using action_t = unsigned;
     //
     //
     request_t ();
@@ -36,16 +36,11 @@ namespace unix
     //
     action_t action;
     std::string tag, format, info;
-    duration_t duration;
-
-    //static const duration_t max_duration = 10000; // 10 sec
-    static const duration_t max_duration = 300000; // 5min
   };
 
   inline request_t::request_t ()
     : action (idle),
-      format (format_t::encode_empty ()),
-      duration (request_t::max_duration)
+      format (format_t::encode_empty ())
   {
   }
 
@@ -53,13 +48,13 @@ namespace unix
                                  const token_t::pair_vector_t &token_vector)
   {
     return
-      token_t::convert (src, token_vector, action, tag, format, info, duration);
+      token_t::convert (src, token_vector, action, tag, format, info);
   }
 
   inline std::string request_t::encode (char refsymbol) const
   {
     std::string msg;
-    token_t::convert (msg, refsymbol, action, tag, format, info, duration);
+    token_t::convert (msg, refsymbol, action, tag, format, info);
 
     return msg;
   }

@@ -4,11 +4,14 @@
 #ifndef LED_D_SESSION_HPP
 #define LED_D_SESSION_HPP
 
+#include <list>
 #include <memory>
 #include <mutex>
 #include <string>
 
 #include "asio.hpp"
+
+#include "unix/socket_rw.hpp"
 
 #include "type-def.hpp"
 
@@ -19,39 +22,26 @@ namespace led_d
 
   public:
 
-    session_t (asio::ip::tcp::socket socket, unix_queue_t &queue)
-      : m_socket (std::move (socket)),
-        m_queue (queue)
-    {
-      m_raw_read_buf[0] = 0;
-      m_raw_write_buf[0] = 0;
-    }
+    session_t (asio::ip::tcp::socket socket, unix_queue_t &queue);
     ~session_t () {}
 
     void start ();
 
-    void send (const std::string &info);
+    void write (const std::string &info);
 
   private:
 
-    void do_read ();
-    void do_write ();
+    void write_cb ();
+    void read_cb (std::string &info);
 
     asio::ip::tcp::socket m_socket;
 
+    unix_queue_t &m_queue;
 
     static const unsigned m_max_size = 1024;
-    char m_raw_read_buf[m_max_size + 1];
-    char m_raw_write_buf[m_max_size + 1];
+    unix::socket_rw_t<m_max_size> m_rw;
 
-    std::string m_read_buf, m_write_buf;
-
-    using mutex_t  = std::mutex;
-    using guard_t = std::lock_guard<mutex_t>;
-
-    mutex_t m_write_mutex;
-
-    unix_queue_t &m_queue;
+    std::list<std::string> m_postponed_write;
   };
 
   using session_ptr_t = std::shared_ptr<session_t>;

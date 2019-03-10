@@ -17,7 +17,7 @@ namespace led_d
 {
   namespace
   {
-    void handle_version (const mcu_msg_t &msg)
+    void mcu_version (const mcu_msg_t &msg)
     {
       char_t status = 0;
       if (mcu::decode::split_payload (msg, status) == false) {
@@ -98,13 +98,13 @@ namespace led_d
       response.string_data = "Failed to decode request message";
       log_t::error (response.string_data);
       if (response_codec_t::encode (response, buffer) == true)
-        msg.sender->send (buffer);
+        msg.sender->write (buffer);
       return;
     }
 
     m_content.update (request, response);
     if (response_codec_t::encode (response, buffer) == true)
-      msg.sender->send (buffer);
+      msg.sender->write (buffer);
   }
 
   void handle_t::handle_mcu (mcu_msg_t &msg)
@@ -113,7 +113,7 @@ namespace led_d
 
     switch (msg_id) {
     case MSG_ID_VERSION:
-      handle_version (msg);
+      mcu_version (msg);
       break;
     default:
       {
