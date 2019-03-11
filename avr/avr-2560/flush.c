@@ -16,9 +16,6 @@
 
 volatile data_t mono_data[MONO_SIZE];
 
-static uint8_t data_polled;
-static uint8_t poll_id;
-
 enum {
   FLUSH_SHIFT,
   FLUSH_CLEAR,
@@ -38,8 +35,6 @@ void flush_init ()
 {
   /*fixme*/
   ring_init (mono_data, MONO_SIZE);
-  data_polled = 0;
-  poll_id = 0;
   mode = FLUSH_DISABLED;
 }
 
@@ -65,14 +60,11 @@ void flush_try ()
     return;
 
   if (ring_size (mono_data) < MATRIX_SIZE) {
-    encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, poll_id);
-    data_polled = 1;
-    return;
-  }
-
-  if (data_polled != 0) {
-    ++poll_id;
-    data_polled = 0;
+    if (mode != FLUSH_SHIFT)
+      return;
+    encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, 0);
+    for (uint8_t i = 0; i < MATRIX_SIZE; ++i)
+      ring_symbol_fill (mono_data, 0);
   }
 
   flush_hw_mono_start ();

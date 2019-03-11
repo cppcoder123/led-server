@@ -35,7 +35,7 @@ namespace led_d
 
     // handle messages
     void mcu_version (const mcu_msg_t &msg);
-    void mcu_poll (const mcu_msg_t &msg);
+    void mcu_poll ();
 
     unix_queue_t &m_unix_queue;
     mcu_queue_t &m_mcu_queue;

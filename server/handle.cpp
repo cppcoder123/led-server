@@ -93,7 +93,7 @@ namespace led_d
       mcu_version (msg);
       break;
     case MSG_ID_POLL:
-      mcu_poll (msg);
+      mcu_poll ();
       break;
     default:
       {
@@ -124,27 +124,10 @@ namespace led_d
     log_t::info (buf);
   }
 
-  void handle_t::mcu_poll (const mcu_msg_t &msg)
+  void handle_t::mcu_poll ()
   {
     if (!m_client)
       return;
-
-    char_t poll_id = 0;
-    if (mcu::decode::split_payload (msg, poll_id) == false) {
-      log_t::buffer_t buf;
-      buf << "handle: Failed to decode \"poll\" message";
-      log_t::error (buf);
-      return;
-    }
-
-    // Note: client is not zero, so we can ignore extra polls here
-    //
-    // initial value should not match initial value in avr
-    static char_t s_poll_id (255);
-    if (s_poll_id == poll_id)
-      return;
-
-    s_poll_id = poll_id;
 
     response_t response;
     response.status = response_t::poll;
