@@ -15,14 +15,16 @@ namespace led_info_d
 {
   using request_t = unix::request_t;
 
-  daemon_t::daemon_t (const arg_t &arg)
-    : m_timer (m_context),
-      m_client (m_context,
+  daemon_t::daemon_t (const arg_t &arg, asio::io_context &context)
+    : //m_timer (m_context),
+      m_client (context,
                 arg.port,
                 arg.host,
                 std::bind (&daemon_t::notify_connect, this),
                 std::bind (&daemon_t::notify_write, this),
-                std::bind (&daemon_t::notify_read, this, std::placeholders::_1))
+                std::bind (&daemon_t::notify_read, this, std::placeholders::_1)),
+      m_content (context,
+                 std::bind (&daemon_t::write, this, std::placeholders::_1))
   {
   }
 
@@ -35,33 +37,33 @@ namespace led_info_d
   void daemon_t::stop ()
   {
     //
-    for (map_t::iterator iter = m_map.begin (); iter != m_map.end (); ++iter) {
-      request_ptr_t request_ptr (iter->second);
-      request_ptr->action = request_t::erase;
-      write (*request_ptr);
-    }
+    // for (map_t::iterator iter = m_map.begin (); iter != m_map.end (); ++iter) {
+    //   request_ptr_t request_ptr (iter->second);
+    //   request_ptr->action = request_t::erase;
+    //   write (*request_ptr);
+    // }
   }
 
-  void daemon_t::schedule (const delay_t &delay, callback_t cb)
-  {
-    m_timer.expires_at (std::chrono::steady_clock::now () + delay);
-    m_timer.async_wait (cb);
-  }
+  // void daemon_t::schedule (const delay_t &delay, callback_t cb)
+  // {
+  //   m_timer.expires_at (std::chrono::steady_clock::now () + delay);
+  //   m_timer.async_wait (cb);
+  // }
 
-  void daemon_t::info (priority_id_t prio,
-                       const request_t &request)
-  {
-    map_t::iterator iter (m_map.find (request.tag));
-    if (request.action == request_t::insert) {
-      request_ptr_t request_ptr (std::make_unique<request_t>(request));
-      m_map[request.tag] = request_ptr;
-    } else if (request.action == request_t::erase) {
-      if (iter != m_map.end ())
-        m_map.erase (iter);
-    }
+  // void daemon_t::info (priority_id_t prio,
+  //                      const request_t &request)
+  // {
+  //   map_t::iterator iter (m_map.find (request.tag));
+  //   if (request.action == request_t::insert) {
+  //     request_ptr_t request_ptr (std::make_unique<request_t>(request));
+  //     m_map[request.tag] = request_ptr;
+  //   } else if (request.action == request_t::erase) {
+  //     if (iter != m_map.end ())
+  //       m_map.erase (iter);
+  //   }
 
-    write (request);
-  }
+  //   write (request);
+  // }
 
   void daemon_t::notify_connect ()
   {
@@ -69,7 +71,7 @@ namespace led_info_d
     buf << "daemon: Gateway is connected to Led server";
     log_t::info (buf);
 
-    init (*this);
+    m_content.init ();
 
     request_t request;
     request.action = request_t::subscribe;

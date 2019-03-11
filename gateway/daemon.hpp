@@ -17,6 +17,7 @@
 #include "unix/response.hpp"
 
 #include "arg.hpp"
+#include "content.hpp"
 #include "delay.hpp"
 #include "priority.hpp"
 
@@ -28,18 +29,18 @@ namespace led_info_d
 
   public:
 
-    daemon_t (const arg_t &arg);
+    daemon_t (const arg_t &arg, asio::io_context &context);
     ~daemon_t () {}
 
-    asio::io_context& get_context () {return m_context;}
+    // asio::io_context& get_context () {return m_context;}
 
     int start ();
     void stop ();
 
-    using callback_t = std::function<void (const asio::error_code &error)>;
-    void schedule (const delay_t &delay, callback_t cb);
-    void info (priority_id_t prio,
-               const unix::request_t &request);
+    // using callback_t = std::function<void (const asio::error_code &error)>;
+    // void schedule (const delay_t &delay, callback_t cb);
+    // void info (priority_id_t prio,
+    //            const unix::request_t &request);
 
   private:
 
@@ -49,13 +50,15 @@ namespace led_info_d
 
     void write (const unix::request_t &request);
 
-    asio::io_context m_context;
-    asio::steady_timer m_timer; // fixme: remove it, not needed when poll driven
+    //asio::io_context m_context;
+    // asio::steady_timer m_timer; // fixme: remove it, not needed when poll driven
     unix::client_t<255> m_client;
 
-    using request_ptr_t = std::shared_ptr<unix::request_t>;
-    using map_t = std::map<std::string/*tag*/, request_ptr_t>;
-    map_t m_map;
+    content_t m_content;
+
+    // using request_ptr_t = std::shared_ptr<unix::request_t>;
+    // using map_t = std::map<std::string/*tag*/, request_ptr_t>;
+    // map_t m_map;
 
     std::list<std::string> m_write_queue;
   };

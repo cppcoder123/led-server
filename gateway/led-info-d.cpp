@@ -33,13 +33,13 @@ int main (int argc, char **argv)
     return 103;
   }
 
-  led_info_d::daemon_t daemon (arg);
+  asio::io_context context;
+  led_info_d::daemon_t daemon (arg, context);
 
   led_info_d::log_t::buffer_t buf;
   buf << "Launching process in " << ((arg.foreground) ? "foreground" : "background");
   led_info_d::log_t::info (buf);
 
-  auto &context = daemon.get_context ();
   unix::launch_t launch
     (arg.foreground,
      std::bind (&led_info_d::daemon_t::start, &daemon),
