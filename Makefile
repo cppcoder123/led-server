@@ -6,7 +6,6 @@ ROOT = $(shell pwd)
 
 export LIB_ROOT = $(ROOT)/lib
 export LIB_ASIO = $(LIB_ROOT)/asio
-export LIB_ARDUINO = $(LIB_ROOT)/arduino
 export LIB_PATH = $(LIB_ROOT)
 export LIB_DAEMON = $(LIB_ROOT)/daemon
 export LIB_TCLAP = $(LIB_ROOT)/tclap

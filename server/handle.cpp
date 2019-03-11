@@ -4,32 +4,31 @@
 
 #include <functional>
 
-#include "unix/codec.hpp"
-#include "unix/refsymbol.hpp"
-#include "unix/request.hpp"
-#include "unix/response.hpp"
+// #include "unix/codec.hpp"
+// #include "unix/refsymbol.hpp"
+// #include "unix/request.hpp"
+// #include "unix/response.hpp"
 
 #include "handle.hpp"
 #include "log-wrapper.hpp"
+#include "matrix.hpp"
 #include "mcu-decode.hpp"
+#include "mcu-encode.hpp"
+#include "serial-id.hpp"
 
 namespace led_d
 {
-  using refsymbol_t = unix::refsymbol_t;
-  using request_t = unix::request_t;
-  using response_t = unix::response_t;
-  using request_codec_t = unix::codec_t<refsymbol_t, request_t>;
-  using response_codec_t = unix::codec_t<refsymbol_t, response_t>;
-  
-  handle_t::handle_t (unix_queue_t &unix_queue,
-                      mcu_queue_t &mcu_queue, content_t &content)
+  handle_t::handle_t (const std::string &default_font, unix_queue_t &unix_queue,
+                      mcu_queue_t &to_mcu_queue, mcu_queue_t &from_mcu_queue)
     : m_unix_queue (unix_queue),
-      m_mcu_queue (mcu_queue),
-      m_content (content),
+      m_to_mcu_queue (to_mcu_queue),
+      m_from_mcu_queue (from_mcu_queue),
+      //m_content (content),
+      m_render (default_font),
       m_go (true)
   {
     m_unix_queue.set_notify (std::bind (&handle_t::notify, this));
-    m_mcu_queue.set_notify (std::bind (&handle_t::notify, this));
+    m_from_mcu_queue.set_notify (std::bind (&handle_t::notify, this));
   }
 
   void handle_t::start ()
@@ -37,7 +36,7 @@ namespace led_d
 
     while (m_go == true) {
       auto unix_msg = m_unix_queue.pop ();
-      auto mcu_msg = m_mcu_queue.pop ();
+      auto mcu_msg = m_from_mcu_queue.pop ();
       if ((!unix_msg)
           && (!mcu_msg)) {
         std::unique_lock<std::mutex> lock (m_mutex);
@@ -79,9 +78,33 @@ namespace led_d
       return;
     }
 
-    m_content.update (request, response);
+    response.status = 0;
+    switch (request.action) {
+    case request_t::subscribe:
+      m_client = msg.sender;
+      break;
+    case request_t::insert:
+      if (unix_insert (request) == false) {
+        response.status = 1;
+        response.string_data = "Failed to handle \"insert\" request";
+        log_t::error (response.string_data);
+      }
+      break;
+    default:
+      {
+        response.status = 1;
+        response.string_data = "Unknown request has arrived";
+        log_t::error (response.string_data);
+      }
+      break;
+    }
+
+    // Note: sender can be destroyed during async writing! (or not)
+    // m_content.update (request, response);
     if (response_codec_t::encode (response, buffer) == true)
       msg.sender->write (buffer);
+    else
+      log_t::error ("Failed to encode \"response\" message");
   }
 
   void handle_t::handle_mcu (mcu_msg_t &msg)
@@ -140,6 +163,30 @@ namespace led_d
       buf << "handle: Failed to encode \"poll\" response";
       log_t::error (buf);
     }
+  }
+
+  bool handle_t::unix_insert (const request_t &request)
+  {
+    matrix_t matrix;
+    if (m_render.pixelize (matrix, request.info, request.format) == false) {
+      log_t::buffer_t buf;
+      buf << "Failed to pixelize info related to \"" << request.tag << "\"";
+      log_t::error (buf);
+      return false;
+    }
+
+    for (std::size_t i = 0; i < matrix.size (); ++i)
+      m_to_mcu_queue.push
+        (mcu::encode::join (serial::get (), MSG_ID_MONO_LED, matrix[i]));
+
+    // {
+    //   // fixme: debug
+    //   log_t::buffer_t buf;
+    //   buf << "request info: " << request.info;
+    //   log_t::info (buf);
+    // }
+
+    return true;
   }
 
 } // namespace led_d

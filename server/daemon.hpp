@@ -10,7 +10,7 @@
 #include "asio.hpp"
 
 #include "arg.hpp"
-#include "content.hpp"
+//#include "content.hpp"
 #include "network.hpp"
 #include "handle.hpp"
 #include "spi.hpp"
@@ -42,7 +42,7 @@ namespace led_d
     asio::io_context m_asio_context;
 
     network_t m_network;
-    content_t m_content;
+    //content_t m_content;
     handle_t m_handle;
     spi_t m_spi;
 

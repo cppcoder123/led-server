@@ -12,8 +12,9 @@ namespace led_d
 
   daemon_t::daemon_t (const arg_t &arg)
     : m_network (arg.port, m_asio_context, m_network_queue),
-      m_content (arg.default_font, m_asio_context, m_to_spi_queue),
-      m_handle (m_network_queue, m_from_spi_queue, m_content),
+      //m_content (arg.default_font, m_asio_context, m_to_spi_queue),
+      m_handle (arg.default_font, m_network_queue,
+                m_to_spi_queue, m_from_spi_queue),
       m_spi (arg.device, m_to_spi_queue, m_from_spi_queue)
   {
   }
@@ -33,7 +34,7 @@ namespace led_d
       m_network.start ();
       m_handle_thread = std::thread (&handle_t::start, &m_handle);
       m_spi_thread = std::thread (&spi_t::start, &m_spi);
-      m_content.start ();
+      //m_content.start ();
     }
     catch (std::exception &e) {
       log_t::error (std::string ("Daemon: ") + e.what ());
@@ -45,7 +46,7 @@ namespace led_d
 
   void daemon_t::stop ()
   {
-    m_content.stop ();
+    //m_content.stop ();
     m_network.stop ();
     m_handle.stop ();
     m_spi.stop ();

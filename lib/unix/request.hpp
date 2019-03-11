@@ -19,7 +19,7 @@ namespace unix
     enum {
       idle = 0,
       insert,
-      erase,
+      erase,                    // fixme: remove
       subscribe
     };
 

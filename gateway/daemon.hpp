@@ -50,7 +50,7 @@ namespace led_info_d
     void write (const unix::request_t &request);
 
     asio::io_context m_context;
-    asio::steady_timer m_timer;
+    asio::steady_timer m_timer; // fixme: remove it, not needed when poll driven
     unix::client_t<255> m_client;
 
     using request_ptr_t = std::shared_ptr<unix::request_t>;
