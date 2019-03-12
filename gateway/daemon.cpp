@@ -8,13 +8,10 @@
 #include "unix/refsymbol.hpp"
 
 #include "daemon.hpp"
-#include "init.hpp"
 #include "log-wrapper.hpp"
 
 namespace led_info_d
 {
-  using request_t = unix::request_t;
-
   daemon_t::daemon_t (const arg_t &arg, asio::io_context &context)
     : //m_timer (m_context),
       m_client (context,
@@ -95,18 +92,45 @@ namespace led_info_d
 
   void daemon_t::notify_read (std::string &in)
   {
-    // fixme
-    // make it empty now
-    in = "";
+    using codec_t = unix::codec_t<refsymbol_t, response_t>;
 
-    log_t::buffer_t buf;
-    buf << "daemon: notify_read - not implemented";
-    log_t::error (buf);
+    std::size_t len = 0;
+    if ((codec_t::decode (in, len) == false)
+        || (in.size () < len))
+      // msg is not arrived
+      return;
+
+    std::string tmp = in.substr (0, len);
+    in = in.substr(len);
+
+    response_t response;
+    if (codec_t::decode (tmp, response) == false) {
+      log_t::error ("Failed to decode response");
+      return;
+    }
+
+    switch (response.status) {
+    case response_t::ok:
+      // do nothing
+      break;
+    case response_t::error:
+        log_t::error ("Error status has arrived!");
+      break;
+    case response_t::poll:
+      m_content.push ();
+      break;
+    case response_t::button:
+      log_t::error ("Button response has arrived, but not implemented!");
+      break;
+    default:
+      log_t::error ("Unknown response has arrived");
+      break;
+    }
   }
 
   void daemon_t::write (const request_t &request)
   {
-    using codec_t = unix::codec_t<unix::refsymbol_t, request_t>;
+    using codec_t = unix::codec_t<refsymbol_t, request_t>;
 
     std::string msg;
     if (codec_t::encode (request, msg) == false) {

@@ -20,10 +20,12 @@ namespace led_info_d
 
   public:
 
+    using request_t = unix::request_t;
+    using write_t = std::function<void (const request_t& /*info*/)>;
+
     content_t () = delete;
     content_t (const content_t&) = delete;
 
-    using write_t = std::function<void (const unix::request_t& /*info*/)>;
     content_t (asio::io_context &context, write_t write);
     ~content_t () {};
 

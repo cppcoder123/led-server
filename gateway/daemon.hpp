@@ -44,6 +44,10 @@ namespace led_info_d
 
   private:
 
+    using refsymbol_t = unix::refsymbol_t;
+    using request_t = unix::request_t;
+    using response_t = unix::response_t;
+
     void notify_connect ();
     void notify_write ();
     void notify_read (std::string &response);
