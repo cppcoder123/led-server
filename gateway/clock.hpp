@@ -31,25 +31,21 @@ namespace led_info_d
     bool get_date (std::string &info);
     bool get_day (std::string &info);
 
-    // typedef std::vector<std::string> string_vector_t;
-
-    // void get_time (const asio::error_code &error);
-    // void get_date (const asio::error_code &error);
-    // void get_day (const asio::error_code &error);
-
-    // static void localtime (struct tm &tm_);
-
-    // static delay_t tomorrow_delay (const struct tm &tm_);
+    void init_time ();
+    void init_date_day ();
     
+    static void localtime (struct tm &tm_);
 
     static const std::string time_prefix;
     static const std::string date_prefix;
 
-    // static const std::string time_prefix, time_tag;
-    // static const std::string date_prefix, date_tag;
-    // static const std::string day_tag;
-    
-    //daemon_t &m_daemon;
+    std::string m_time_info;
+    std::string m_date_info;
+    std::string m_day_info;
+
+    asio::steady_timer m_time_timer;
+    asio::steady_timer m_date_day_timer;
+
   };
   
 } // namespace led_info_d
