@@ -82,6 +82,7 @@ namespace led_d
     switch (request.action) {
     case request_t::subscribe:
       m_client = msg.sender;
+      m_client->set_disconnect ([this](){m_client.reset ();});
       break;
     case request_t::insert:
       if (unix_insert (request) == false) {

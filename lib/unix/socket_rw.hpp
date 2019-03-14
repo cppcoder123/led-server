@@ -26,13 +26,19 @@ namespace unix
 
     // smth is written callback
     using write_t = std::function<void (void)>;
+
     // smth is read callback
     // Note: User should clear argument!
     using read_t = std::function<void (std::string&)>;
 
+    // smth bad is happened like disconnect
+    using disconnect_t = std::function<void (void)>;
+
+
     socket_rw_t (asio::ip::tcp::socket &socket,
                  write_t written_cb,
-                 read_t read_cb);
+                 read_t read_cb,
+                 disconnect_t disconnect_cb);
     ~socket_rw_t () {}
 
     // Note: socket should be connected before calling these
@@ -44,8 +50,9 @@ namespace unix
     void write_completed (const asio::error_code &error, std::size_t len);
     void read_completed (const asio::error_code &error, std::size_t len);
 
-    write_t m_written;
+    write_t m_written;          // write completed
     read_t m_read;              // smth has arrived
+    disconnect_t m_disconnect;  // disconnect has occured
 
     asio::ip::tcp::socket &m_socket;
 
@@ -63,9 +70,11 @@ namespace unix
   template <std::size_t size>
   socket_rw_t<size>::socket_rw_t (asio::ip::tcp::socket &socket,
                                   write_t write_cb,
-                                  read_t read_cb)
+                                  read_t read_cb,
+                                  disconnect_t disconnect_cb)
     : m_written (write_cb),
       m_read (read_cb),
+      m_disconnect (disconnect_cb),
       m_socket (socket),
       m_write_started (false)
   {
@@ -126,8 +135,12 @@ namespace unix
   template <std::size_t size> void socket_rw_t<size>::
   read_completed (const asio::error_code &error, std::size_t len)
   {
-    if (error)
+    if (error) {
+      if ((error == asio::error::eof)
+          || (error == asio::error::connection_reset))
+        m_disconnect ();
       return;
+    }
 
     string_move_append (m_read_buf, len, m_in_buf);
 

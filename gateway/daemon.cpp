@@ -19,7 +19,8 @@ namespace led_info_d
                 arg.host,
                 std::bind (&daemon_t::notify_connect, this),
                 std::bind (&daemon_t::notify_write, this),
-                std::bind (&daemon_t::notify_read, this, std::placeholders::_1)),
+                std::bind (&daemon_t::notify_read, this, std::placeholders::_1),
+                std::bind (&daemon_t::notify_disconnect, this)),
       m_content (context,
                  std::bind (&daemon_t::write, this, std::placeholders::_1))
   {
@@ -126,6 +127,12 @@ namespace led_info_d
       log_t::error ("Unknown response has arrived");
       break;
     }
+  }
+
+  void daemon_t::notify_disconnect ()
+  {
+    log_t::error ("Connection is lost, trying to restore it!");
+    m_client.connect ();
   }
 
   void daemon_t::write (const request_t &request)

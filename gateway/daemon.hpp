@@ -51,6 +51,7 @@ namespace led_info_d
     void notify_connect ();
     void notify_write ();
     void notify_read (std::string &response);
+    void notify_disconnect ();
 
     void write (const unix::request_t &request);
 

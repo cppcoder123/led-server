@@ -29,10 +29,14 @@ namespace led_d
 
     void write (const std::string &info);
 
+    using disconnect_t = std::function<void (void)>;
+    void set_disconnect (disconnect_t cb);
+
   private:
 
     void write_cb ();
     void read_cb (std::string &info);
+    void disconnect_cb ();
 
     asio::ip::tcp::socket m_socket;
 
@@ -42,6 +46,8 @@ namespace led_d
     unix::socket_rw_t<m_max_size> m_rw;
 
     std::list<std::string> m_postponed_write;
+
+    disconnect_t m_disconnect;
   };
 
   using session_ptr_t = std::shared_ptr<session_t>;

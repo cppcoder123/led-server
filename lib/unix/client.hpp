@@ -28,13 +28,15 @@ namespace unix
     using connect_t = std::function<void (void)>;
     using write_t = typename socket_rw_t<buf_size>::write_t;
     using read_t = typename socket_rw_t<buf_size>::read_t;
+    using disconnect_t = typename socket_rw_t<buf_size>::disconnect_t;
 
     client_t (asio::io_context &context,
               port_t::value_t port,
               const std::string &host,
-              connect_t connected,
+              connect_t connected_cb,
               write_t written_cb,
-              read_t read_cb);
+              read_t read_cb,
+              disconnect_t disconnect_cb);
     ~client_t () {}
 
     // connect and handle connection then
@@ -44,12 +46,14 @@ namespace unix
   private:
 
     void connect_completed (const asio::error_code &error);
+    void disconnect_completed ();
 
     asio::io_context &m_context;
     port_t::value_t m_port;
     const std::string m_host;
 
     connect_t m_connected;
+    disconnect_t m_disconnected;
 
     asio::ip::tcp::socket m_socket;
 
@@ -70,16 +74,18 @@ namespace unix
   client_t<size>::client_t (asio::io_context &context,
                             port_t::value_t port,
                             const std::string &host,
-                            connect_t connected,
+                            connect_t connected_cb,
                             write_t written_cb,
-                            read_t read_cb)
+                            read_t read_cb,
+                            disconnect_t disconnect_cb)
     : m_context (context),
       m_port (port),
       m_host (host),
-      m_connected (connected),
+      m_connected (connected_cb),
       m_socket (m_context),
       m_connect_timer (m_context),
-      m_rw (m_socket, written_cb, read_cb)
+      m_rw (m_socket, written_cb, read_cb,
+            std::bind (&client_t::disconnect_completed, this))
   {
   }
 
@@ -131,6 +137,15 @@ namespace unix
 
     m_flag.reset (CONNECT_STARTED);
     m_flag.set (CONNECTED);
+  }
+
+  template <std::size_t size>
+  void client_t<size>::disconnect_completed ()
+  {
+    m_flag.reset (CONNECTED);
+    m_flag.reset (CONNECT_STARTED); // ?
+
+    m_disconnected ();
   }
 
   //
