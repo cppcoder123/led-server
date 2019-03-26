@@ -23,6 +23,12 @@ enum {
 };
 volatile uint8_t mode;
 
+enum {
+  FLUSH_GLOBAL_DISABLED,
+  FLUSH_GLOBAL_ENABLED
+};
+volatile uint8_t global_mode;
+
 static void mode_change (uint8_t new_mode)
 {
   if (mode != FLUSH_DISABLED)
@@ -36,6 +42,17 @@ void flush_init ()
   /*fixme*/
   ring_init (mono_data, MONO_SIZE);
   mode = FLUSH_DISABLED;
+  global_mode = FLUSH_GLOBAL_DISABLED;
+}
+
+void flush_enable ()
+{
+  global_mode = FLUSH_GLOBAL_ENABLED;
+}
+
+void flush_disable ()
+{
+  global_mode = FLUSH_GLOBAL_DISABLED;
 }
 
 uint8_t flush_push_mono (data_t symbol)
@@ -62,7 +79,8 @@ void flush_try ()
   if (ring_size (mono_data) < MATRIX_SIZE) {
     if (mode != FLUSH_SHIFT)
       return;
-    encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, 0);
+    if (global_mode == FLUSH_GLOBAL_ENABLED)
+      encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, 0);
     for (uint8_t i = 0; i < MATRIX_SIZE; ++i)
       ring_symbol_fill (mono_data, 0);
   }

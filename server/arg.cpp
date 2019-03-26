@@ -40,7 +40,7 @@ namespace led_d
                       false, "", "font name", parser);
       TCLAP::ValueArg<std::string>
         device ("s", "device", "Render device, e.g \"/dev/ttyXXX\"",
-                    true, "", "dev-name", parser);
+                    false, "", "dev-name", parser);
 
       parser.parse (argc, argv);
 

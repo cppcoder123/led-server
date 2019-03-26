@@ -9,6 +9,7 @@ OBJECT_LIST = \
   avr.o \
   button.o \
   clock.o \
+  debug.o \
   buzz.o \
   decode.o \
   encode.o \

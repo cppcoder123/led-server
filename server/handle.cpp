@@ -122,7 +122,7 @@ namespace led_d
     default:
       {
         log_t::buffer_t buf;
-        buf << "handle: Unknown message from mcu is arrived";
+        buf << "handle: Unknown message from mcu is arrived: " << (int) msg_id;
         log_t::error (buf);
       }
       break;

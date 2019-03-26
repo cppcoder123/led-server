@@ -64,7 +64,7 @@ namespace unix
     };
     std::bitset<SIZE> m_flag;
 
-    static constexpr std::size_t m_connect_delay = 1; // second
+    //static constexpr std::size_t m_connect_delay = 1; // second
     asio::steady_timer m_connect_timer;
 
     socket_rw_t<buf_size> m_rw;
@@ -125,7 +125,7 @@ namespace unix
   {
     if (error) {
       m_connect_timer.expires_at (std::chrono::steady_clock::now ()
-                                  + std::chrono::seconds (m_connect_delay));
+                                  + std::chrono::seconds (1/*m_connect_delay*/));
       m_connect_timer.async_wait
         (std::bind (&client_t::connect, this, true));
       return;

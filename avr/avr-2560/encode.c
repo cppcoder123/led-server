@@ -25,7 +25,7 @@ static uint8_t encode_msg (data_t msg_id, data_t serial_id, data_t size)
 
 uint8_t encode_msg_1 (data_t msg_id, data_t serial_id, data_t payload_1)
 {
-  uint8_t len = encode_msg (msg_id, serial_id, 2);
+  uint8_t len = encode_msg (msg_id, serial_id, 3);
   out_buf[++len] = payload_1;
 
   return spi_write_array (out_buf, ++len);
@@ -34,7 +34,7 @@ uint8_t encode_msg_1 (data_t msg_id, data_t serial_id, data_t payload_1)
 uint8_t encode_msg_2 (data_t msg_id, data_t serial_id,
                       data_t payload_1, data_t payload_2)
 {
-  uint8_t len = encode_msg (msg_id, serial_id, 3);
+  uint8_t len = encode_msg (msg_id, serial_id, 4);
 
   out_buf[++len] = payload_1;
   out_buf[++len] = payload_2;

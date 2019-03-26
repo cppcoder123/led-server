@@ -37,6 +37,11 @@ enum {
 
   /* avr=>pi: request data to display, 0 as payload */
   MSG_ID_POLL,
+
+  /* avr=>pi: debug */
+  MSG_ID_DEBUG_A,
+  MSG_ID_DEBUG_B,
+  MSG_ID_DEBUG_C,
 };
 
 enum {

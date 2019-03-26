@@ -7,6 +7,7 @@
 #include "button.h"
 #include "buzz.h"
 #include "decode.h"
+#include "debug.h"
 #include "flush.h"
 #include "flush-hw.h"
 #include "power.h"
@@ -16,6 +17,7 @@ static void init ()
 {
   button_init ();
   buzz_init ();
+  debug_init ();
   decode_init ();
   flush_hw_init ();
   flush_init ();

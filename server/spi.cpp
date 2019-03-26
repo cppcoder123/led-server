@@ -27,8 +27,8 @@ namespace led_d
 
   namespace {
 
-    auto block_delay = std::chrono::milliseconds (300);
-    auto empty_delay = std::chrono::milliseconds (300);
+    auto block_delay = std::chrono::milliseconds (30);
+    auto empty_delay = std::chrono::milliseconds (30);
 
     // fixme: !!!
     // auto spi_delay = 5;
@@ -67,7 +67,8 @@ namespace led_d
       (mcu::encode::join (serial::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
 
     while (m_go == true) {
-      if (m_block.is_engaged () == true) {
+      if ((m_block.is_engaged () == true)
+          && (m_gpio.is_irq_raised () == false)) {
         std::this_thread::sleep_for (block_delay);
         continue;
       }
@@ -106,6 +107,24 @@ namespace led_d
 
     mcu_msg_t in_msg;
     m_bitbang.transfer (msg, in_msg);
+
+    {
+      // fixme: debug
+      log_t::buffer_t buf;
+
+      buf << "out: ";
+      for (auto &num : msg)
+        buf << (int) num << " ";
+      buf << "\n";
+      log_t::info (buf);
+
+      log_t::clear (buf);
+      buf << "in: ";
+      for (auto &num : in_msg)
+        buf << (int) num << " ";
+      buf << "\n";
+      log_t::info (buf);
+    }
 
     msg.clear ();
     for (auto &number : in_msg)

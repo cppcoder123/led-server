@@ -7,6 +7,7 @@
 
 #include "mcu/constant.h"
 
+#include "debug.h"
 #include "ring.h"
 #include "spi.h"
 
@@ -75,11 +76,10 @@ uint8_t spi_read_space ()
   return ring_space (read_buf);
 }
 
-/* uint8_t spi_write_symbol (data_t symbol) */
-/* { */
-/*   irq_start (); */
-/*   return ring_symbol_fill (write_buf, symbol); */
-/* } */
+uint8_t spi_read_size ()
+{
+  return ring_size (read_buf);
+}
 
 uint8_t spi_write_array (data_t *array, uint8_t array_size)
 {
@@ -94,15 +94,22 @@ ISR (SPI_STC_vect)
    * 2. try to drain write buf and send it to master
    */
 
+  /* fixme: debug */
+  /* uint8_t tmp = SPDR; */
+  /* SPDR = tmp; */
+  /* return; */
+
+  /* ring_init (write_buf, WRITE_SIZE); */
+
   if (ring_symbol_fill (read_buf, SPDR) == 0) {
     SPDR = SPI_READ_OVERFLOW;
     return;
   }
 
   data_t to_send;
-  if (ring_symbol_drain (write_buf, &to_send) != 0)
+  if (ring_symbol_drain (write_buf, &to_send) != 0) {
     SPDR = to_send;
-  else {
+  } else {
     irq_stop ();
     SPDR = SPI_WRITE_UNDERFLOW;
   }

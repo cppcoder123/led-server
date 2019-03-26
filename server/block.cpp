@@ -48,7 +48,8 @@ namespace led_d
     if (m_pending_id != id) {
       log_t::buffer_t buf;
       buf << "block: Trying to relax with wrong id \""
-          << id << "\" while expecting \"" << m_pending_id << "\"";
+          << (int) id << "\" while expecting \""
+          << (int) m_pending_id << "\"";
       log_t::error (buf);
       return;
     }

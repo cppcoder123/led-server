@@ -2,6 +2,9 @@
 //
 //
 
+#include <chrono>
+#include <thread>
+
 #include "gpio.hpp"
 #include "log-wrapper.hpp"
 #include "spi-bitbang.hpp"
@@ -60,35 +63,44 @@ namespace led_d
 
   void spi_bitbang_t::transfer (const mcu_msg_t &out, mcu_msg_t &in)
   {
-    write_line (m_ss, low);
-
+    char_t in_char;
     for (char_t out_char : out) {
-      char_t in_char;
       transfer_char (out_char, in_char);
       in.push_back (in_char);
     }
-
-    write_line (m_ss, high);
   }
 
   void spi_bitbang_t::transfer_char (char_t out, char_t &in)
   {
+    static const constexpr std::chrono::microseconds delay (10);
+
+    write_line (m_ss, low);
+    std::this_thread::sleep_for (delay);
+
     // sample on rising edge, msb first
     char_t mask = (1 << 7);
     in = 0;
 
-    // fixme: Do we need delays in the loop?
-
     for (int i = 0; i < 8; ++i) {
-      write_line (m_clk, low);
+      // setup
       write_line (m_mosi, ((out & mask) != 0) ? high : low);
+      std::this_thread::sleep_for (delay);
+      // processing edge
       write_line (m_clk, high);
+      std::this_thread::sleep_for (delay);
+      // slave read
       int read = read_line (m_miso);
+      //
+      write_line (m_clk, low);
+      std::this_thread::sleep_for (delay);
+      //
       if (read != 0)
         in |= mask;
-
+      //
       mask >>= 1;
     }
+
+    write_line (m_ss, high);
   }
 
   void spi_bitbang_t::write_line (gpiod_line *line, int value)

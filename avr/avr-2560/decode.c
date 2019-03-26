@@ -5,6 +5,7 @@
 #include "mcu/constant.h"
 
 #include "data-type.h"
+#include "debug.h"
 #include "decode.h"
 #include "encode.h"
 #include "flush.h"
@@ -43,6 +44,7 @@ static void decode ()
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
+    flush_enable ();
     break;
   case MSG_ID_QUERY:
     // just ignore, other party tries to read smth
@@ -69,6 +71,9 @@ void decode_init ()
 
 void decode_try ()
 {
+  if (spi_read_size () == 0)
+    return;
+
   /*header decode*/
   if (decoded == 0) {
     data_t symbol;
@@ -94,9 +99,10 @@ void decode_try ()
     decoded |= MSG_ID_DECODED;
   }
   if (is_decodable (msg_id) == 0) {
-    encode_msg_1 (MSG_ID_STATUS, 0, STATUS_HOLD_ON);
+    /* encode_msg_1 (MSG_ID_STATUS, 0, STATUS_HOLD_ON); */
     return;                     /* wait */
   }
+
   if (spi_read_array (in_buf, msg_size - 2) == 0)
     return;                     /* wait */
 
