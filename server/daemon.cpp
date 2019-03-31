@@ -5,7 +5,6 @@
 #include "daemon.hpp"
 #include "log-wrapper.hpp"
 #include "network.hpp"
-#include "session.hpp"
 
 namespace led_d
 {

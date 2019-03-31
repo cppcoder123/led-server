@@ -24,6 +24,11 @@ namespace led_d
   {
   }
 
+  session_t::~session_t ()
+  {
+    log_t::info ("Session destructor is called");
+  }
+
   void session_t::start ()
   {
     m_rw.async_read ();
@@ -59,7 +64,7 @@ namespace led_d
   {
     using codec_t = unix::codec_t<unix::refsymbol_t, unix::request_t>;
 
-    std::size_t text_len;
+    std::size_t text_len = 0;
     while (codec_t::decode (info, text_len) == true) {
       std::string text = info.substr (0, text_len);
       info = info.substr(text_len);

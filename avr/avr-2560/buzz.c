@@ -33,7 +33,7 @@
 /*16mhz / 1024 ~ 15625khz, we want 0.1 step so*/
 #define DURATION_STEP 1562
 
-#define BUZZ_PIN PH7
+#define BUZZ_PIN PH0
 #define PIN_TOGGLE PORTH ^= (1 << BUZZ_PIN)
 #define PIN_LOW PORTH &= ~(1 << BUZZ_PIN)
 
@@ -66,6 +66,11 @@ void buzz_init ()
   /*enable interrupts*/
   TIMSK3 |= (1 << OCIE3A);
   TIMSK4 |= (1 << OCIE4A);
+
+  /* debug */
+  ring_symbol_fill (sound, 255);
+  ring_symbol_fill (sound, 5);
+  ring_symbol_fill (sound, 10);
 }
 
 uint8_t buzz_add_data (data_t pitch,

@@ -51,18 +51,18 @@ int main (int argc, char **argv)
       (arg.foreground,
        std::bind (&daemon_t::start, &daemon),
        std::bind (&daemon_t::stop, &daemon),
+       [&context] {context.run ();},
        context, 500/*2 times per second*/);
 
     if (launch.start () == false) {
       log_t::buffer_t buf;
       buf << "led-d: Failed to start daemon";
       log_t::error (buf);
-    } else 
-      context.run ();
+    }
 
-    log_t::buffer_t buf;
-    buf << "Daemon is stopped, exiting";
-    log_t::info (buf);
+    // log_t::buffer_t buf;
+    // buf << "Daemon is stopped, exiting";
+    // log_t::info (buf);
   }
   catch (std::exception &e) {
     status = 128;

@@ -43,15 +43,15 @@ int main (int argc, char **argv)
   unix::launch_t launch
     (arg.foreground,
      std::bind (&led_info_d::daemon_t::start, &daemon),
-     std::bind (&led_info_d::daemon_t::stop, &daemon),
+     [&context] () {context.stop ();},
+     [&context] () {context.run ();},
      context, 500);
 
   if (launch.start () == false) {
     led_info_d::log_t::buffer_t msg;
     msg << "Led gateway: Failed to start";
     led_info_d::log_t::error (msg);
-  } else
-    context.run ();
+  }
     
   return 0;
 }

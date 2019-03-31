@@ -106,11 +106,14 @@ ISR (SPI_STC_vect)
     return;
   }
 
+  /*long interrupt handling?*/
+  SPDR = SPI_WRITE_UNDERFLOW;
+
   data_t to_send;
   if (ring_symbol_drain (write_buf, &to_send) != 0) {
     SPDR = to_send;
   } else {
-    irq_stop ();
     SPDR = SPI_WRITE_UNDERFLOW;
+    irq_stop ();
   }
 }

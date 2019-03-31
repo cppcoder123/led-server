@@ -34,6 +34,8 @@ namespace led_d
     asio::ip::tcp::socket m_socket;
 
     unix_queue_t &m_queue;
+
+    std::shared_ptr<session_t> m_session;
   };
 } // namespace led_d
 

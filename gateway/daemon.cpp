@@ -26,10 +26,13 @@ namespace led_info_d
   {
   }
 
-  int daemon_t::start ()
+  bool daemon_t::start ()
   {
+    m_content.init ();
+
     m_client.connect ();
-    return 0;
+
+    return true;
   }
 
   void daemon_t::stop ()
@@ -68,8 +71,6 @@ namespace led_info_d
     log_t::buffer_t buf;
     buf << "daemon: Gateway is connected to Led server";
     log_t::info (buf);
-
-    m_content.init ();
 
     request_t request;
     request.action = request_t::subscribe;

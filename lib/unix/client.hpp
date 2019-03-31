@@ -82,6 +82,7 @@ namespace unix
       m_port (port),
       m_host (host),
       m_connected (connected_cb),
+      m_disconnected (disconnect_cb),
       m_socket (m_context),
       m_connect_timer (m_context),
       m_rw (m_socket, written_cb, read_cb,
@@ -131,12 +132,13 @@ namespace unix
       return;
     }
 
-    m_connected ();
-
     m_rw.async_read ();
 
     m_flag.reset (CONNECT_STARTED);
     m_flag.set (CONNECTED);
+
+    // it should be last statement
+    m_connected ();
   }
 
   template <std::size_t size>

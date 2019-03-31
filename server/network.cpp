@@ -48,7 +48,8 @@ namespace led_d
        [this] (std::error_code err_code)
        {
          if (!err_code) {
-           std::make_shared<session_t>(std::move (m_socket), m_queue)->start ();
+           m_session = std::make_shared<session_t>(std::move (m_socket), m_queue);
+           m_session->start ();
          }
          do_accept ();
        }

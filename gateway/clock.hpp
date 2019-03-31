@@ -38,6 +38,7 @@ namespace led_info_d
 
     static const std::string time_prefix;
     static const std::string date_prefix;
+    static const std::string suffix;
 
     std::string m_time_info;
     std::string m_date_info;

@@ -33,10 +33,12 @@ namespace unix
 
     using start_t = std::function<bool (void)>;
     using stop_t = std::function<void (void)>;
+    using run_t = std::function<void (void)>;
 
     launch_t (bool foreground,
               start_t start_function,
               stop_t stop_function,
+              run_t run_function,
               asio::io_context &context,
               unsigned int timer_interval/*milliseconds*/);
     ~launch_t () {}
@@ -58,6 +60,7 @@ namespace unix
     bool m_foreground;
     start_t m_start_function;
     stop_t m_stop_function;
+    run_t m_run_function;
 
     asio::io_context &m_context;
     asio::steady_timer m_timer;
@@ -68,11 +71,13 @@ namespace unix
   inline launch_t::launch_t (bool fground,
                              start_t start_function,
                              stop_t stop_function,
+                             run_t run_function,
                              asio::io_context &context,
                              unsigned int timer_interval)
     : m_foreground (fground),
       m_start_function (start_function),
       m_stop_function (stop_function),
+      m_run_function (run_function),
       m_context (context),
       m_timer (context),
       m_delay (timer_interval)
@@ -85,8 +90,6 @@ namespace unix
     if (status == false)
       return false;
 
-    check_signal (asio::error_code {});
-
     return true;
   }
 
@@ -97,6 +100,10 @@ namespace unix
 
     if (signal_init () == false)
       return false;
+
+    check_signal (asio::error_code {});
+
+    m_run_function ();
 
     return true;
   }
@@ -149,6 +156,10 @@ namespace unix
       daemon_retval_send (0);
 
       log_t::info ("Daemon successfully started");
+
+      check_signal (asio::error_code {});
+
+      m_run_function ();
 
       return true;
     }

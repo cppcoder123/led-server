@@ -64,23 +64,39 @@ namespace unix
   inline bool token_t::tokenize (pair_vector_t &dst, const std::string &src,
                                  char refsymbol, bool first_only)
   {
-    std::size_t pos = 0, prev_pos = src.find_first_not_of (refsymbol);
-    if (prev_pos == std::string::npos)
-      return false;
-    
+    auto word_end = [&src, refsymbol] (std::size_t start) {
+      std::size_t end = src.find_first_of (refsymbol, start);
+      return (end != std::string::npos) ? end : src.size ();
+    };
+
+    std::size_t start = 0;
     do {
-      pos = src.find_first_of (refsymbol, prev_pos);
-      std::size_t size = (pos != std::string::npos)
-        ? pos - prev_pos : src.size () - prev_pos;
-      dst.push_back (position_pair_t (prev_pos, size));
+      std::size_t end = word_end (start);
+      if ((first_only == true)
+          || (start != 0))
+        dst.push_back (position_pair_t (start, end - start));
       if (first_only == true)
         return true;
       //
-      if ((pos == std::string::npos)
-          || (++pos >= src.size ()))
-        return true;
-      prev_pos = src.find_first_not_of (refsymbol, pos);
-    } while (prev_pos != std::string::npos);
+      start = end + 1;
+    } while (start < src.size ());
+
+    // std::size_t prev_pos = word_end (0);
+    // if (prev_pos == std::string::npos)
+    //   return false;
+    // do {
+    //   pos = src.find_first_of (refsymbol, prev_pos);
+    //   std::size_t size = (pos != std::string::npos)
+    //     ? pos - prev_pos : src.size () - prev_pos;
+    //   dst.push_back (position_pair_t (prev_pos, size));
+    //   if (first_only == true)
+    //     return true;
+    //   //
+    //   if ((pos == std::string::npos)
+    //       || (++pos >= src.size ()))
+    //     return true;
+    //   prev_pos = src.find_first_not_of (refsymbol, pos);
+    // } while (prev_pos != std::string::npos);
 
     return true;
   }  
@@ -144,12 +160,14 @@ namespace unix
                               std::size_t vector_index,
                               info_t &info, pack_t &...pack)
   {
+    if (vector_index >= pair_vector.size ())
+      return false;
+
     position_pair_t pair (pair_vector[vector_index]);
     if (decode (info, src.substr (pair.first, pair.second)) == false)
       return false;
 
-    return (convert_info (src, pair_vector, ++vector_index, pack...) == true)
-      ? true : false;
+    return convert_info (src, pair_vector, ++vector_index, pack...);
   }
 
   inline bool token_t::convert_info (const std::string &src,

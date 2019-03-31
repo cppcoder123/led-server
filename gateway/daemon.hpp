@@ -34,7 +34,7 @@ namespace led_info_d
 
     // asio::io_context& get_context () {return m_context;}
 
-    int start ();
+    bool start ();
     void stop ();
 
     // using callback_t = std::function<void (const asio::error_code &error)>;

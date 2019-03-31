@@ -27,8 +27,8 @@ namespace led_d
 
   namespace {
 
-    auto block_delay = std::chrono::milliseconds (30);
-    auto empty_delay = std::chrono::milliseconds (30);
+    auto block_delay = std::chrono::milliseconds (1);
+    //auto empty_delay = std::chrono::milliseconds (30);
 
     // fixme: !!!
     // auto spi_delay = 5;
@@ -72,14 +72,14 @@ namespace led_d
         std::this_thread::sleep_for (block_delay);
         continue;
       }
+      if (m_gpio.is_irq_raised () == true) {
+        // we are interested in gpio-irq only if 'to_queue' is empty
+        write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
+        continue;
+      }
       auto msg = m_to_queue.pop ();
       if (msg)
         write_msg (*msg);
-      else if (m_gpio.is_irq_raised () == true)
-        // we are interested in gpio-irq only if 'to_queue' is empty
-        write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
-      else
-        std::this_thread::sleep_for (empty_delay);
     }
   }
 
@@ -112,17 +112,21 @@ namespace led_d
       // fixme: debug
       log_t::buffer_t buf;
 
+      if (serial_id != SERIAL_ID_TO_IGNORE) {
+        buf << "serial out: " << (int) serial_id;
+        log_t::info (buf);
+      }
+
+      log_t::clear (buf);
       buf << "out: ";
       for (auto &num : msg)
         buf << (int) num << " ";
-      buf << "\n";
       log_t::info (buf);
 
       log_t::clear (buf);
       buf << "in: ";
       for (auto &num : in_msg)
         buf << (int) num << " ";
-      buf << "\n";
       log_t::info (buf);
     }
 
@@ -133,6 +137,11 @@ namespace led_d
         char_t msg_id = MSG_ID_EMPTY;
         if (mcu::decode::split (msg, serial, msg_id) == true) {
           m_block.relax (serial);
+          if (serial != SERIAL_ID_TO_IGNORE) {
+            log_t::buffer_t buf;
+            buf << "serial in: " << (int) serial;
+            log_t::info (buf);
+          }
           if (msg_id != MSG_ID_STATUS)
             // special handling is needed, otherwise just drop msg
             m_from_queue.push (msg);

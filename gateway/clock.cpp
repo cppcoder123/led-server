@@ -16,6 +16,7 @@
 #include "clock.hpp"
 #include "daemon.hpp"
 #include "delay.hpp"
+#include "log-wrapper.hpp"
 
 namespace led_info_d
 {
@@ -26,6 +27,7 @@ namespace led_info_d
 
   const std::string clock_t::time_prefix ("T ");
   const std::string clock_t::date_prefix ("D ");
+  const std::string clock_t::suffix ("  ");
 
   clock_t::clock_t (asio::io_context &context)
     : m_time_timer (context),
@@ -77,10 +79,11 @@ namespace led_info_d
 
     std::string zero = (tm_.tm_min < 10) ? "0" : "";
     m_time_info = time_prefix + unix::patch::to_string (tm_.tm_hour) + '-'
-      + zero + unix::patch::to_string (tm_.tm_min);
+      + zero + unix::patch::to_string (tm_.tm_min) + suffix;
 
     m_time_timer.expires_at
       (chrono::steady_clock::now () + chrono::seconds (60 - tm_.tm_sec));
+    log_t::error ("init_time: XXX");
     m_time_timer.async_wait (std::bind (&clock_t::init_time, this));
   }
 
@@ -93,12 +96,12 @@ namespace led_info_d
       {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     m_date_info = date_prefix + unix::patch::to_string (tm_.tm_mday)
-      + ' ' + month_vector[tm_.tm_mon];
+      + ' ' + month_vector[tm_.tm_mon] + suffix;
 
     static const string_vector_t day_vector =
       {"Sunday", "Monday", "Tuesday",
        "Wednesday", "Thursday", "Friday", "Saturday"};
-    m_day_info = day_vector[tm_.tm_wday];
+    m_day_info = day_vector[tm_.tm_wday] + suffix;
 
     m_date_day_timer.expires_at
       (chrono::steady_clock::now ()

@@ -58,7 +58,6 @@ namespace unix
     return msg;
   }
 
-  
 } // namespace unix
 
 #endif

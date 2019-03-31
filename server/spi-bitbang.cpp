@@ -72,7 +72,7 @@ namespace led_d
 
   void spi_bitbang_t::transfer_char (char_t out, char_t &in)
   {
-    static const constexpr std::chrono::microseconds delay (10);
+    static const constexpr std::chrono::microseconds delay (50);
 
     write_line (m_ss, low);
     std::this_thread::sleep_for (delay);
@@ -101,6 +101,7 @@ namespace led_d
     }
 
     write_line (m_ss, high);
+    std::this_thread::sleep_for (delay);
   }
 
   void spi_bitbang_t::write_line (gpiod_line *line, int value)

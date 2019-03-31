@@ -23,7 +23,7 @@ namespace led_d
   public:
 
     session_t (asio::ip::tcp::socket socket, unix_queue_t &queue);
-    ~session_t () {}
+    ~session_t ();
 
     void start ();
 

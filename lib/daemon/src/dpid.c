@@ -50,7 +50,9 @@
 
 /*#define VARRUN LOCALSTATEDIR "/run"*/
 /*fixme*/
+#ifndef VARRUN
 #define VARRUN "/var/run"
+#endif
 
 const char *daemon_pid_file_ident = NULL;
 daemon_pid_file_proc_t daemon_pid_file_proc = daemon_pid_file_proc_default;

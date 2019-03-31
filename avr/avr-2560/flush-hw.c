@@ -8,18 +8,22 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
+#include "mcu/constant.h"
+
+#include "encode.h"
 #include "flush-hw.h"
 
-#define CS PL7
-#define CLK PL6
-#define DATA PL5
+/* Achtung: Update also direction setup !*/
+#define CS PORTL1
+#define CLK PORTL2
+#define DATA PORTL3
 
-#define MSK(x) (1 << x)
-#define RISE(x) (PORTL |= MSK(x))
-#define FALL(x) (PORTL &= ~MSK(x))
+#define MASK(x) (1 << x)
+#define RAISE(x) (PORTL |= MASK(x))
+#define FALL(x) (PORTL &= ~MASK(x))
 
 /*fixme: it looks that delay is so small, can we avoid it?*/
-#define DELAY _delay_us (0.1)
+#define DELAY _delay_us (1)
 
 #define PREFIX_CMD 0x4          /* b100 */
 #define PREFIX_DATA 0x5         /* b101 */
@@ -33,28 +37,33 @@
 
 /*we have !CS -> active low*/
 #define CS_ACTIVATE \
-  RISE (CS);        \
+  RAISE (CS);       \
   DELAY;            \
   FALL (CS);        \
   DELAY;
 
-#define CS_DEACTIVATE RISE (CS)
+#define CS_DEACTIVATE \
+  RAISE (CS);         \
+  DELAY;
 
-#define FLUSH_BIT(x) \
-  FALL (CLK);       \
-  if (x)            \
-    RISE (DATA);    \
-  else              \
-    FALL (DATA);    \
-  DELAY;            \
-  RISE (CLK);       \
-  DELAY
+static void flush_bit (uint8_t bit)
+{
+  FALL (CLK);
+  DELAY;
+  if (bit)
+    RAISE (DATA);
+  else
+    FALL (DATA);
+  DELAY;
+  RAISE (CLK);
+  DELAY;
+}
 
 #define FLUSH_PREFIX(x)                         \
   {                                             \
     uint8_t i;                                  \
     for (i = 3; i > 0; --i)                     \
-      FLUSH_BIT ((x) & (1 << (i - 1)));         \
+      flush_bit ((x) & (1 << (i - 1)));         \
   }
 
 /*9 bits, last one is zero*/
@@ -62,28 +71,31 @@
   {                                             \
     uint8_t i;                                  \
     for (i = 8; i > 0; --i)                     \
-      FLUSH_BIT ((x) & (1 << (i -1)));          \
-    FLUSH_BIT (0);                              \
+      flush_bit ((x) & (1 << (i -1)));          \
+    flush_bit (0);                              \
   }
 
 #define FLUSH_ZERO_ADDRESS                      \
   {                                             \
     uint8_t i;                                  \
     for (i = 0; i < 7; ++i)                     \
-      FLUSH_BIT (0);                            \
+      flush_bit (0);                            \
   }
-  
+
 /* ! backward order : low bit first */
 #define FLUSH_HALF_BYTE(x)                      \
   {                                             \
      uint8_t i = 0;                             \
      for (i = 0; i < 4; ++i)                    \
-       FLUSH_BIT ((x) & (1 << i));              \
+       flush_bit ((x) & (1 << i));              \
   }
 
 void flush_hw_init ()
 {
   /*fixme*/
+  DDRL |= (1 << DDL3) | (1 << DDL2) | (1 << DDL1);
+
+  /*debug: it should be called outside: fixme */
   flush_hw_start ();
 }
 
@@ -111,6 +123,7 @@ void flush_hw_stop ()
 
 void flush_hw_mono_start ()
 {
+  /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 177); */
   /*fixme*/
   CS_ACTIVATE;
   FLUSH_PREFIX (PREFIX_DATA);
@@ -119,6 +132,7 @@ void flush_hw_mono_start ()
 
 void flush_hw_mono (data_t data)
 {
+  /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 199); */
   /*fixme*/
   FLUSH_HALF_BYTE (data & 0xF);
   uint8_t high = data & 0xF0;

@@ -145,6 +145,8 @@ namespace unix
     string_move_append (m_read_buf, len, m_in_buf);
 
     m_read (m_in_buf);
+
+    async_read ();
   }
 
   //

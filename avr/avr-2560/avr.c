@@ -15,6 +15,9 @@
 
 static void init ()
 {
+  /*init channel first*/
+  spi_init ();
+
   button_init ();
   buzz_init ();
   debug_init ();
@@ -22,7 +25,6 @@ static void init ()
   flush_hw_init ();
   flush_init ();
   power_init ();
-  spi_init ();
 
   /* enable r-pi */
   power_up ();
