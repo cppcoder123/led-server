@@ -11,7 +11,7 @@
 #include "flush.h"
 #include "spi.h"
 
-#define IN_SIZE 10
+#define IN_SIZE (LED_ARRAY_SIZE + MSG_OVERHEAD)
 
 #define CATCH_DECODED (1 << 0)
 #define SIZE_DECODED (1 << 1)
@@ -39,6 +39,11 @@ static void decode ()
   switch (msg_id) {
   case MSG_ID_MONO_LED:         /* monochrome */
     status = (flush_push_mono (in_buf[0]) == 1) ? STATUS_SUCCESS : STATUS_FAIL;
+    encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
+    break;
+  case MSG_ID_MONO_LED_ARRAY:
+    status = (flush_push_mono_array (in_buf, LED_ARRAY_SIZE) == 1)
+      ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
     break;
   case MSG_ID_VERSION:

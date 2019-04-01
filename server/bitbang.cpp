@@ -5,14 +5,14 @@
 #include <chrono>
 #include <thread>
 
+#include "bitbang.hpp"
 #include "gpio.hpp"
 #include "log-wrapper.hpp"
-#include "spi-bitbang.hpp"
 
 namespace led_d
 {
 
-  spi_bitbang_t::spi_bitbang_t ()
+  bitbang_t::bitbang_t ()
     : m_ss (NULL),
       m_mosi (NULL),
       m_clk (NULL),
@@ -20,7 +20,7 @@ namespace led_d
   {
   }
 
-  void spi_bitbang_t::start (gpiod_chip *chip)
+  void bitbang_t::start (gpiod_chip *chip)
   {
     if (chip == NULL)
       throw std::runtime_error ("bitbang: Empty chip");
@@ -44,7 +44,7 @@ namespace led_d
       throw std::runtime_error ("bitbang: Failed to request miso");
   }
 
-  void spi_bitbang_t::stop ()
+  void bitbang_t::stop ()
   {
     auto release = [](gpiod_line *&line)
       {
@@ -61,7 +61,7 @@ namespace led_d
     release (m_miso);
   }
 
-  void spi_bitbang_t::transfer (const mcu_msg_t &out, mcu_msg_t &in)
+  void bitbang_t::transfer (const mcu_msg_t &out, mcu_msg_t &in)
   {
     char_t in_char;
     for (char_t out_char : out) {
@@ -70,7 +70,7 @@ namespace led_d
     }
   }
 
-  void spi_bitbang_t::transfer_char (char_t out, char_t &in)
+  void bitbang_t::transfer_char (char_t out, char_t &in)
   {
     static const constexpr std::chrono::microseconds bit_delay (20);
     static const constexpr std::chrono::milliseconds byte_delay (2);
@@ -105,7 +105,7 @@ namespace led_d
     std::this_thread::sleep_for (byte_delay);
   }
 
-  void spi_bitbang_t::write_line (gpiod_line *line, int value)
+  void bitbang_t::write_line (gpiod_line *line, int value)
   {
     if (gpiod_line_set_value (line, value) != 0) {
       log_t::buffer_t buf;
@@ -114,7 +114,7 @@ namespace led_d
     }
   }
 
-  int spi_bitbang_t::read_line (gpiod_line *line)
+  int bitbang_t::read_line (gpiod_line *line)
   {
     int result = gpiod_line_get_value (line);
     if ((result != 0) && (result != 1)) {

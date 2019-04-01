@@ -30,6 +30,9 @@ namespace led_d
       template <typename ...payload_t>
       static void do_join (mcu_msg_t &msg, char_t load_1, payload_t ...payload);
 
+      template <typename ...payload_t>
+      static void do_join (mcu_msg_t &msg, mcu_msg_t &arr, payload_t ...payload);
+
     };
 
     //
@@ -57,6 +60,14 @@ namespace led_d
     void encode::do_join (mcu_msg_t &msg, char_t load_1, payload_t ...payload)
     {
       msg.push_back (load_1);
+
+      do_join (msg, payload...);
+    }
+
+    template <typename ...payload_t>
+    void encode::do_join (mcu_msg_t &msg, mcu_msg_t &arr, payload_t ...payload)
+    {
+      msg.splice (msg.end (), arr);
 
       do_join (msg, payload...);
     }

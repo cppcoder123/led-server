@@ -6,13 +6,18 @@
 
 #define PROTOCOL_VERSION 1
 
+#define SERIAL_ID_TO_IGNORE 0
+
 #define EYE_CATCH 250
+
 #define SPI_READ_OVERFLOW 245   /* an error */
 #define SPI_WRITE_UNDERFLOW 240 /* not an error */
 #define SPI_SPEED_ERROR 235
+
 #define RING_INIT_PATTERN 230
 
-#define SERIAL_ID_TO_IGNORE 0
+#define MSG_OVERHEAD 6 /* it is less actually */
+#define LED_ARRAY_SIZE 20
 
 enum {
   /*should not be sent in either direction, initialization*/
@@ -24,6 +29,7 @@ enum {
   /*pi=>avr: one column as payload,*/
   /*avr=>pi: STATUS*/
   MSG_ID_MONO_LED,
+  MSG_ID_MONO_LED_ARRAY,
 
   /*pi=>avr: No response from avr is expected, SERIAL_ID_TO_IGNORE should be used*/
   /*aux message to enable spi slave (avr) to master (pi) transfer*/

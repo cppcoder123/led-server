@@ -3,11 +3,7 @@
  */
 
 #include <functional>
-
-// #include "unix/codec.hpp"
-// #include "unix/refsymbol.hpp"
-// #include "unix/request.hpp"
-// #include "unix/response.hpp"
+#include <iterator>
 
 #include "handle.hpp"
 #include "log-wrapper.hpp"
@@ -23,7 +19,6 @@ namespace led_d
     : m_unix_queue (unix_queue),
       m_to_mcu_queue (to_mcu_queue),
       m_from_mcu_queue (from_mcu_queue),
-      //m_content (content),
       m_render (default_font),
       m_go (true)
   {
@@ -101,7 +96,6 @@ namespace led_d
     }
 
     // Note: sender can be destroyed during async writing! (or not)
-    // m_content.update (request, response);
     if (response_codec_t::encode (response, buffer) == true)
       msg.sender->write (buffer);
     else
@@ -176,10 +170,23 @@ namespace led_d
       return false;
     }
 
-    for (std::size_t i = 0; i < matrix.size (); ++i)
+    std::size_t len = matrix.size () / LED_ARRAY_SIZE;
+    auto start = matrix.begin ();
+    
+    for (std::size_t i = 0; i < len; ++i) {
+      matrix_t::iterator finish = start;
+      std::advance (finish, LED_ARRAY_SIZE);
+      mcu_msg_t tmp (start, finish);
+      m_to_mcu_queue.push
+        (mcu::encode::join (serial::get (), MSG_ID_MONO_LED_ARRAY, tmp));
+      start = finish;
+    }
+
+    len = matrix.size () % LED_ARRAY_SIZE;
+    for (std::size_t i = matrix.size ()- len; i < matrix.size (); ++i)
       m_to_mcu_queue.push
         (mcu::encode::join (serial::get (), MSG_ID_MONO_LED, matrix[i]));
-
+    
     // {
     //   // fixme: debug
     //   log_t::buffer_t buf;

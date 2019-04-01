@@ -1,8 +1,8 @@
 //
 // Spi bit bang
 //
-#ifndef SPI_BITBANG_HPP
-#define SPI_BITBANG_HPP
+#ifndef BITBANG_HPP
+#define BITBANG_HPP
 
 #include <gpiod.h>
 
@@ -11,12 +11,12 @@
 namespace led_d
 {
 
-  class spi_bitbang_t
+  class bitbang_t
   {
 
   public:
-    spi_bitbang_t ();
-    ~spi_bitbang_t () {stop ();}
+    bitbang_t ();
+    ~bitbang_t () {stop ();}
 
     void start (gpiod_chip *chip);
     void stop ();

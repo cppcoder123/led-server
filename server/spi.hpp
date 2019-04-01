@@ -8,10 +8,10 @@
 
 #include <string>
 
+#include "bitbang.hpp"
 #include "block.hpp"
 #include "handle.hpp"
 #include "gpio.hpp"
-#include "spi-bitbang.hpp"
 #include "spi-parse.hpp"
 #include "type-def.hpp"
 
@@ -47,7 +47,7 @@ namespace led_d
     mcu_queue_t &m_from_queue;  // from spi
 
     gpio_t m_gpio;
-    spi_bitbang_t m_bitbang;
+    bitbang_t m_bitbang;
 
     block_t m_block;
     spi_parse_t m_parse;

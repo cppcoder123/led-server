@@ -17,7 +17,6 @@
 #include "log-wrapper.hpp"
 #include "serial-id.hpp"
 #include "spi.hpp"
-#include "spi-bitbang.hpp"
 
 namespace led_d
 {

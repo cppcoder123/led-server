@@ -60,6 +60,11 @@ uint8_t flush_push_mono (data_t symbol)
   return ring_symbol_fill (mono_data, symbol);
 }
 
+uint8_t flush_push_mono_array (data_t *arr, uint8_t arr_size)
+{
+  return ring_array_fill (mono_data, arr, arr_size);
+}
+
 void flush_enable_shift ()
 {
   mode_change (FLUSH_SHIFT);
