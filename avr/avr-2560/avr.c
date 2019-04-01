@@ -40,6 +40,7 @@ int main ()
     buzz_try ();
     decode_try ();
     flush_try ();
+    spi_try ();
   }
 
   return 0;

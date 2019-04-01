@@ -9,7 +9,8 @@
 #define EYE_CATCH 250
 #define SPI_READ_OVERFLOW 245   /* an error */
 #define SPI_WRITE_UNDERFLOW 240 /* not an error */
-#define RING_INIT_PATTERN 235
+#define SPI_SPEED_ERROR 235
+#define RING_INIT_PATTERN 230
 
 #define SERIAL_ID_TO_IGNORE 0
 

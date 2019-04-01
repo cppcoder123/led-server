@@ -10,7 +10,7 @@ export LIB_PATH = $(LIB_ROOT)
 export LIB_DAEMON = $(LIB_ROOT)/daemon
 export LIB_TCLAP = $(LIB_ROOT)/tclap
 
-export COMMON_CFLAGS = -DVARRUN=\"/var/run/led-d\"
+export COMMON_CFLAGS = -DVARRUN=\"/var/run/led\"
 export COMMON_CPPFLAGS = -DASIO_STANDALONE -std=c++17 -Wall -pedantic -g
 
 SERVER = $(ROOT)/server

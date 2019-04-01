@@ -18,25 +18,27 @@
 #define READ_SIZE 255
 #define WRITE_SIZE 255
 
+#define FLAG_WRITE_INTERRUPT (1 << 0)
+
 volatile data_t read_buf[READ_SIZE];
 volatile data_t write_buf[WRITE_SIZE];
 
-static uint8_t interrupt_requested;
+volatile uint8_t flag;
 
-static void irq_start ()
+static void write_interrupt_start ()
 {
   /*set irq pin 1*/
-  if (interrupt_requested == 0) {
+  if ((flag & FLAG_WRITE_INTERRUPT) == 0) {
     PORTB |= (1 << SPI_IRQ);
-    interrupt_requested = 1;
+    flag |= FLAG_WRITE_INTERRUPT;
   }
 }
 
-static void irq_stop ()
+static void write_interrupt_stop ()
 {
-  if (interrupt_requested != 0) {
+  if ((flag & FLAG_WRITE_INTERRUPT) != 0) {
     PORTB &= ~(1 << SPI_IRQ);
-    interrupt_requested = 0;
+    flag &= ~FLAG_WRITE_INTERRUPT;
   }
 }
 
@@ -54,8 +56,8 @@ void spi_init ()
   ring_init (read_buf, READ_SIZE);
   ring_init (write_buf, WRITE_SIZE);
 
-  interrupt_requested = 1;
-  irq_stop ();
+  flag = FLAG_WRITE_INTERRUPT;
+  write_interrupt_stop ();
 
   /*enable spi, and enable related interrupt*/
   SPCR = (1 << SPIE) | (1 << SPE);
@@ -83,7 +85,7 @@ uint8_t spi_read_size ()
 
 uint8_t spi_write_array (data_t *array, uint8_t array_size)
 {
-  irq_start ();
+  write_interrupt_start ();
   return ring_array_fill (write_buf, array, array_size);
 }
 
@@ -93,13 +95,6 @@ ISR (SPI_STC_vect)
    * 1. fill read buf with inbound symbol
    * 2. try to drain write buf and send it to master
    */
-
-  /* fixme: debug */
-  /* uint8_t tmp = SPDR; */
-  /* SPDR = tmp; */
-  /* return; */
-
-  /* ring_init (write_buf, WRITE_SIZE); */
 
   if (ring_symbol_fill (read_buf, SPDR) == 0) {
     SPDR = SPI_READ_OVERFLOW;
@@ -114,6 +109,6 @@ ISR (SPI_STC_vect)
     SPDR = to_send;
   } else {
     SPDR = SPI_WRITE_UNDERFLOW;
-    irq_stop ();
+    write_interrupt_stop ();
   }
 }

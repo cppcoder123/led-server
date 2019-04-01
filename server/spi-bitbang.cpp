@@ -72,10 +72,11 @@ namespace led_d
 
   void spi_bitbang_t::transfer_char (char_t out, char_t &in)
   {
-    static const constexpr std::chrono::microseconds delay (50);
+    static const constexpr std::chrono::microseconds bit_delay (20);
+    static const constexpr std::chrono::milliseconds byte_delay (2);
 
     write_line (m_ss, low);
-    std::this_thread::sleep_for (delay);
+    std::this_thread::sleep_for (byte_delay);
 
     // sample on rising edge, msb first
     char_t mask = (1 << 7);
@@ -84,15 +85,15 @@ namespace led_d
     for (int i = 0; i < 8; ++i) {
       // setup
       write_line (m_mosi, ((out & mask) != 0) ? high : low);
-      std::this_thread::sleep_for (delay);
+      std::this_thread::sleep_for (bit_delay);
       // processing edge
       write_line (m_clk, high);
-      std::this_thread::sleep_for (delay);
+      std::this_thread::sleep_for (bit_delay);
       // slave read
       int read = read_line (m_miso);
       //
       write_line (m_clk, low);
-      std::this_thread::sleep_for (delay);
+      std::this_thread::sleep_for (bit_delay);
       //
       if (read != 0)
         in |= mask;
@@ -101,7 +102,7 @@ namespace led_d
     }
 
     write_line (m_ss, high);
-    std::this_thread::sleep_for (delay);
+    std::this_thread::sleep_for (byte_delay);
   }
 
   void spi_bitbang_t::write_line (gpiod_line *line, int value)
