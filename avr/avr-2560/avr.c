@@ -4,12 +4,13 @@
 
 #include <avr/interrupt.h>
 
+#include "bitbang.h"
 #include "button.h"
 #include "buzz.h"
 #include "decode.h"
 #include "debug.h"
 #include "flush.h"
-#include "flush-hw.h"
+#include "postpone.h"
 #include "power.h"
 #include "spi.h"
 
@@ -22,8 +23,9 @@ static void init ()
   buzz_init ();
   debug_init ();
   decode_init ();
-  flush_hw_init ();
+  bitbang_init ();
   flush_init ();
+  postpone_init ();
   power_init ();
 
   /* enable r-pi */
@@ -40,6 +42,7 @@ int main ()
     buzz_try ();
     decode_try ();
     flush_try ();
+    postpone_try ();
   }
 
   return 0;

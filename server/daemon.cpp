@@ -14,7 +14,7 @@ namespace led_d
       //m_content (arg.default_font, m_asio_context, m_to_spi_queue),
       m_handle (arg.default_font, m_network_queue,
                 m_to_spi_queue, m_from_spi_queue),
-      m_spi (arg.device, m_to_spi_queue, m_from_spi_queue)
+      m_spi (arg.device, m_to_spi_queue, m_from_spi_queue, arg.spi_msg)
   {
   }
 

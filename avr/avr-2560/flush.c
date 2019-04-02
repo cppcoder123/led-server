@@ -4,9 +4,9 @@
 
 #include "mcu/constant.h"
 
+#include "bitbang.h"
 #include "encode.h"
 #include "flush.h"
-#include "flush-hw.h"
 #include "ring.h"
 
 #define MATRIX_SIZE 32
@@ -90,16 +90,16 @@ void flush_try ()
       ring_symbol_fill (mono_data, 0);
   }
 
-  flush_hw_mono_start ();
+  bitbang_mono_start ();
 
   uint8_t symbol;
   for (uint8_t i = 0; i < MATRIX_SIZE; ++i)
     if (ring_symbol_get (mono_data, i, &symbol) != 0)
-      flush_hw_mono (symbol);
+      bitbang_mono (symbol);
     else
-      flush_hw_mono (1);
+      bitbang_mono (1);
 
-  flush_hw_mono_stop ();
+  bitbang_mono_stop ();
 
   if (mode == FLUSH_SHIFT)
     ring_symbol_drain (mono_data, &symbol);

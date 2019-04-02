@@ -23,7 +23,7 @@ namespace led_d
 
   public:
     spi_t (const std::string &path,
-           mcu_queue_t &to_queue, mcu_queue_t &from_queue);
+           mcu_queue_t &to_queue, mcu_queue_t &from_queue, bool show_msg);
     spi_t (const spi_t&) = delete;
     ~spi_t ();
 
@@ -51,6 +51,8 @@ namespace led_d
 
     block_t m_block;
     spi_parse_t m_parse;
+
+    bool m_show_msg;
 
     static const auto buffer_size = 32;
     static char_t write_buffer[buffer_size];

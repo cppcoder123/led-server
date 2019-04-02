@@ -38,12 +38,13 @@ namespace led_d
   } // namespace anonymous
 
   spi_t::spi_t (const std::string &/*path*/,
-                mcu_queue_t &to_queue, mcu_queue_t &from_queue)
+                mcu_queue_t &to_queue, mcu_queue_t &from_queue, bool show_msg)
     : //m_path (path),
       //m_device (0),
       m_go (true),
       m_to_queue (to_queue),
-      m_from_queue (from_queue)
+      m_from_queue (from_queue),
+      m_show_msg (show_msg)
   {
   }
 
@@ -107,21 +108,17 @@ namespace led_d
     mcu_msg_t in_msg;
     m_bitbang.transfer (msg, in_msg);
 
-    {
-      // fixme: debug
+    if (m_show_msg == true) {
       log_t::buffer_t buf;
-
       if (serial_id != SERIAL_ID_TO_IGNORE) {
         buf << "serial out: " << (int) serial_id;
         log_t::info (buf);
       }
-
       log_t::clear (buf);
       buf << "out: ";
       for (auto &num : msg)
         buf << (int) num << " ";
       log_t::info (buf);
-
       log_t::clear (buf);
       buf << "in: ";
       for (auto &num : in_msg)
@@ -136,7 +133,8 @@ namespace led_d
         char_t msg_id = MSG_ID_EMPTY;
         if (mcu::decode::split (msg, serial, msg_id) == true) {
           m_block.relax (serial);
-          if (serial != SERIAL_ID_TO_IGNORE) {
+          if ((m_show_msg == true)
+              && (serial != SERIAL_ID_TO_IGNORE)) {
             log_t::buffer_t buf;
             buf << "serial in: " << (int) serial;
             log_t::info (buf);

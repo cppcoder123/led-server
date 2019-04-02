@@ -26,11 +26,9 @@ namespace led_d
 
     port_t::value_t port;
     bool foreground;
-    bool kill;                  // kill if process is running
-    //std::size_t size;         // number of digits
+    bool kill;                  // kill daemon if it is running
+    bool spi_msg;               // print spi messages
 
-    //std::size_t stable_delay, rolling_delay, rolling_repeat;
-    //std::string font_path, default_font;
     std::string default_font;
     std::string device;
   };

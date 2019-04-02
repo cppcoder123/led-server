@@ -32,6 +32,8 @@ namespace led_d
         ("f", "foreground", "Run daemon in foreground", parser, false);
       TCLAP::SwitchArg
         kill ("k", "kill", "Kill old process", parser, false);
+      TCLAP::SwitchArg
+        spi ("i", "spI", "Show spi messages", parser, false);
       //
       //
       //
@@ -47,6 +49,7 @@ namespace led_d
       arg.port = port.getValue ();
       arg.foreground = foreground.getValue ();
       arg.kill = kill.getValue ();
+      arg.spi_msg = spi.getValue ();
       //
       arg.default_font = default_font.getValue ();
       arg.device = device.getValue ();
