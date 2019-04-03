@@ -4,11 +4,7 @@
 
 TARGET = led-info-d
 
-
-HEADER_LIST = arg.hpp clock.hpp daemon.hpp delay.hpp log-wrapper.hpp
-
-OBJECT_LIST = led-info-d.o arg.o clock.o content.o daemon.o log-wrapper.o
-
+OBJECT_LIST = led-info-d.o arg.o clock.o content.o daemon.o
 
 #COMPILE_FLAGS = -I$(INCLUDE_INT) -I$(INCLUDE_EXT) -std=c++11 -Wall -pedantic -g
 #LINK_FLAGS = $(LIB_DAEMON) -lpthread
@@ -24,7 +20,7 @@ $(TARGET): $(OBJECT_LIST)
 	$(CXX) -o $@ $^ $(LDFLAGS) -ldaemon -lpthread
 
 
-%.o: %.cpp $(HEADER_LIST)
+%.o: %.cpp $(wildcard *.hpp)
 	+$(CXX) $(CPPFLAGS) -c $<
 
 

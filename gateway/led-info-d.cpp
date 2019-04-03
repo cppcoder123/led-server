@@ -4,10 +4,10 @@
 #include <functional>
 
 #include "unix/launch.hpp"
+#include "unix/log.hpp"
 
 #include "arg.hpp"
 #include "daemon.hpp"
-#include "log-wrapper.hpp"
 
 int main (int argc, char **argv)
 {
@@ -15,11 +15,11 @@ int main (int argc, char **argv)
   if (led_info_d::arg_t::init (arg, argc, argv) == false)
     return 101;
 
-  led_info_d::log_wrapper_t::init (arg.foreground, argv[0]);
+  log::init (arg.foreground, argv[0]);
 
   if (arg.kill == true) {
     if (daemon_pid_file_kill_wait (SIGINT, 5) < 0) {
-      led_info_d::log_t::info ("Failed to kill the daemon");
+      log_t::info ("Failed to kill the daemon");
       return 102;
     }
     return 0;
@@ -27,18 +27,18 @@ int main (int argc, char **argv)
 
   pid_t pid = daemon_pid_file_is_running ();
   if (pid >= 0) {
-    led_info_d::log_t::buffer_t msg;
+    log_t::buffer_t msg;
     msg << "Daemon is running on PID file " << pid;
-    led_info_d::log_t::error (msg);
+    log_t::error (msg);
     return 103;
   }
 
   asio::io_context context;
   led_info_d::daemon_t daemon (arg, context);
 
-  led_info_d::log_t::buffer_t buf;
+  log_t::buffer_t buf;
   buf << "Launching process in " << ((arg.foreground) ? "foreground" : "background");
-  led_info_d::log_t::info (buf);
+  log_t::info (buf);
 
   unix::launch_t launch
     (arg.foreground,
@@ -48,9 +48,9 @@ int main (int argc, char **argv)
      context, 500);
 
   if (launch.start () == false) {
-    led_info_d::log_t::buffer_t msg;
+    log_t::buffer_t msg;
     msg << "Led gateway: Failed to start";
-    led_info_d::log_t::error (msg);
+    log_t::error (msg);
   }
     
   return 0;

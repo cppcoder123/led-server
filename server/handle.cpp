@@ -5,8 +5,9 @@
 #include <functional>
 #include <iterator>
 
+#include "unix/log.hpp"
+
 #include "handle.hpp"
-#include "log-wrapper.hpp"
 #include "matrix.hpp"
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"
@@ -64,11 +65,11 @@ namespace led_d
 
     std::string buffer;
     //
-    if (request_codec_t::decode (msg.info, request) == false) {
+    if (codec_t::decode (msg.info, request) == false) {
       response.status = 1;
       response.string_data = "Failed to decode request message";
       log_t::error (response.string_data);
-      if (response_codec_t::encode (response, buffer) == true)
+      if (codec_t::encode (response, buffer) == true)
         msg.sender->write (buffer);
       return;
     }
@@ -96,7 +97,7 @@ namespace led_d
     }
 
     // Note: sender can be destroyed during async writing! (or not)
-    if (response_codec_t::encode (response, buffer) == true)
+    if (codec_t::encode (response, buffer) == true)
       msg.sender->write (buffer);
     else
       log_t::error ("Failed to encode \"response\" message");
@@ -151,7 +152,7 @@ namespace led_d
     response.status = response_t::poll;
 
     std::string buf;
-    if (response_codec_t::encode (response, buf) == true)
+    if (codec_t::encode (response, buf) == true)
       m_client->write (buf);
     else {
       log_t::buffer_t buf;

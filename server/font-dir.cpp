@@ -3,9 +3,9 @@
 //
 
 #include "unix/font-name.hpp"
+#include "unix/log.hpp"
 
 #include "font-dir.hpp"
-#include "log-wrapper.hpp"
 
 namespace led_d
 {

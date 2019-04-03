@@ -1,8 +1,9 @@
 //
 //
 //
+#include "unix/log.hpp"
+
 #include "font.hpp"
-#include "log-wrapper.hpp"
 #include "render.hpp"
 
 namespace led_d

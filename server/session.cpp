@@ -3,10 +3,10 @@
 //
 
 #include "unix/codec.hpp"
+#include "unix/log.hpp"
 #include "unix/refsymbol.hpp"
 #include "unix/request.hpp"
 
-#include "log-wrapper.hpp"
 #include "session.hpp"
 #include "type-def.hpp"
 
@@ -62,10 +62,10 @@ namespace led_d
 
   void session_t::read_cb (std::string &info)
   {
-    using codec_t = unix::codec_t<unix::refsymbol_t, unix::request_t>;
+    using codec_t = unix::codec_t<unix::refsymbol_t>;
 
     std::size_t text_len = 0;
-    while (codec_t::decode (info, text_len) == true) {
+    while (codec_t::decode<unix::request_t> (info, text_len) == true) {
       std::string text = info.substr (0, text_len);
       info = info.substr(text_len);
       m_queue.push

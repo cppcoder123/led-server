@@ -3,8 +3,8 @@
  */
 
 #include "mcu/constant.h"
+#include "unix/log.hpp"
 
-#include "log-wrapper.hpp"
 #include "mcu-decode.hpp"
 #include "spi-parse.hpp"
 

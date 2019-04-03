@@ -5,7 +5,8 @@
 
 #include <stdexcept>
 
-#include "log-wrapper.hpp"
+#include "unix/log.hpp"
+
 #include "gpio.hpp"
 
 namespace

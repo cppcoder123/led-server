@@ -5,10 +5,10 @@
 #include <functional>
 
 #include "unix/launch.hpp"
+#include "unix/log.hpp"
 
 #include "arg.hpp"
 #include "daemon.hpp"
-#include "log-wrapper.hpp"
 
 int main (int argc, char **argv)
 {
@@ -18,7 +18,7 @@ int main (int argc, char **argv)
   if (arg_t::init (arg, argc, argv) == false)
     return 101;
 
-  log_wrapper_t::init (arg.foreground, argv[0]);
+  log::init (arg.foreground, argv[0]);
 
   if (arg.kill == true) {
     int status = 0;

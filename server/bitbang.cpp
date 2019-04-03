@@ -5,9 +5,10 @@
 #include <chrono>
 #include <thread>
 
+#include "unix/log.hpp"
+
 #include "bitbang.hpp"
 #include "gpio.hpp"
-#include "log-wrapper.hpp"
 
 namespace led_d
 {

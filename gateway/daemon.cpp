@@ -5,16 +5,15 @@
 //
 
 #include "unix/codec.hpp"
+#include "unix/log.hpp"
 #include "unix/refsymbol.hpp"
 
 #include "daemon.hpp"
-#include "log-wrapper.hpp"
 
 namespace led_info_d
 {
   daemon_t::daemon_t (const arg_t &arg, asio::io_context &context)
-    : //m_timer (m_context),
-      m_client (context,
+    : m_client (context,
                 arg.port,
                 arg.host,
                 std::bind (&daemon_t::notify_connect, this),
@@ -37,34 +36,7 @@ namespace led_info_d
 
   void daemon_t::stop ()
   {
-    //
-    // for (map_t::iterator iter = m_map.begin (); iter != m_map.end (); ++iter) {
-    //   request_ptr_t request_ptr (iter->second);
-    //   request_ptr->action = request_t::erase;
-    //   write (*request_ptr);
-    // }
   }
-
-  // void daemon_t::schedule (const delay_t &delay, callback_t cb)
-  // {
-  //   m_timer.expires_at (std::chrono::steady_clock::now () + delay);
-  //   m_timer.async_wait (cb);
-  // }
-
-  // void daemon_t::info (priority_id_t prio,
-  //                      const request_t &request)
-  // {
-  //   map_t::iterator iter (m_map.find (request.tag));
-  //   if (request.action == request_t::insert) {
-  //     request_ptr_t request_ptr (std::make_unique<request_t>(request));
-  //     m_map[request.tag] = request_ptr;
-  //   } else if (request.action == request_t::erase) {
-  //     if (iter != m_map.end ())
-  //       m_map.erase (iter);
-  //   }
-
-  //   write (request);
-  // }
 
   void daemon_t::notify_connect ()
   {
@@ -94,10 +66,10 @@ namespace led_info_d
 
   void daemon_t::notify_read (std::string &in)
   {
-    using codec_t = unix::codec_t<refsymbol_t, response_t>;
+    using codec_t = unix::codec_t<refsymbol_t>;
 
     std::size_t len = 0;
-    if ((codec_t::decode (in, len) == false)
+    if ((codec_t::decode<response_t> (in, len) == false)
         || (in.size () < len))
       // msg is not arrived
       return;
@@ -138,7 +110,7 @@ namespace led_info_d
 
   void daemon_t::write (const request_t &request)
   {
-    using codec_t = unix::codec_t<refsymbol_t, request_t>;
+    using codec_t = unix::codec_t<refsymbol_t>;
 
     std::string msg;
     if (codec_t::encode (request, msg) == false) {

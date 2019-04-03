@@ -2,8 +2,9 @@
 //
 //
 
+#include "unix/log.hpp"
+
 #include "daemon.hpp"
-#include "log-wrapper.hpp"
 #include "network.hpp"
 
 namespace led_d

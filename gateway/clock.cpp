@@ -11,12 +11,12 @@
 #include <string>
 #include <vector>
 
+#include "unix/log.hpp"
 #include "unix/patch.hpp"
 
 #include "clock.hpp"
 #include "daemon.hpp"
 #include "delay.hpp"
-#include "log-wrapper.hpp"
 
 namespace led_info_d
 {
