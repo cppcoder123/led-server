@@ -2,11 +2,11 @@
  *
  */
 
-#include <fcntl.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
+// #include <fcntl.h>
+// #include <linux/types.h>
+// #include <linux/spi/spidev.h>
+// #include <sys/ioctl.h>
+// #include <unistd.h>
 
 #include <thread>
 

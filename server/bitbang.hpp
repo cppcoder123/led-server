@@ -16,7 +16,7 @@ namespace led_d
 
   public:
     bitbang_t ();
-    ~bitbang_t () {stop ();}
+    ~bitbang_t ();
 
     void start (gpiod_chip *chip);
     void stop ();

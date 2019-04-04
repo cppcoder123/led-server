@@ -35,19 +35,19 @@ namespace led_d
   private:
 
     unix_queue_t m_network_queue; // from network
-    mcu_queue_t m_from_spi_queue;
-    mcu_queue_t m_to_spi_queue;
+    mcu_queue_t m_from_device_queue;
+    mcu_queue_t m_to_device_queue;
 
     asio::io_context m_asio_context;
 
     network_t m_network;
     //content_t m_content;
     handle_t m_handle;
-    device_t m_spi;
+    device_t m_device;
 
     //std::thread m_network_thread;
     std::thread m_handle_thread;
-    std::thread m_spi_thread;
+    std::thread m_device_thread;
   };
 
 } // namespace led_d

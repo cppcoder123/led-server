@@ -83,7 +83,6 @@ namespace led_info_d
 
     m_time_timer.expires_at
       (chrono::steady_clock::now () + chrono::seconds (60 - tm_.tm_sec));
-    log_t::error ("init_time: XXX");
     m_time_timer.async_wait (std::bind (&clock_t::init_time, this));
   }
 

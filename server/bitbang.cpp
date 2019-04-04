@@ -22,6 +22,23 @@ namespace led_d
   {
   }
 
+  bitbang_t::~bitbang_t ()
+  {
+    auto release = [](gpiod_line *&line)
+    {
+      if (line == NULL)
+        return;
+
+      gpiod_line_release (line);
+      line = NULL;
+    };
+
+    release (m_ss);
+    release (m_mosi);
+    release (m_clk);
+    release (m_miso);
+  }
+
   void bitbang_t::start (gpiod_chip *chip)
   {
     if (chip == NULL)
@@ -50,19 +67,7 @@ namespace led_d
 
   void bitbang_t::stop ()
   {
-    auto release = [](gpiod_line *&line)
-      {
-        if (line == NULL)
-          return;
-
-        gpiod_line_release (line);
-        line = NULL;
-      };
-
-    release (m_ss);
-    release (m_mosi);
-    release (m_clk);
-    release (m_miso);
+    // do nothing
   }
 
   void bitbang_t::transfer (const mcu_msg_t &out, mcu_msg_t &in)
