@@ -10,10 +10,9 @@
 #include "asio.hpp"
 
 #include "arg.hpp"
-//#include "content.hpp"
+#include "device.hpp"
 #include "network.hpp"
 #include "handle.hpp"
-#include "spi.hpp"
 #include "type-def.hpp"
 
 namespace led_d
@@ -44,7 +43,7 @@ namespace led_d
     network_t m_network;
     //content_t m_content;
     handle_t m_handle;
-    spi_t m_spi;
+    device_t m_spi;
 
     //std::thread m_network_thread;
     std::thread m_handle_thread;

@@ -14,7 +14,6 @@
 
 #include "render.hpp"
 #include "session.hpp"
-#include "spi.hpp"
 #include "type-def.hpp"
 
 namespace led_d

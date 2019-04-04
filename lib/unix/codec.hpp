@@ -24,7 +24,6 @@ namespace unix
     static const std::size_t header_size = 4;
 
     // decode length
-    template <typename info_t>
     static bool decode (const std::string &src, std::size_t &msg_size);
 
     // decode body
@@ -40,7 +39,7 @@ namespace unix
   //
   //
 
-  template <typename refsymbol_t> template <typename info_t>
+  template <typename refsymbol_t>
   bool codec_t<refsymbol_t>::
   decode (const std::string &src, std::size_t &msg_size)
   {

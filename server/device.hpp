@@ -1,8 +1,8 @@
 /**
  *
  */
-#ifndef SPI_HPP
-#define SPI_HPP
+#ifndef DEVICE_HPP
+#define DEVICE_HPP
 
 #include <stdint.h>
 
@@ -10,22 +10,22 @@
 
 #include "bitbang.hpp"
 #include "block.hpp"
-#include "handle.hpp"
 #include "gpio.hpp"
-#include "spi-parse.hpp"
+#include "handle.hpp"
+#include "parse.hpp"
 #include "type-def.hpp"
 
 namespace led_d
 {
 
-  class spi_t
+  class device_t
   {
 
   public:
-    spi_t (const std::string &path,
+    device_t (const std::string &path,
            mcu_queue_t &to_queue, mcu_queue_t &from_queue, bool show_msg);
-    spi_t (const spi_t&) = delete;
-    ~spi_t ();
+    device_t (const device_t&) = delete;
+    ~device_t ();
 
     void start ();
     void stop ();
@@ -34,7 +34,7 @@ namespace led_d
 
     void write_msg (const mcu_msg_t &msg);
 
-    // void spi_write (uint32_t msg_size);
+    // void device_write (uint32_t msg_size);
     // void device_start ();
     // void device_stop ();
 
@@ -50,7 +50,7 @@ namespace led_d
     bitbang_t m_bitbang;
 
     block_t m_block;
-    spi_parse_t m_parse;
+    parse_t m_parse;
 
     bool m_show_msg;
 

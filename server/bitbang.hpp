@@ -25,6 +25,9 @@ namespace led_d
 
   private:
 
+    // clear spi channel as last step in 'start'
+    void drain ();
+
     void transfer_char (char_t out_char, char_t &in_char);
 
     void write_line (gpiod_line *line, int value);

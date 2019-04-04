@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 
+#include "mcu/constant.h"
 #include "unix/log.hpp"
 
 #include "bitbang.hpp"
@@ -43,6 +44,8 @@ namespace led_d
       throw std::runtime_error ("bitbang: Failed to request clk");
     if (gpiod_line_request_input (m_miso, gpio_t::get_consumer ()) != 0)
       throw std::runtime_error ("bitbang: Failed to request miso");
+
+    drain ();
   }
 
   void bitbang_t::stop ()
@@ -71,9 +74,30 @@ namespace led_d
     }
   }
 
+  void bitbang_t::drain ()
+  {
+    static const std::size_t max_count = 1000;
+    static const std::size_t min_empty = 50;
+
+    std::size_t empty_count = 0;
+    for (std::size_t count = 0; count < max_count; ++count) {
+      char_t to_mcu = 0;
+      char_t from_mcu = 0;
+      transfer_char (to_mcu, from_mcu);
+      if (from_mcu == SPI_WRITE_UNDERFLOW)
+        ++empty_count;
+      else
+        empty_count = 0;
+      if (empty_count >= min_empty)
+        return;
+    }
+
+    throw std::runtime_error ("bitbang: Failed to drain Spi channel");
+  }
+
   void bitbang_t::transfer_char (char_t out, char_t &in)
   {
-    static const constexpr std::chrono::microseconds bit_delay (20);
+    static const constexpr std::chrono::milliseconds bit_delay (1);
     static const constexpr std::chrono::milliseconds byte_delay (2);
 
     write_line (m_ss, low);

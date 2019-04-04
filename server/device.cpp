@@ -13,16 +13,16 @@
 #include "unix/log.hpp"
 #include "mcu/constant.h"
 
+#include "device.hpp"
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"
 #include "serial-id.hpp"
-#include "spi.hpp"
 
 namespace led_d
 {
 
-  char_t spi_t::write_buffer[buffer_size];
-  char_t spi_t::read_buffer[buffer_size];
+  char_t device_t::write_buffer[buffer_size];
+  char_t device_t::read_buffer[buffer_size];
 
   namespace {
 
@@ -30,15 +30,15 @@ namespace led_d
     //auto empty_delay = std::chrono::milliseconds (30);
 
     // fixme: !!!
-    // auto spi_delay = 5;
-    // auto spi_mode = 0;
-    // auto spi_bits = 8;
-    // auto spi_speed = 1000;
+    // auto device_delay = 5;
+    // auto device_mode = 0;
+    // auto device_bits = 8;
+    // auto device_speed = 1000;
 
   } // namespace anonymous
 
-  spi_t::spi_t (const std::string &/*path*/,
-                mcu_queue_t &to_queue, mcu_queue_t &from_queue, bool show_msg)
+  device_t::device_t (const std::string &/*path*/, mcu_queue_t &to_queue,
+                      mcu_queue_t &from_queue, bool show_msg)
     : //m_path (path),
       //m_device (0),
       m_go (true),
@@ -48,14 +48,14 @@ namespace led_d
   {
   }
 
-  spi_t::~spi_t ()
+  device_t::~device_t ()
   {
     m_bitbang.stop ();
 
     m_gpio.stop ();
   }
 
-  void spi_t::start ()
+  void device_t::start ()
   {
     // gpio is first, we need to enable level shifter
     m_gpio.start ();
@@ -83,7 +83,7 @@ namespace led_d
     }
   }
 
-  void spi_t::stop ()
+  void device_t::stop ()
   {
     m_go = false;
 
@@ -92,7 +92,7 @@ namespace led_d
     // fixme: smth else ???
   }
 
-  void spi_t::write_msg (const mcu_msg_t &msg_src)
+  void device_t::write_msg (const mcu_msg_t &msg_src)
   {
     char_t serial_id = mcu::decode::get_serial (msg_src);
 
@@ -150,7 +150,7 @@ namespace led_d
       }
   }
 
-  // void spi_t::spi_write (uint32_t msg_size)
+  // void device_t::device_write (uint32_t msg_size)
   // {
   //   spi_ioc_transfer buf;
   //   buf.tx_buf =  (unsigned long) write_buffer;

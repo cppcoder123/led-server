@@ -69,7 +69,7 @@ namespace led_info_d
     using codec_t = unix::codec_t<refsymbol_t>;
 
     std::size_t len = 0;
-    if ((codec_t::decode<response_t> (in, len) == false)
+    if ((codec_t::decode (in, len) == false)
         || (in.size () < len))
       // msg is not arrived
       return;

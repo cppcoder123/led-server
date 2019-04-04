@@ -1,19 +1,19 @@
 /*
  *
  */
-#ifndef SPI_PARSE_HPP
-#define SPI_PARSE_HPP
+#ifndef PARSE_HPP
+#define PARSE_HPP
 
 #include "type-def.hpp"
 
 namespace led_d
 {
 
-  class spi_parse_t
+  class parse_t
   {
   public:
-    spi_parse_t () = default;
-    ~spi_parse_t () = default;
+    parse_t () = default;
+    ~parse_t () = default;
 
     // return true if complete msg is arrived,
     // unwrap-ed msg is assigned to 'msg'

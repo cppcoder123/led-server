@@ -65,7 +65,7 @@ namespace led_d
     using codec_t = unix::codec_t<unix::refsymbol_t>;
 
     std::size_t text_len = 0;
-    while (codec_t::decode<unix::request_t> (info, text_len) == true) {
+    while (codec_t::decode (info, text_len) == true) {
       std::string text = info.substr (0, text_len);
       info = info.substr(text_len);
       m_queue.push
