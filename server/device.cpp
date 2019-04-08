@@ -66,10 +66,12 @@ namespace led_d
     m_to_queue.push
       (mcu::encode::join (serial::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
 
+    // fixme:
+    // It is better to avoid using delay here,
+    // but unclear how to do it
     while (m_go == true) {
-      if (((m_block.is_engaged () == true)
-           && (m_gpio.is_irq_raised () == false))
-          || (m_to_queue.empty () == true)) {
+      if ((m_block.is_engaged () == true)
+          && (m_gpio.is_irq_raised () == false)) {
         std::this_thread::sleep_for (block_delay);
         continue;
       }
