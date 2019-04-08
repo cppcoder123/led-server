@@ -67,8 +67,9 @@ namespace led_d
       (mcu::encode::join (serial::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
 
     while (m_go == true) {
-      if ((m_block.is_engaged () == true)
-          && (m_gpio.is_irq_raised () == false)) {
+      if (((m_block.is_engaged () == true)
+           && (m_gpio.is_irq_raised () == false))
+          || (m_to_queue.empty () == true)) {
         std::this_thread::sleep_for (block_delay);
         continue;
       }
