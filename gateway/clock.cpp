@@ -16,7 +16,6 @@
 
 #include "clock.hpp"
 #include "daemon.hpp"
-#include "delay.hpp"
 
 namespace led_info_d
 {

@@ -6,19 +6,37 @@
 
 namespace led_d
 {
+  namespace {
+    static const matrix_t filler_a = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
+    static const matrix_t filler_b = {0x0B, 0x0B, 0x0B, 0x0B, 0x0B};
+  }
+
+  font_t::font_t ()
+    : m_vector {id_max + 1, filler_a}
+  {
+  }
+
   const matrix_t& font_t::get (char s) const
   {
-    static matrix_t unknown_symbol{0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
-
-    auto iter = m_map.find (s);
-    if (iter == m_map.cend ())
-      return unknown_symbol;
-
-    return iter->second;
+    return (is_in_range (s) == true)
+      ? m_vector[to_id (s)] : filler_b;
   }
 
   void font_t::add (char s, const matrix_t &matrix)
   {
-    m_map.emplace (s, matrix);
+    if (is_in_range (s) == false)
+      return;
+
+    m_vector[to_id (s)] = matrix;
+  }
+
+  bool font_t::is_in_range (char s)
+  {
+    return ((s >= id_min) && (s <= id_max)) ? true : false;
+  }
+
+  std::size_t font_t::to_id (char s)
+  {
+    return static_cast<std::size_t>(s);
   }
 } // namespace led_d

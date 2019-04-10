@@ -70,19 +70,19 @@ namespace led_d
     // It is better to avoid using delay here,
     // but unclear how to do it
     while (m_go == true) {
-      if ((m_block.is_engaged () == true)
-          && (m_gpio.is_irq_raised () == false)) {
-        std::this_thread::sleep_for (block_delay);
+      if (m_gpio.is_irq_raised () == true) {
+        write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
         continue;
       }
-      if (m_gpio.is_irq_raised () == true) {
-        // we are interested in gpio-irq only if 'to_queue' is empty
-        write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
+      if (m_block.is_engaged () == true) {
+        std::this_thread::sleep_for (block_delay);
         continue;
       }
       auto msg = m_to_queue.pop ();
       if (msg)
         write_msg (*msg);
+      else
+        std::this_thread::sleep_for (block_delay);
     }
   }
 

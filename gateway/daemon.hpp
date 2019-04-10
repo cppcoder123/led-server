@@ -18,7 +18,6 @@
 
 #include "arg.hpp"
 #include "content.hpp"
-#include "delay.hpp"
 #include "priority.hpp"
 
 namespace led_info_d

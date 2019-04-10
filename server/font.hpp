@@ -4,7 +4,7 @@
 #ifndef FONT_HPP
 #define FONT_HPP
 
-#include <unordered_map>
+#include <vector>
 
 #include "matrix.hpp"
 
@@ -16,7 +16,7 @@ namespace led_d
 
   public:
 
-    font_t () {};
+    font_t ();
     ~font_t () {};
 
     const matrix_t& get (char s) const;
@@ -24,8 +24,15 @@ namespace led_d
 
   private:
 
-    using map_t = std::unordered_map<char, matrix_t>;
-    map_t m_map;
+    static bool is_in_range (char s);
+    static std::size_t to_id (char s);
+
+    using vector_t = std::vector<matrix_t>;
+
+    static const auto id_min = 0;
+    static const auto id_max = 127;
+
+    vector_t m_vector;
   };
 
 } // namespace led_d
