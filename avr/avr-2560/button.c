@@ -18,17 +18,17 @@
 #define HANDLE_BEFORE_PROCESS 2
 #define HANDLE_PROCESS 3
 
-/* #define HANDLE_FIRST HANDLE_BEFORE_PROCESS */
-/* #define HANDLE_LAST HANDLE_PROCESS */
-
 #define STATE_LENGTH 2
 
+/*10 touch pads, 1 is for reference, so 0-8 => 9 buttons*/
 #define MIN_BUTTON 0
 #define MAX_BUTTON 8
 
 #define NUM_CYCLES (MAX_BUTTON + 1)
 
 #define MUX3_MASK ((1 << MUX0) | (1 << MUX1) | (1 << MUX2))
+
+#define DRIVE_PIN_MASK (1 << PORTA0)
 
 volatile data_t handle;
 
@@ -119,6 +119,14 @@ static void process_data_array ()
   current_button = MIN_BUTTON;
 }
 
+static void pulse (data_t bool_value)
+{
+  if (bool_value == TRUE)
+    PORTA |= DRIVE_PIN_MASK;
+  else
+    PORTA &= ~DRIVE_PIN_MASK;
+}
+
 static void enable_comparator ()
 {
   /* fixme */
@@ -188,6 +196,10 @@ static void generate_pulse ()
   select_button ();
   is_button_pressed = FALSE;
   enable_comparator ();
+  /*wait a bit before comparator switched on*/
+  asm ("nop");
+  asm ("nop");
+  pulse (TRUE);
 }
 
 void button_init ()
@@ -200,6 +212,8 @@ void button_init ()
   current_button = MIN_BUTTON;
 
   timer_init ();
+
+  DDRA |= DRIVE_PIN_MASK;
 }
 
 void button_try ()
@@ -212,6 +226,7 @@ void button_try ()
     generate_pulse ();
     handle = HANDLE_BEFORE_PROCESS;
   } else {
+    pulse (FALSE);
     process_data ();
     handle = HANDLE_BEFORE_PULSE;
   }
