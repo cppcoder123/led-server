@@ -148,8 +148,8 @@ static void timer_init ()
 
   /* set OCRA*/
   /*we want aprox 1.5kHz, so 4mHz / 1024 = 4kHz,*/
-  /* we need to divide freq by 2: 0xFF - 2 */
-  OCR2A = 253;
+  /* we need to divide freq by 2: */
+  OCR2A = 2;
 
   /* compare with OCRA and enable timer2 interrupt */
   TIMSK2 |= ((1 << OCIE2A) | (1 << TOIE2));
@@ -219,6 +219,7 @@ void button_try ()
 
 ISR (TIMER2_COMPA_vect)
 {
+  /* timer value TCNT2 should be cleared by hardware, right? */
   /* fixme */
   if (handle == HANDLE_BEFORE_PULSE)
     handle = HANDLE_PULSE;
