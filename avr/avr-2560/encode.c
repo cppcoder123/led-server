@@ -41,3 +41,15 @@ void encode_msg_2 (data_t msg_id, data_t serial_id,
 
   postpone_message (out_buf, ++len, serial_id);
 }
+
+void encode_msg_3 (data_t msg_id, data_t serial_id,
+                   data_t payload_1, data_t payload_2, data_t payload_3)
+{
+  uint8_t len = encode_msg (msg_id, serial_id, 5);
+
+  out_buf[++len] = payload_1;
+  out_buf[++len] = payload_2;
+  out_buf[++len] = payload_3;
+
+  postpone_message (out_buf, ++len, serial_id);
+}

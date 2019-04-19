@@ -39,6 +39,7 @@ int main ()
   init ();
 
   while (1) {
+    button_try ();
     buzz_try ();
     decode_try ();
     flush_try ();

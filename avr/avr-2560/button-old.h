@@ -6,6 +6,4 @@
 
 void button_init ();
 
-void button_try ();
-
 #endif

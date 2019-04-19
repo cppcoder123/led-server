@@ -5,253 +5,228 @@
 #include <stdint.h>
 
 #include "mcu/constant.h"
-#include "encode.h"
+
 #include "button.h"
+#include "encode.h"
+#include "data-type.h"
 
-/*
- * Handling
- */
+#define TRUE 1
+#define FALSE 0
 
-#define SIZE 8
+#define HANDLE_BEFORE_PULSE 0
+#define HANDLE_PULSE 1
+#define HANDLE_BEFORE_PROCESS 2
+#define HANDLE_PROCESS 3
 
-/*fixme: adjust*/
-#define VOLTAGE_LOW_THRESHOLD 110
-#define VOLTAGE_HIGH_THRESHOLD 160
+/* #define HANDLE_FIRST HANDLE_BEFORE_PROCESS */
+/* #define HANDLE_LAST HANDLE_PROCESS */
 
-#define SRC_LOW(x) PORTA &= ~(1 << x)
-#define SRC_HIGH(x) PORTA |= (1 << x)
+#define STATE_LENGTH 2
 
-#define MUX_MASK ((1 << MUX0) | (1 << MUX1) | (1 << MUX2))
-#define SELECT_BUTTON(x) ADMUX &= ~MUX_MASK; ADMUX |= x
+#define MIN_BUTTON 0
+#define MAX_BUTTON 8
 
-/*we have 0.1sec adc cycle, so aprox 0.7 sec is a threshold*/
-#define TIME_THRESHOLD 7
+#define NUM_CYCLES (MAX_BUTTON + 1)
 
-/*
- * Timer
- */
+#define MUX3_MASK ((1 << MUX0) | (1 << MUX1) | (1 << MUX2))
 
-/*CSn1 => 1/8 => timer clock 2Mhz*/
-#define SHORT_PRESCALER (1 << CS51)
+volatile data_t handle;
 
-/*slowest clock to make a pause between measures*/
-#define LONG_PRESCALER ((1 << CS50) | (1 << CS52))
+volatile data_t is_button_pressed;
 
-/*tool to stop the timer*/
-#define PRESCALER_MASK (SHORT_PRESCALER | (LONG_PRESCALER))
+// 9 buttons => 1 char is not enough
+static data_t prev_state[STATE_LENGTH];
+static data_t current_state[STATE_LENGTH];
 
-#define STOP_TIMER TCCR5B &= ~PRESCALER_MASK
+static data_t button_state[STATE_LENGTH];
 
-/*
- * We want to measure middle of rising front,
- * human capacity ~100-200 pF and we have 1M
- * resistor, so (100*10^-12) * (1-^6) = 0.1 msec.
- * So half of rising time should be 0.05 msec = 50 usec.
- * With 2mHz clock we need 100 (or 200) cycles
- */
-#define SHORT_DELAY 110
+static data_t interval;
 
-/*
- * We need aprox. 10 measures per second
- * 16 mHz / 1024 => 15625 kHz
- * 10 measures per second => 1562
- */
-#define LONG_DELAY 1562
-
-#define SLOW_MODE                               \
-  OCR5A = LONG_DELAY;                           \
-  TCCR5B |= LONG_PRESCALER;
-
-#define FAST_MODE                               \
-  OCR5A = SHORT_DELAY;                          \
-  TCCR5B |= SHORT_PRESCALER;
-
-enum {
-  BUTTON_0,
-  BUTTON_1,
-  BUTTON_2,
-  BUTTON_3,
-  BUTTON_4,
-  BUTTON_5,
-  BUTTON_6,
-  BUTTON_7,
-  BUTTON_MAX = BUTTON_7,
-  BUTTON_UNKNOWN
-};
-uint8_t button;
-
-/*
- * Handling
- */
-
-static uint8_t push_flag;
-static uint8_t release_flag;
-
-static uint8_t push_time[SIZE];
-static uint8_t release_time[SIZE];
-
-static uint8_t time;
+static data_t current_button;
 
 
-static void init_timer ()
+static void state_copy (data_t *src, data_t *dst)
 {
-  /*CTC mode with OCR5A*/
-  TCCR5B |= (1 << WGM52);
-
-  /*enable output compare A interrupt*/
-  TIMSK5 |= (1 << OCIE5A);
-
-  SLOW_MODE;
+  *dst = *src;
+  *(dst + 1) = *(src + 1);
 }
 
-static void init_adc ()
+static data_t state_equal (data_t *a, data_t *b)
 {
-  /*
-   * Enable adc, enable interrupt,
-   * prescaler: 16mHz/128 = 125kHz
-   */
-  ADCSRA |= (1 << ADEN) | (1 << ADIE)
-    | (1 << ADPS0) | (1 << ADPS1) | (1 << ADPS2);
-
-  /*ref voltage: AVCC, right adjust result, 8 bits are used*/
-  ADMUX |= (1 << REFS0) | (1 << ADLAR);
-
-  /*disable digital input on adc pins 0-7*/
-  DIDR0 = 0xFF;
+  return ((*a == *b) && (*(a + 1) == *(b + 1))) ? TRUE : FALSE;
 }
 
-static void reset ()
+static void state_update (data_t *src, data_t *dst)
 {
-  /*call after msg sent*/
-  /*fixme: */
-  push_flag = release_flag = 0;
-  uint8_t i = 0;
-  for (i = 0; i < SIZE; ++i)
-    push_time[i] = release_time[i] = 0;
+  /* 'or' and save to dst*/
+  *dst |= *src;
+  *(dst + 1) |= *(src + 1);
 }
 
-static void start_button ()
+static data_t state_is_zero (data_t *s)
 {
-  /*stop for a moment*/
-  STOP_TIMER;
-  
-  /*adjust adc for write input*/
-  SELECT_BUTTON (button);
-
-  /*change voltage level at right pin*/
-  SRC_HIGH (button);
-
-  /*wait a bit, to measure right voltage*/
-  FAST_MODE;
+  return ((*s == 0) && (*(s+1) == 0)) ? TRUE : FALSE;
 }
 
-static void finish_button ()
+static void state_init (data_t *s)
 {
-  SRC_LOW (button);
-  uint8_t voltage = ADCH;
-  uint8_t mask = (1 << button);
-  if ((voltage < VOLTAGE_LOW_THRESHOLD)
-      && ((push_flag & mask) == 0)) {
-    push_flag |= mask;
-    push_time[button] = time;
-  } else if ((voltage > VOLTAGE_HIGH_THRESHOLD)
-             && ((push_flag & mask) != 0)
-             && ((release_flag & mask) == 0)) {
-    release_flag |= mask;
-    release_time[button] = time;
+  *s = 0;
+  *(s + 1) = 0;
+}
+
+static void state_raise_bit (data_t *s, data_t bit)
+{
+  if (bit <= 7)
+    *s |= (1 << bit);
+  else
+    *(s + 1) |= (1 << (bit - 7));
+}
+
+static void send_message ()
+{
+  encode_msg_3 (MSG_ID_BUTTON, SERIAL_ID_TO_IGNORE,
+                button_state[0], button_state[1], interval);
+}
+
+static void process_data_button ()
+{
+  if (is_button_pressed == TRUE)
+    state_raise_bit (current_state, current_button);
+
+  ++current_button;
+}
+
+static void process_data_array ()
+{
+  if (state_equal (current_state, prev_state) == FALSE)
+    // smth is pressed or released
+    state_update (current_state, button_state);
+
+  if (state_is_zero (current_state) == FALSE)
+    // at least one button is pressed
+      ++interval;
+  else if (state_is_zero (button_state) == FALSE) {
+    /* all button released now but there was a press before, */
+    /* so we need to generate a message */
+    send_message ();
+    interval = 0;
+    state_init (button_state);
+    state_init (current_state);
   }
+
+  state_copy (current_state, prev_state);
+  state_init (current_state);
+  current_button = MIN_BUTTON;
 }
 
-static void start_adc ()
+static void enable_comparator ()
 {
-  STOP_TIMER;
-  ADCSRA |= (1 << ADSC);
+  /* fixme */
+  /* enable comparator*/
+  ADCSRB |= (1 << ACME);
+
+  /* enable interrupt, interrupt on rising */
+  ACSR |= (1 << ACIE) | (1 << ACIS1) | (1 << ACIS0);
+
+  /*disable digital input*/
+  DIDR1 |= (1 << AIN1D) | (1 << AIN0D);
 }
 
-enum {
-  SHORT_PRESS,
-  LONG_PRESS
-};
-uint8_t process_time (uint8_t push, uint8_t release)
+static void disable_comparator ()
 {
-  uint8_t delta = (push <= release) ? release - push
-    : (0xFF - push + release);
+  /* fixme ?*/
+  ADCSRB &= ~(1 << ACME);
+}
 
-  return (delta <= TIME_THRESHOLD) ? SHORT_PRESS : LONG_PRESS;
+static void timer_init ()
+{
+  /* 1024 clock prescaler*/
+  TCCR2B |= ((1 << CS22) | (1 << CS21) | (1 << CS20));
+
+  /* CTC with OCRA */
+  TCCR2A |= (1 << WGM21);
+
+  /* set OCRA*/
+  /*we want aprox 1.5kHz, so 4mHz / 1024 = 4kHz,*/
+  /* we need to divide freq by 2: 0xFF - 2 */
+  OCR2A = 253;
+
+  /* compare with OCRA and enable timer2 interrupt */
+  TIMSK2 |= ((1 << OCIE2A) | (1 << TOIE2));
+}
+
+static void select_button ()
+{
+  /* fixme */
+
+  ADMUX &= ~MUX3_MASK;
+  ADCSRB &= ~(1 << MUX5);
+
+  /*we are counting buttons from 0, so*/
+  if (current_button > 7)
+    ADCSRB |= (1 << MUX5);
+
+  ADMUX |= (current_button & MUX3_MASK);
 }
 
 static void process_data ()
 {
-  if ((push_flag == 0)
-      || (push_flag != release_flag))
-    return;
-
-  uint8_t short_press = 0;
-  uint8_t long_press = 0;
-  uint8_t i;
-  for (i = 0; i < SIZE; ++i) {
-    uint8_t mask = (1 << i);
-    if ((push_flag & mask) != 0) {
-      uint8_t bias = process_time (push_time[i], release_time[i]);
-      switch (bias) {
-      case SHORT_PRESS:
-        short_press |= mask;
-        break;
-      case LONG_PRESS:
-        long_press |= mask;
-        break;
-      default:
-        break;
-      }
-    }
-  }
-
-  /*either short or long should not be zero*/
-  encode_msg_2 (MSG_ID_BUTTON, 0, short_press, long_press);
-
-  reset ();
+  if (current_button == NUM_CYCLES)
+    process_data_array ();
+  else
+    process_data_button ();
 }
 
-/*----------------------------------------*/
+static void generate_pulse ()
+{
+  if (current_button == NUM_CYCLES) {
+    disable_comparator ();
+    return;
+  }
+
+  disable_comparator ();
+  select_button ();
+  is_button_pressed = FALSE;
+  enable_comparator ();
+}
 
 void button_init ()
 {
-  /*fixme*/
-  time = 0;
-  button = BUTTON_UNKNOWN;
+  handle = HANDLE_BEFORE_PULSE;
+  interval = 0;
+  state_init (current_state);
+  state_init (prev_state);
+  state_init (button_state);
+  current_button = MIN_BUTTON;
 
-  init_timer ();
-  init_adc ();
-
-  /*configure whole port A as output*/
-  PORTA = 0xFF;
+  timer_init ();
 }
 
-ISR (TIMER5_COMPA_vect)
+void button_try ()
 {
-  if (button == BUTTON_UNKNOWN) {
-    button = BUTTON_0;
-    start_button ();
+  if ((handle != HANDLE_PULSE)
+      || (handle != HANDLE_PROCESS))
     return;
-  }
 
-  /*
-   * We can get here only if we are waiting for the middle of the front
-   */
-  start_adc ();
+  if (handle == HANDLE_PULSE) {
+    generate_pulse ();
+    handle = HANDLE_BEFORE_PROCESS;
+  } else {
+    process_data ();
+    handle = HANDLE_BEFORE_PULSE;
+  }
 }
 
-ISR (ADC_vect)
+ISR (TIMER2_COMPA_vect)
 {
-  finish_button ();
-  if (button < BUTTON_MAX) {
-    ++button;
-    start_button ();
-    return;
-  }
+  /* fixme */
+  if (handle == HANDLE_BEFORE_PULSE)
+    handle = HANDLE_PULSE;
+  else if (handle == HANDLE_BEFORE_PROCESS)
+    handle = HANDLE_PROCESS;
+}
 
-  process_data ();
-  ++time;
-  button = BUTTON_UNKNOWN;
-  SLOW_MODE;
+ISR (ANALOG_COMP_vect)
+{
+  is_button_pressed = TRUE;
 }
