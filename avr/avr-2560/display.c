@@ -10,7 +10,7 @@
 
 #include "mcu/constant.h"
 
-#include "bitbang.h"
+#include "display.h"
 #include "encode.h"
 
 /* Achtung: Update also direction setup !*/
@@ -90,16 +90,16 @@ static void flush_bit (uint8_t bit)
        flush_bit ((x) & (1 << i));              \
   }
 
-void bitbang_init ()
+void display_init ()
 {
   /*fixme*/
   DDRL |= (1 << DDL3) | (1 << DDL2) | (1 << DDL1);
 
   /*debug: it should be called outside: fixme */
-  bitbang_start ();
+  display_start ();
 }
 
-void bitbang_start ()
+void display_start ()
 {
   /*fixme*/
   CS_ACTIVATE;
@@ -112,7 +112,7 @@ void bitbang_start ()
   CS_DEACTIVATE;
 }
 
-void bitbang_stop ()
+void display_stop ()
 {
   /*fixme*/
   CS_ACTIVATE;
@@ -121,7 +121,7 @@ void bitbang_stop ()
   CS_DEACTIVATE;
 }
 
-void bitbang_mono_start ()
+void display_mono_start ()
 {
   /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 177); */
   /*fixme*/
@@ -130,7 +130,7 @@ void bitbang_mono_start ()
   FLUSH_ZERO_ADDRESS;
 }
 
-void bitbang_mono (data_t data)
+void display_mono (data_t data)
 {
   /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 199); */
   /*fixme*/
@@ -140,13 +140,13 @@ void bitbang_mono (data_t data)
   FLUSH_HALF_BYTE (high);
 }
 
-void bitbang_mono_stop ()
+void display_mono_stop ()
 {
   /*fixme*/
   CS_DEACTIVATE;
 }
 
-void bitbang_brightness (data_t value)
+void display_brightness (data_t value)
 {
   CS_ACTIVATE;
   FLUSH_PREFIX (PREFIX_CMD);

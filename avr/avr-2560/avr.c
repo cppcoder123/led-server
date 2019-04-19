@@ -4,11 +4,11 @@
 
 #include <avr/interrupt.h>
 
-#include "bitbang.h"
 #include "button.h"
 #include "buzz.h"
 #include "decode.h"
 #include "debug.h"
+#include "display.h"
 #include "flush.h"
 #include "postpone.h"
 #include "power.h"
@@ -23,7 +23,7 @@ static void init ()
   buzz_init ();
   debug_init ();
   decode_init ();
-  bitbang_init ();
+  display_init ();
   flush_init ();
   postpone_init ();
   power_init ();

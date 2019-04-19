@@ -4,7 +4,7 @@
 
 #include "mcu/constant.h"
 
-#include "bitbang.h"
+#include "display.h"
 #include "encode.h"
 #include "flush.h"
 #include "ring.h"
@@ -90,16 +90,16 @@ void flush_try ()
       ring_symbol_fill (mono_data, 0);
   }
 
-  bitbang_mono_start ();
+  display_mono_start ();
 
   uint8_t symbol;
   for (uint8_t i = 0; i < MATRIX_SIZE; ++i)
     if (ring_symbol_get (mono_data, i, &symbol) != 0)
-      bitbang_mono (symbol);
+      display_mono (symbol);
     else
-      bitbang_mono (1);
+      display_mono (1);
 
-  bitbang_mono_stop ();
+  display_mono_stop ();
 
   if (mode == FLUSH_SHIFT)
     ring_symbol_drain (mono_data, &symbol);

@@ -7,12 +7,12 @@ TARGET_ELF = $(TARGET).elf
 
 OBJECT_LIST = \
   avr.o \
-  bitbang.o \
   button.o \
   buzz.o \
   clock.o \
   debug.o \
   decode.o \
+  display.o \
   encode.o \
   flush.o \
   postpone.o \
