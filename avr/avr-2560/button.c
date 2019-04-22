@@ -13,6 +13,9 @@
 #define TRUE 1
 #define FALSE 0
 
+/* 0, 1 .. 7 => 8 bits */
+#define WORD_SIZE 8
+
 #define HANDLE_BEFORE_PULSE 0
 #define HANDLE_PULSE 1
 #define HANDLE_BEFORE_PROCESS 2
@@ -76,10 +79,10 @@ static void state_init (data_t *s)
 
 static void state_raise_bit (data_t *s, data_t bit)
 {
-  if (bit <= 7)
+  if (bit < WORD_SIZE)
     *s |= (1 << bit);
   else
-    *(s + 1) |= (1 << (bit - 7));
+    *(s + 1) |= (1 << (bit - WORD_SIZE));
 }
 
 static void send_message ()
@@ -171,7 +174,7 @@ static void select_button ()
   ADCSRB &= ~(1 << MUX5);
 
   /*we are counting buttons from 0, so*/
-  if (current_button > 7)
+  if (current_button >= WORD_SIZE)
     ADCSRB |= (1 << MUX5);
 
   ADMUX |= (current_button & MUX3_MASK);
