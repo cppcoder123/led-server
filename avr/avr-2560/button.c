@@ -23,9 +23,9 @@
 
 #define STATE_LENGTH 2
 
-/*10 touch pads, 1 is for reference, so 0-8 => 9 buttons*/
+/*12 touch pads, 1 is for reference, so 0-10 => 11 buttons*/
 #define MIN_BUTTON 0
-#define MAX_BUTTON 8
+#define MAX_BUTTON 10
 
 #define NUM_CYCLES (MAX_BUTTON + 1)
 
