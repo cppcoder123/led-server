@@ -8,7 +8,7 @@
 
 #include "button.h"
 #include "encode.h"
-#include "data-type.h"
+#include <stdint.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -33,51 +33,51 @@
 
 #define DRIVE_PIN_MASK (1 << PORTA0)
 
-volatile data_t handle;
+volatile uint8_t handle;
 
-volatile data_t is_button_pressed;
+volatile uint8_t is_button_pressed;
 
 // 9 buttons => 1 char is not enough
-static data_t prev_state[STATE_LENGTH];
-static data_t current_state[STATE_LENGTH];
+static uint8_t prev_state[STATE_LENGTH];
+static uint8_t current_state[STATE_LENGTH];
 
-static data_t button_state[STATE_LENGTH];
+static uint8_t button_state[STATE_LENGTH];
 
-static data_t interval;
+static uint8_t interval;
 
-static data_t current_button;
+static uint8_t current_button;
 
 
-static void state_copy (data_t *src, data_t *dst)
+static void state_copy (uint8_t *src, uint8_t *dst)
 {
   *dst = *src;
   *(dst + 1) = *(src + 1);
 }
 
-static data_t state_equal (data_t *a, data_t *b)
+static uint8_t state_equal (uint8_t *a, uint8_t *b)
 {
   return ((*a == *b) && (*(a + 1) == *(b + 1))) ? TRUE : FALSE;
 }
 
-static void state_update (data_t *src, data_t *dst)
+static void state_update (uint8_t *src, uint8_t *dst)
 {
   /* 'or' and save to dst*/
   *dst |= *src;
   *(dst + 1) |= *(src + 1);
 }
 
-static data_t state_is_zero (data_t *s)
+static uint8_t state_is_zero (uint8_t *s)
 {
   return ((*s == 0) && (*(s+1) == 0)) ? TRUE : FALSE;
 }
 
-static void state_init (data_t *s)
+static void state_init (uint8_t *s)
 {
   *s = 0;
   *(s + 1) = 0;
 }
 
-static void state_raise_bit (data_t *s, data_t bit)
+static void state_raise_bit (uint8_t *s, uint8_t bit)
 {
   if (bit < WORD_SIZE)
     *s |= (1 << bit);
@@ -122,7 +122,7 @@ static void process_data_array ()
   current_button = MIN_BUTTON;
 }
 
-static void pulse (data_t bool_value)
+static void pulse (uint8_t bool_value)
 {
   if (bool_value == TRUE)
     PORTA |= DRIVE_PIN_MASK;

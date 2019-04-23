@@ -2,13 +2,14 @@
  *
  */
 
-#include "data-type.h"
+#include <stdint.h>
+
 #include "flush.h"
 #include "render.h"
 
 #define LETTER_SIZE 5
 
-static data_t slim_font[] = {
+static uint8_t slim_font[] = {
   0x3E, 0x51, 0x49, 0x45, 0x3E, // 0
   0x00, 0x42, 0x7F, 0x40, 0x00, // 1
   0x42, 0x61, 0x51, 0x49, 0x46, // 2

@@ -2,9 +2,10 @@
  *
  */
 
+#include <stdint.h>
+
 #include "mcu/constant.h"
 
-#include "data-type.h"
 #include "debug.h"
 #include "decode.h"
 #include "encode.h"
@@ -24,9 +25,9 @@ static uint8_t msg_size;
 static uint8_t msg_serial;
 static uint8_t msg_id;
 
-static data_t in_buf[IN_SIZE];
+static uint8_t in_buf[IN_SIZE];
 
-static uint8_t is_decodable (data_t msg_id)
+static uint8_t is_decodable (uint8_t msg_id)
 {
   /*fixme*/
   return 1;
@@ -81,7 +82,7 @@ void decode_try ()
 
   /*header decode*/
   if (decoded == 0) {
-    data_t symbol;
+    uint8_t symbol;
     if (spi_read_symbol (&symbol) == 0)
       return;                   /* wait */
     if (symbol != EYE_CATCH)

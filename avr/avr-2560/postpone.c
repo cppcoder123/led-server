@@ -11,7 +11,7 @@
 
 #define ENOUGH_SPACE (LED_ARRAY_SIZE + MSG_OVERHEAD)
 
-static data_t postponed_message[BUF_SIZE];
+static uint8_t postponed_message[BUF_SIZE];
 static uint8_t postponed_size;
 
 static uint8_t is_enough_space ()
@@ -19,7 +19,7 @@ static uint8_t is_enough_space ()
   return (spi_read_space () >= ENOUGH_SPACE) ? 1 : 0;
 }
 
-static void flush (data_t *msg, uint8_t msg_size)
+static void flush (uint8_t *msg, uint8_t msg_size)
 {
   spi_write_array (msg, msg_size);
 }
@@ -41,7 +41,7 @@ void postpone_try ()
   postponed_size = 0;
 }
 
-void postpone_message (data_t *msg, uint8_t msg_size, data_t serial_id)
+void postpone_message (uint8_t *msg, uint8_t msg_size, uint8_t serial_id)
 {
   if (serial_id == SERIAL_ID_TO_IGNORE) {
     flush (msg, msg_size);

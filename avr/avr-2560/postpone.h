@@ -4,12 +4,12 @@
 #ifndef POSTPONE_H
 #define POSTPONE_H
 
-#include "data-type.h"
+#include <stdint.h>
 
 void postpone_init ();
 
 void postpone_try ();
 
-void postpone_message (data_t *msg, uint8_t msg_size, data_t serial_id);
+void postpone_message (uint8_t *msg, uint8_t msg_size, uint8_t serial_id);
 
 #endif

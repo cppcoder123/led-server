@@ -4,13 +4,13 @@
 #ifndef BUZZ_H
 #define BUZZ_H
 
-#include "data-type.h"
+#include <stdint.h>
 
 void buzz_init ();
 
-uint8_t buzz_add_data (data_t pitch,
-                       data_t sound_duration,
-                       data_t silence_duration);
+uint8_t buzz_add_data (uint8_t pitch,
+                       uint8_t sound_duration,
+                       uint8_t silence_duration);
 
 void buzz_try ();
 

@@ -9,9 +9,9 @@
 
 #define OUT_SIZE 10
 
-static data_t out_buf[OUT_SIZE];
+static uint8_t out_buf[OUT_SIZE];
 
-static uint8_t encode_msg (data_t msg_id, data_t serial_id, data_t size)
+static uint8_t encode_msg (uint8_t msg_id, uint8_t serial_id, uint8_t size)
 {
   uint8_t len = 0;
 
@@ -23,7 +23,7 @@ static uint8_t encode_msg (data_t msg_id, data_t serial_id, data_t size)
   return len;
 }
 
-void encode_msg_1 (data_t msg_id, data_t serial_id, data_t payload_1)
+void encode_msg_1 (uint8_t msg_id, uint8_t serial_id, uint8_t payload_1)
 {
   uint8_t len = encode_msg (msg_id, serial_id, 3);
   out_buf[++len] = payload_1;
@@ -31,8 +31,8 @@ void encode_msg_1 (data_t msg_id, data_t serial_id, data_t payload_1)
   postpone_message (out_buf, ++len, serial_id);
 }
 
-void encode_msg_2 (data_t msg_id, data_t serial_id,
-                   data_t payload_1, data_t payload_2)
+void encode_msg_2 (uint8_t msg_id, uint8_t serial_id,
+                   uint8_t payload_1, uint8_t payload_2)
 {
   uint8_t len = encode_msg (msg_id, serial_id, 4);
 
@@ -42,8 +42,8 @@ void encode_msg_2 (data_t msg_id, data_t serial_id,
   postpone_message (out_buf, ++len, serial_id);
 }
 
-void encode_msg_3 (data_t msg_id, data_t serial_id,
-                   data_t payload_1, data_t payload_2, data_t payload_3)
+void encode_msg_3 (uint8_t msg_id, uint8_t serial_id,
+                   uint8_t payload_1, uint8_t payload_2, uint8_t payload_3)
 {
   uint8_t len = encode_msg (msg_id, serial_id, 5);
 

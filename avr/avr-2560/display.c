@@ -130,7 +130,7 @@ void display_mono_start ()
   FLUSH_ZERO_ADDRESS;
 }
 
-void display_mono (data_t data)
+void display_mono (uint8_t data)
 {
   /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 199); */
   /*fixme*/
@@ -146,7 +146,7 @@ void display_mono_stop ()
   CS_DEACTIVATE;
 }
 
-void display_brightness (data_t value)
+void display_brightness (uint8_t value)
 {
   CS_ACTIVATE;
   FLUSH_PREFIX (PREFIX_CMD);

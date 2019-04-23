@@ -39,9 +39,9 @@
 
 #define SOUND_SIZE 128
 
-volatile data_t sound[SOUND_SIZE];
+volatile uint8_t sound[SOUND_SIZE];
 volatile uint8_t mode;
-static data_t pause;
+static uint8_t pause;
 
 enum {
   IDLE,
@@ -73,9 +73,9 @@ void buzz_init ()
   ring_symbol_fill (sound, 10);
 }
 
-uint8_t buzz_add_data (data_t pitch,
-                       data_t sound_duration,
-                       data_t silence_duration)
+uint8_t buzz_add_data (uint8_t pitch,
+                       uint8_t sound_duration,
+                       uint8_t silence_duration)
 {
   return ((ring_symbol_fill (sound, pitch) != 0)
           && (ring_symbol_fill (sound, sound_duration) != 0)

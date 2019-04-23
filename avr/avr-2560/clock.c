@@ -8,9 +8,9 @@
 #include "render.h"
 #include "timer.h"
 
-volatile data_t v_hour;
-volatile data_t v_min;
-volatile data_t v_sec;
+volatile uint8_t v_hour;
+volatile uint8_t v_min;
+volatile uint8_t v_sec;
 
 /*return 1 if we need to refresh display, 0 otherwise*/
 static uint8_t time_advance ()
@@ -62,7 +62,7 @@ static void advance ()
   }
 }
 
-void clock_sync (data_t hour, data_t min, data_t sec)
+void clock_sync (uint8_t hour, uint8_t min, uint8_t sec)
 {
   v_hour = hour;
   v_min = min;

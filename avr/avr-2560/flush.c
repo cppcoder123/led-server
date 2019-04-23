@@ -14,7 +14,7 @@
 /* fixme: should we make less than max ?*/
 #define MONO_SIZE 255
 
-volatile data_t mono_data[MONO_SIZE];
+volatile uint8_t mono_data[MONO_SIZE];
 
 enum {
   FLUSH_SHIFT,
@@ -55,12 +55,12 @@ void flush_disable ()
   global_mode = FLUSH_GLOBAL_DISABLED;
 }
 
-uint8_t flush_push_mono (data_t symbol)
+uint8_t flush_push_mono (uint8_t symbol)
 {
   return ring_symbol_fill (mono_data, symbol);
 }
 
-uint8_t flush_push_mono_array (data_t *arr, uint8_t arr_size)
+uint8_t flush_push_mono_array (uint8_t *arr, uint8_t arr_size)
 {
   return ring_array_fill (mono_data, arr, arr_size);
 }
@@ -109,7 +109,7 @@ void flush_try ()
   mode = FLUSH_DISABLED;
 }
 
-/* void led_flush_mono (data_t *matrix) */
+/* void led_flush_mono (uint8_t *matrix) */
 /* { */
 /*   /\*fixme*\/ */
 /* } */

@@ -20,8 +20,8 @@
 
 #define FLAG_WRITE_INTERRUPT (1 << 0)
 
-volatile data_t read_buf[READ_SIZE];
-volatile data_t write_buf[WRITE_SIZE];
+volatile uint8_t read_buf[READ_SIZE];
+volatile uint8_t write_buf[WRITE_SIZE];
 
 volatile uint8_t flag;
 
@@ -63,12 +63,12 @@ void spi_init ()
   SPCR = (1 << SPIE) | (1 << SPE);
 }
 
-uint8_t spi_read_symbol (data_t *symbol)
+uint8_t spi_read_symbol (uint8_t *symbol)
 {
   return ring_symbol_drain (read_buf, symbol);
 }
 
-uint8_t spi_read_array (data_t *arr, uint8_t arr_size)
+uint8_t spi_read_array (uint8_t *arr, uint8_t arr_size)
 {
   return ring_array_drain (read_buf, arr, arr_size);
 }
@@ -83,7 +83,7 @@ uint8_t spi_read_size ()
   return ring_size (read_buf);
 }
 
-uint8_t spi_write_array (data_t *array, uint8_t array_size)
+uint8_t spi_write_array (uint8_t *array, uint8_t array_size)
 {
   write_interrupt_start ();
   return ring_array_fill (write_buf, array, array_size);
@@ -104,7 +104,7 @@ ISR (SPI_STC_vect)
   /*long interrupt handling?*/
   SPDR = SPI_WRITE_UNDERFLOW;
 
-  data_t to_send;
+  uint8_t to_send;
   if (ring_symbol_drain (write_buf, &to_send) != 0) {
     SPDR = to_send;
   } else {
