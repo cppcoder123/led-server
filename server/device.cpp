@@ -21,26 +21,13 @@
 namespace led_d
 {
 
-  char_t device_t::write_buffer[buffer_size];
-  char_t device_t::read_buffer[buffer_size];
-
   namespace {
-
     auto block_delay = std::chrono::milliseconds (1);
-    //auto empty_delay = std::chrono::milliseconds (30);
-
-    // fixme: !!!
-    // auto device_delay = 5;
-    // auto device_mode = 0;
-    // auto device_bits = 8;
-    // auto device_speed = 1000;
-
   } // namespace anonymous
 
   device_t::device_t (const std::string &/*path*/, mcu_queue_t &to_queue,
                       mcu_queue_t &from_queue, bool show_msg)
     : //m_path (path),
-      //m_device (0),
       m_go (true),
       m_to_queue (to_queue),
       m_from_queue (from_queue),
@@ -50,7 +37,7 @@ namespace led_d
 
   device_t::~device_t ()
   {
-    m_bitbang.stop ();
+    m_spi.stop ();
 
     m_gpio.stop ();
   }
@@ -61,7 +48,7 @@ namespace led_d
     m_gpio.start ();
 
     // open unix device
-    m_bitbang.start (m_gpio.get_chip ());
+    m_spi.start ();
 
     m_to_queue.push
       (mcu::encode::join (serial::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
@@ -90,7 +77,7 @@ namespace led_d
   {
     m_go = false;
 
-    m_bitbang.stop ();
+    m_spi.stop ();
 
     // fixme: smth else ???
   }
@@ -109,7 +96,7 @@ namespace led_d
       m_block.engage (serial_id);
 
     mcu_msg_t in_msg;
-    m_bitbang.transfer (msg, in_msg);
+    m_spi.transfer (msg, in_msg);
 
     if (m_show_msg == true) {
       log_t::buffer_t buf;
@@ -152,49 +139,5 @@ namespace led_d
         }
       }
   }
-
-  // void device_t::device_write (uint32_t msg_size)
-  // {
-  //   spi_ioc_transfer buf;
-  //   buf.tx_buf =  (unsigned long) write_buffer;
-  //   buf.rx_buf =  (unsigned long) read_buffer;
-  //   buf.len = msg_size;
-  //   buf.delay_usecs = spi_delay;
-  //   buf.speed_hz = 0;
-  //   buf.bits_per_word = 0;
-  //
-  //   if (ioctl (m_device, SPI_IOC_MESSAGE (1), &buf) < 0) {
-  //     log_t::buffer_t buf;
-  //     buf << "spi: Failed to send spi message to mcu";
-  //     log_t::error (buf);
-  //   }
-  // }
-  //
-  // void spi_t::device_stop ()
-  // {
-  //   if (m_device > 0) {
-  //     close (m_device);
-  //     m_device = 0;
-  //   }
-  // }
-  //
-  // void spi_t::device_start ()
-  // {
-  //   m_device = open (m_path.c_str (), O_RDWR);
-  //   if (m_device < 0)
-  //     throw std::runtime_error ("Failed to open spi device");
-  //   if (ioctl (m_device, SPI_IOC_WR_MODE, &spi_mode) < 0)
-  //     throw std::runtime_error ("Failed to set spi write mode");
-  //   if (ioctl (m_device, SPI_IOC_RD_MODE, &spi_mode) < 0)
-  //     throw std::runtime_error ("Failed to set spi read mode");
-  //   if (ioctl (m_device, SPI_IOC_WR_BITS_PER_WORD, &spi_bits) < 0)
-  //     throw std::runtime_error ("Failed to set spi write bits");
-  //   if (ioctl (m_device, SPI_IOC_RD_BITS_PER_WORD, &spi_bits) < 0)
-  //     throw std::runtime_error ("Failed to set spi read bits");
-  //   if (ioctl (m_device, SPI_IOC_WR_MAX_SPEED_HZ, &spi_speed) < 0)
-  //     throw std::runtime_error ("Failed to set spi write speed");
-  //   if (ioctl (m_device, SPI_IOC_RD_MAX_SPEED_HZ, &spi_speed) < 0)
-  //     throw std::runtime_error ("Failed to set spi read speed");
-  // }
 
 } // namespace led_d

@@ -8,11 +8,11 @@
 
 #include <string>
 
-#include "bitbang.hpp"
 #include "block.hpp"
 #include "gpio.hpp"
 #include "handle.hpp"
 #include "parse.hpp"
+#include "spi.hpp"
 #include "type-def.hpp"
 
 namespace led_d
@@ -47,16 +47,12 @@ namespace led_d
     mcu_queue_t &m_from_queue;  // from spi
 
     gpio_t m_gpio;
-    bitbang_t m_bitbang;
+    spi_t m_spi;
 
     block_t m_block;
     parse_t m_parse;
 
     bool m_show_msg;
-
-    static const auto buffer_size = 32;
-    static char_t write_buffer[buffer_size];
-    static char_t read_buffer[buffer_size];
   };
 
 } // namespace led_d
