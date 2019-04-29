@@ -79,9 +79,9 @@ namespace led_d
     // the only purpose of this object is to free memory
     // allocated for the r/w buffers at the end of app execution
     static unix::final_action_t<std::function<void ()>>
-      remove_me ([&] () {delete [] write_buf; delete [] read_buf;});
+      remove_buf ([&] () {delete [] write_buf; delete [] read_buf;});
 
-    auto realloc = [] (char *space, std::size_t new_size) {
+    auto realloc = [] (char *&space, std::size_t new_size) {
       delete [] space;
       space = new char [new_size];
     };
@@ -91,6 +91,11 @@ namespace led_d
       realloc (write_buf, out.size ());
       realloc (read_buf, out.size ());
     }
+
+    std::size_t i = 0;
+    std::for_each (out.begin (), out.end (), [&] (char_t info) {
+        write_buf[i++] = info;
+      });
 
     spi_ioc_transfer buf;
     buf.tx_buf =  (unsigned long) write_buf;
@@ -104,7 +109,11 @@ namespace led_d
       log_t::buffer_t buf;
       buf << "spi: Failed to send spi message to mcu";
       log_t::error (buf);
+      return;
     }
+
+    for (i = 0; i < out.size (); ++i)
+      in.push_back (read_buf[i]);
   }
 
   void spi_t::drain ()
