@@ -7,6 +7,7 @@
 #include "mcu/constant.h"
 
 #include "button.h"
+#include "debug.h"
 #include "encode.h"
 
 #define TRUE 1
@@ -46,6 +47,7 @@ static uint8_t interval;
 
 static uint8_t current_button;
 
+static uint8_t debug;
 
 static void state_copy (uint8_t *src, uint8_t *dst)
 {
@@ -132,20 +134,26 @@ static void pulse (uint8_t bool_value)
 static void enable_comparator ()
 {
   /* fixme */
-  /* enable comparator*/
-  ADCSRB |= (1 << ACME);
 
+  /*clear interrupt flag*/
+  //ACSR &= ~((1 << ACI) | (1 << ACIS1) | (1 << ACIS0));
+  ACSR &= ~(1 << ACI);
+  
   /* enable interrupt, interrupt on rising */
-  ACSR |= (1 << ACIE) | (1 << ACIS1) | (1 << ACIS0);
+  /* ACSR |= (1 << ACIE) | (1 << ACIS1) | (1 << ACIS0); */
+  ACSR |= (1 << ACIE);
 
-  /*disable digital input*/
-  DIDR1 |= (1 << AIN1D) | (1 << AIN0D);
+  /* enable comparator multiplexer*/
+  /* ADCSRB |= (1 << ACME); fixme */
 }
 
 static void disable_comparator ()
 {
   /* fixme ?*/
-  ADCSRB &= ~(1 << ACME);
+  ACSR &= ~(1 << ACIE);
+
+  /* fixme !!! */
+  /* ADCSRB &= ~(1 << ACME); */
 }
 
 static void timer_init ()
@@ -195,13 +203,14 @@ static void generate_pulse ()
   }
 
   disable_comparator ();
-  select_button ();
+  /* pulse (FALSE); fixme*/
+  /* select_button (); */
   is_button_pressed = FALSE;
   enable_comparator ();
   /*wait a bit before comparator switched on*/
   asm ("nop");
   asm ("nop");
-  pulse (TRUE);
+  /* pulse (TRUE); fixme*/
 }
 
 void button_init ()
@@ -216,13 +225,27 @@ void button_init ()
   timer_init ();
 
   DDRA |= DRIVE_PIN_MASK;
+
+  /*disable digital input*/
+  DIDR1 |= (1 << AIN1D) | (1 << AIN0D);
+
+  ACSR |= ((1 << ACIS1) | (1 << ACIS0));
+
+  debug = 0;
 }
 
 void button_try ()
 {
   if ((handle != HANDLE_PULSE)
-      || (handle != HANDLE_PROCESS))
+      && (handle != HANDLE_PROCESS))
     return;
+
+  /* if (debug == 0) { */
+  /*   debug = 1; */
+  /*   encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, handle); */
+  /* } else { */
+  /*   debug = 0; */
+  /* } */
 
   if (handle == HANDLE_PULSE) {
     generate_pulse ();
@@ -246,5 +269,7 @@ ISR (TIMER2_COMPA_vect)
 
 ISR (ANALOG_COMP_vect)
 {
+  if (is_button_pressed == FALSE)
+    encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, current_button);
   is_button_pressed = TRUE;
 }

@@ -17,8 +17,7 @@ void debug_init ()
 
 void debug_switch (uint8_t state)
 {
-  /*reverse polarity, to turn it on we need to set low level*/
-  if (state == 0)
+  if (state != 0)
     PORTC |= (1 << LED_PORT);
   else
     PORTC &= ~(1 << LED_PORT);

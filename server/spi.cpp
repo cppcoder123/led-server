@@ -3,9 +3,10 @@
 //
 
 #include <stdint.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <getopt.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -22,11 +23,11 @@
 
 namespace
 {
-  constexpr const char* path = "/dev/spidev1.0";
-  constexpr unsigned long mode = SPI_MODE_0;
-  constexpr unsigned long word_size = 0;      // 8 bits per word
-  constexpr unsigned long speed = 1000;       // 1kHz ?
-  constexpr unsigned short delay = 1000;      // 1 millisecond ?
+  constexpr const char* path = "/dev/spidev0.0";
+  constexpr uint8_t mode = SPI_MODE_0;
+  constexpr uint8_t word_size = 8;      // 8 bits per word
+  constexpr uint32_t speed = 1000;       // 1kHz ?
+  constexpr uint16_t delay = 1000;      // 1 millisecond ?
 }
 
 namespace led_d
@@ -47,18 +48,23 @@ namespace led_d
     if (m_device < 0)
       throw std::runtime_error ("Failed to open spi device");
 
-    if (ioctl (m_device, SPI_IOC_WR_MODE, &mode) < 0)
+    uint8_t ioc_mode = mode;
+    if (ioctl (m_device, SPI_IOC_WR_MODE, &ioc_mode) < 0)
       throw std::runtime_error ("Failed to set spi write mode");
-    // if (ioctl (m_device, SPI_IOC_RD_MODE, &mode) < 0)
-    //   throw std::runtime_error ("Failed to set spi read mode");
-    if (ioctl (m_device, SPI_IOC_WR_BITS_PER_WORD, &word_size) < 0)
+    if (ioctl (m_device, SPI_IOC_RD_MODE, &ioc_mode) < 0)
+      throw std::runtime_error ("Failed to set spi read mode");
+
+    uint8_t ioc_bits = word_size;
+    if (ioctl (m_device, SPI_IOC_WR_BITS_PER_WORD, &ioc_bits) < 0)
       throw std::runtime_error ("Failed to set spi write bits");
-    // if (ioctl (m_device, SPI_IOC_RD_BITS_PER_WORD, &word_size) < 0)
-    //   throw std::runtime_error ("Failed to set spi read bits");
-    if (ioctl (m_device, SPI_IOC_WR_MAX_SPEED_HZ, &speed) < 0)
+    if (ioctl (m_device, SPI_IOC_RD_BITS_PER_WORD, &ioc_bits) < 0)
+      throw std::runtime_error ("Failed to set spi read bits");
+
+    uint32_t ioc_speed = speed;
+    if (ioctl (m_device, SPI_IOC_WR_MAX_SPEED_HZ, &ioc_speed) < 0)
       throw std::runtime_error ("Failed to set spi write speed");
-    // if (ioctl (m_device, SPI_IOC_RD_MAX_SPEED_HZ, &speed) < 0)
-    //   throw std::runtime_error ("Failed to set spi read speed");
+    if (ioctl (m_device, SPI_IOC_RD_MAX_SPEED_HZ, &ioc_speed) < 0)
+      throw std::runtime_error ("Failed to set spi read speed");
 
     drain ();
   }
@@ -72,8 +78,8 @@ namespace led_d
 
   void spi_t::transfer (const mcu_msg_t &out, mcu_msg_t &in)
   {
-    static char *write_buf = nullptr;
-    static char *read_buf = nullptr;
+    static uint8_t *write_buf = nullptr;
+    static uint8_t *read_buf = nullptr;
     static std::size_t buf_size = 0;
 
     // the only purpose of this object is to free memory
@@ -81,9 +87,9 @@ namespace led_d
     static unix::final_action_t<std::function<void ()>>
       remove_buf ([&] () {delete [] write_buf; delete [] read_buf;});
 
-    auto realloc = [] (char *&space, std::size_t new_size) {
+    auto realloc = [] (uint8_t *&space, std::size_t new_size) {
       delete [] space;
-      space = new char [new_size];
+      space = new uint8_t [new_size];
     };
 
     if (out.size () > buf_size) {
@@ -97,7 +103,9 @@ namespace led_d
         write_buf[i++] = info;
       });
 
-    spi_ioc_transfer buf;
+    struct spi_ioc_transfer buf;
+    memset (&buf, 0, sizeof (buf));
+    
     buf.tx_buf =  (unsigned long) write_buf;
     buf.rx_buf =  (unsigned long) read_buf;
     buf.len = out.size ();
@@ -105,10 +113,11 @@ namespace led_d
     buf.speed_hz = 0;
     buf.bits_per_word = 0;
 
-    if (ioctl (m_device, SPI_IOC_MESSAGE (1), &buf) < 0) {
-      log_t::buffer_t buf;
-      buf << "spi: Failed to send spi message to mcu";
-      log_t::error (buf);
+    errno = 0;
+    if (ioctl (m_device, SPI_IOC_MESSAGE(1), &buf) < 0) {
+      log_t::buffer_t msg;
+      msg << "spi: Failed to send spi message to mcu: " << errno;
+      log_t::error (msg);
       return;
     }
 
@@ -121,16 +130,30 @@ namespace led_d
     static const std::size_t max_attempt = 20;
     static const std::size_t msg_size = 50;
 
-    mcu_msg_t to_mcu, from_mcu;
-
     for (std::size_t i = 0; i < max_attempt; ++i) {
-      to_mcu.clear ();
-      std::fill_n (to_mcu.begin (), msg_size, 0);
-      from_mcu.clear ();
+      mcu_msg_t to_mcu (msg_size, 0);
+      // to_mcu.clear ();
+      // std::generate_n (to_mcu.begin (), msg_size, [](){return 0;});
+      // log_t::buffer_t buf;
+      // buf << "spi: to-mcu msg size : " << to_mcu.size ();
+      // log_t::info (buf);
+      // buf.clear ();
+      mcu_msg_t from_mcu;
+      // from_mcu.clear ();
       transfer (to_mcu, from_mcu);
+      // log_t::buffer_t buf;
+      // buf << "spi: from-mcu msg size : " << from_mcu.size ();
+      // log_t::info (buf);
       if (std::count (from_mcu.begin (),
                       from_mcu.end (), SPI_WRITE_UNDERFLOW) == msg_size)
         return;
+      std::for_each (from_mcu.begin (), from_mcu.end (), [](uint8_t val){
+          if (val != SPI_WRITE_UNDERFLOW) {
+            log_t::buffer_t buf;
+            buf << "AAA: spi: from-mcu not normal : " << (unsigned) val;
+            log_t::info (buf);
+          }
+        });
     }
 
     throw std::runtime_error ("spi: Failed to drain Spi channel");
