@@ -13,7 +13,7 @@ void timer_disable ();
 
 /* #define TIMER_TEN_PER_SECOND 1562 */
 /* #define TIMER_TEN_PER_SECOND 156 */
-#define TIMER_TEN_PER_SECOND 77
+#define TIMER_TEN_PER_SECOND 77 /*fixme: tune this values, should be greater? */
 #define TIMER_ONE_PER_SECOND 15625
 
 typedef void (*timer_function) ();

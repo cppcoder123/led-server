@@ -5,7 +5,7 @@
 #include <avr/interrupt.h>
 
 #include "button.h"
-#include "buzz.h"
+//#include "buzz.h"
 #include "decode.h"
 #include "debug.h"
 #include "display.h"
@@ -20,7 +20,7 @@ static void init ()
   spi_init ();
 
   button_init ();
-  buzz_init ();
+  //buzz_init ();
   debug_init ();
   decode_init ();
   display_init ();
@@ -40,7 +40,7 @@ int main ()
 
   while (1) {
     button_try ();
-    buzz_try ();
+    //buzz_try ();
     decode_try ();
     flush_try ();
     postpone_try ();

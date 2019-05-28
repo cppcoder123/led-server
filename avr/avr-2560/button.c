@@ -10,55 +10,50 @@
 #include "debug.h"
 #include "encode.h"
 
-#define TRUE 1
-#define FALSE 0
-
 /* 0, 1 .. 7 => 8 bits */
 #define WORD_SIZE 8
-
-#define HANDLE_BEFORE_PULSE 0
-#define HANDLE_PULSE 1
-#define HANDLE_BEFORE_PROCESS 2
-#define HANDLE_PROCESS 3
 
 #define STATE_LENGTH 2
 
 /*12 touch pads, 1 is for reference, so 0-10 => 11 buttons*/
 #define MIN_BUTTON 0
-#define MAX_BUTTON 10
+#define MAX_BUTTON 12
 
 #define NUM_CYCLES (MAX_BUTTON + 1)
 
-#define MUX3_MASK ((1 << MUX0) | (1 << MUX1) | (1 << MUX2))
+#define MUX_LOW_MASK ((1 << MUX0) | (1 << MUX1) | (1 << MUX2))
+#define MUX_HIGH_MASK (1 << MUX5)
 
-#define DRIVE_PIN_MASK (1 << PORTA0)
+#define TEST_PIN_MASK (1 << PORTA0)
 
-volatile uint8_t handle;
+/*measured_time is greater => button is pressed*/
+#define TIME_THRESHOLD 200
 
-volatile uint8_t is_button_pressed;
+/*
+ * 'fsm' shuld change between charge and discharge to handle all buttons
+ * and the it should go to report to report if smth is pressed
+ */
 
-// 9 buttons => 1 char is not enough
+enum fsm_t {
+  FSM_BEFORE_CHARGE,
+  FSM_CHARGE,
+  FSM_BEFORE_DISCHARGE,
+  FSM_DISCHARGE,
+  FSM_REPORT            /* send message if button(s) is(are) pressed*/
+};
+
+volatile uint8_t fsm;
+
+// button state pressed or released
+// 12 buttons => 1 char is not enough
 static uint8_t prev_state[STATE_LENGTH];
-static uint8_t current_state[STATE_LENGTH];
+static uint8_t curr_state[STATE_LENGTH];
 
-static uint8_t button_state[STATE_LENGTH];
+volatile uint8_t current_button;
 
-static uint8_t interval;
-
-static uint8_t current_button;
+volatile uint16_t measured_time;
 
 static uint8_t debug;
-
-static void state_copy (uint8_t *src, uint8_t *dst)
-{
-  *dst = *src;
-  *(dst + 1) = *(src + 1);
-}
-
-static uint8_t state_equal (uint8_t *a, uint8_t *b)
-{
-  return ((*a == *b) && (*(a + 1) == *(b + 1))) ? TRUE : FALSE;
-}
 
 static void state_update (uint8_t *src, uint8_t *dst)
 {
@@ -69,7 +64,7 @@ static void state_update (uint8_t *src, uint8_t *dst)
 
 static uint8_t state_is_zero (uint8_t *s)
 {
-  return ((*s == 0) && (*(s+1) == 0)) ? TRUE : FALSE;
+  return ((*s == 0) && (*(s+1) == 0)) ? 1 : 0;
 }
 
 static void state_init (uint8_t *s)
@@ -86,190 +81,239 @@ static void state_raise_bit (uint8_t *s, uint8_t bit)
     *(s + 1) |= (1 << (bit - WORD_SIZE));
 }
 
-static void send_message ()
+static void adjust_opamp_input ()
 {
-  encode_msg_3 (MSG_ID_BUTTON, SERIAL_ID_TO_IGNORE,
-                button_state[0], button_state[1], interval);
+  ADMUX &= ~MUX_LOW_MASK;
+  ADCSRB &= ~MUX_HIGH_MASK;
+
+  if (current_button > WORD_SIZE)
+    ADCSRB |= MUX_HIGH_MASK;
+
+  ADMUX |= (current_button & MUX_LOW_MASK);
 }
 
-static void process_data_button ()
+static void first_button ()
 {
-  if (is_button_pressed == TRUE)
-    state_raise_bit (current_state, current_button);
-
-  ++current_button;
-}
-
-static void process_data_array ()
-{
-  if (state_equal (current_state, prev_state) == FALSE)
-    // smth is pressed or released
-    state_update (current_state, button_state);
-
-  if (state_is_zero (current_state) == FALSE)
-    // at least one button is pressed
-      ++interval;
-  else if (state_is_zero (button_state) == FALSE) {
-    /* all button released now but there was a press before, */
-    /* so we need to generate a message */
-    send_message ();
-    interval = 0;
-    state_init (button_state);
-    state_init (current_state);
-  }
-
-  state_copy (current_state, prev_state);
-  state_init (current_state);
   current_button = MIN_BUTTON;
+  adjust_opamp_input ();
 }
 
-static void pulse (uint8_t bool_value)
+static void next_button ()
 {
-  if (bool_value == TRUE)
-    PORTA |= DRIVE_PIN_MASK;
-  else
-    PORTA &= ~DRIVE_PIN_MASK;
+  ++current_button;
+  if (current_button < MAX_BUTTON)
+    adjust_opamp_input ();
 }
 
-static void enable_comparator ()
+static void test_pin_rise ()
 {
-  /* fixme */
-
-  /*clear interrupt flag*/
-  //ACSR &= ~((1 << ACI) | (1 << ACIS1) | (1 << ACIS0));
-  ACSR &= ~(1 << ACI);
-  
-  /* enable interrupt, interrupt on rising */
-  /* ACSR |= (1 << ACIE) | (1 << ACIS1) | (1 << ACIS0); */
-  ACSR |= (1 << ACIE);
-
-  /* enable comparator multiplexer*/
-  /* ADCSRB |= (1 << ACME); fixme */
+  PORTA |= TEST_PIN_MASK;
 }
 
-static void disable_comparator ()
+static void test_pin_fall ()
 {
-  /* fixme ?*/
-  ACSR &= ~(1 << ACIE);
-
-  /* fixme !!! */
-  /* ADCSRB &= ~(1 << ACME); */
+  PORTA &= ~TEST_PIN_MASK;
 }
 
-static void timer_init ()
+static void enable_opamp ()
 {
-  /* 1024 clock prescaler*/
-  TCCR2B |= ((1 << CS22) | (1 << CS21) | (1 << CS20));
-
-  /* CTC with OCRA */
-  TCCR2A |= (1 << WGM21);
-
-  /* set OCRA*/
-  /*we want aprox 1.5kHz, so 4mHz / 1024 = 4kHz,*/
-  /* we need to divide freq by 2: */
-  OCR2A = 2;
-
-  /* compare with OCRA and enable timer2 interrupt */
-  TIMSK2 |= ((1 << OCIE2A) | (1 << TOIE2));
+  ACSR |= (1 << ACIC);
 }
 
-static void select_button ()
+static void disable_opamp ()
 {
-  /* fixme */
-
-  ADMUX &= ~MUX3_MASK;
-  ADCSRB &= ~(1 << MUX5);
-
-  /*we are counting buttons from 0, so*/
-  if (current_button >= WORD_SIZE)
-    ADCSRB |= (1 << MUX5);
-
-  ADMUX |= (current_button & MUX3_MASK);
+  ACSR &= ~(1 << ACIC);
 }
 
-static void process_data ()
+static void enable_capture ()
 {
-  if (current_button == NUM_CYCLES)
-    process_data_array ();
-  else
-    process_data_button ();
+  TIMSK1 |= (1 << ICIE1);
 }
 
-static void generate_pulse ()
+static void disable_capture ()
 {
-  if (current_button == NUM_CYCLES) {
-    disable_comparator ();
+  TIMSK1 &= ~(1 << ICIE1);
+}
+
+static void enable_compare_a ()
+{
+  TCCR1B |= (1 << WGM12);
+
+  /*TOIE1, should we set it?*/
+  TIMSK1 |= (1 << OCIE1A);
+}
+
+static void disable_compare_a ()
+{
+  TCCR1B &= ~(1 << WGM12);
+  TIMSK1 &= ~(1 << OCIE1A);
+}
+
+static void front_wait ()
+{
+  enable_opamp ();
+  enable_capture ();
+
+  TCNT1 = 0;
+}
+
+static void relax_wait ()
+{
+  enable_compare_a ();
+
+  TCNT1 = 0;
+}
+
+static void disable_interrupt ()
+{
+  disable_opamp ();
+  disable_capture ();
+  disable_compare_a ();
+}
+
+static void process_key ()
+{
+  if (measured_time >= TIME_THRESHOLD)
+    state_raise_bit (curr_state, current_button);
+
+  measured_time = 0;
+}
+
+static void process_keyboard ()
+{
+  uint8_t prev = state_is_zero (prev_state);
+  uint8_t curr = state_is_zero (curr_state);
+
+  if ((prev != 0) && (curr != 0))
+    return;
+
+  if (curr == 0) {
+    state_update (curr_state, prev_state);
     return;
   }
 
-  disable_comparator ();
-  /* pulse (FALSE); fixme*/
-  /* select_button (); */
-  is_button_pressed = FALSE;
-  enable_comparator ();
-  /*wait a bit before comparator switched on*/
-  asm ("nop");
-  asm ("nop");
-  /* pulse (TRUE); fixme*/
+  /*
+   * 'curr_state' is zero, all buttons are released,
+   * but 'prev_state' is not zero here, so we need 
+   * to send a message
+   */
+  encode_msg_2 (MSG_ID_BUTTON, SERIAL_ID_TO_IGNORE, prev_state[0], prev_state[1]);
+
+  /*
+   * Clear
+   */
+  state_init (prev_state);
+  state_init (curr_state);
+}
+
+static void init_opamp ()
+{
+  /* output */
+  DDRA |= TEST_PIN_MASK;
+  
+  /*disable digital input*/
+  DIDR1 |= (1 << AIN1D) | (1 << AIN0D);
+
+  /*multiplexer enable*/
+  ADCSRB |= (1 << ACME);
+
+  /*
+   * select bandgap at positive input
+   * ----- clear interrupt flag, ??? ----
+   * ----- enable comparator interrupt (removed?), ----
+   * ----- enable input capture, (enabled seprately)
+   * event on rising front (2 last flags)
+   */
+
+  ACSR |= ((1 << ACBG) | (1 << ACIS1) | (1 << ACIS0));
+}
+
+static void init_timer ()
+{
+  /*
+   * Load resistor should be 100K.
+   * if button is released then relax time is ~ 2x10(-3) sec,
+   * if it is pressed  then relax time is ~4x10(-3) sec,
+   * so it looks 1024 is too big prescaler,
+   * lets use 64 prescaler.
+   * So released button should generate intr at with counter 128,
+   * pressed with counter 256 or more.
+   * We have 16 bit counter, so everything should be OK.
+   */
+  TCCR1B |= ((1 << CS11) | (1 << CS10));
+
+  /*
+   * compare a mode used to relax, so it should be more than a pressed time,
+   * so, lets say 1000
+   */
+  OCR1A = 1000;
 }
 
 void button_init ()
 {
-  handle = HANDLE_BEFORE_PULSE;
-  interval = 0;
-  state_init (current_state);
+  state_init (curr_state);
   state_init (prev_state);
-  state_init (button_state);
-  current_button = MIN_BUTTON;
+  /**/
+  fsm = FSM_BEFORE_CHARGE;
+  first_button ();
+  test_pin_fall ();
+  relax_wait ();
 
-  timer_init ();
+  init_timer ();
 
-  DDRA |= DRIVE_PIN_MASK;
-
-  /*disable digital input*/
-  DIDR1 |= (1 << AIN1D) | (1 << AIN0D);
-
-  ACSR |= ((1 << ACIS1) | (1 << ACIS0));
+  init_opamp ();
 
   debug = 0;
 }
 
 void button_try ()
 {
-  if ((handle != HANDLE_PULSE)
-      && (handle != HANDLE_PROCESS))
+  if (!((fsm == FSM_BEFORE_CHARGE)
+        || (fsm == FSM_BEFORE_DISCHARGE)
+        || (fsm == FSM_REPORT)))
     return;
 
-  /* if (debug == 0) { */
-  /*   debug = 1; */
-  /*   encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, handle); */
-  /* } else { */
-  /*   debug = 0; */
-  /* } */
-
-  if (handle == HANDLE_PULSE) {
-    generate_pulse ();
-    handle = HANDLE_BEFORE_PROCESS;
-  } else {
-    pulse (FALSE);
-    process_data ();
-    handle = HANDLE_BEFORE_PULSE;
+  switch (fsm) {
+  case FSM_BEFORE_CHARGE:
+    front_wait ();
+    test_pin_rise ();
+    fsm = FSM_CHARGE;
+    break;
+  case FSM_BEFORE_DISCHARGE:
+    test_pin_fall ();
+    process_key ();
+    next_button ();
+    relax_wait ();
+    fsm = FSM_DISCHARGE;
+    break;
+  case FSM_REPORT:
+    process_keyboard ();        /* if needed */
+    first_button ();
+    fsm = FSM_BEFORE_CHARGE;
+    break;
+  default:
+    break;
   }
 }
 
-ISR (TIMER2_COMPA_vect)
+ISR (TIMER1_CAPT_vect)
 {
-  /* timer value TCNT2 should be cleared by hardware, right? */
-  /* fixme */
-  if (handle == HANDLE_BEFORE_PULSE)
-    handle = HANDLE_PULSE;
-  else if (handle == HANDLE_BEFORE_PROCESS)
-    handle = HANDLE_PROCESS;
+  disable_interrupt ();
+  measured_time = ICR1;
+  fsm = FSM_BEFORE_DISCHARGE;
 }
 
-ISR (ANALOG_COMP_vect)
+ISR (TIMER1_COMPA_vect)
 {
-  if (is_button_pressed == FALSE)
-    encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, current_button);
-  is_button_pressed = TRUE;
+  disable_interrupt ();
+
+  if (fsm == FSM_DISCHARGE)
+    fsm = (current_button < MAX_BUTTON) ? FSM_BEFORE_CHARGE : FSM_REPORT;
 }
+
+/* ISR (ANALOG_COMP_vect) */
+/* { */
+/*   if (is_button_pressed == FALSE) */
+/*     encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, current_button); */
+/*   is_button_pressed = TRUE; */
+/* } */

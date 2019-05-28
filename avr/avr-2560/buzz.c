@@ -51,7 +51,8 @@ volatile uint8_t mode;
 
 void buzz_init ()
 {
-  /* fixme */
+  /* fixme: disabled */
+  return;
 
   ring_init (sound, SOUND_SIZE);
   mode = IDLE;
@@ -77,6 +78,9 @@ uint8_t buzz_add_data (uint8_t pitch,
                        uint8_t sound_duration,
                        uint8_t silence_duration)
 {
+  /*fixme: disabled*/
+  return 1;
+  
   return ((ring_symbol_fill (sound, pitch) != 0)
           && (ring_symbol_fill (sound, sound_duration) != 0)
           && (ring_symbol_fill (sound, silence_duration) != 0))
@@ -85,6 +89,9 @@ uint8_t buzz_add_data (uint8_t pitch,
 
 void buzz_try ()
 {
+  /*fixme: disabled now*/
+  return;
+  
   if ((mode != IDLE)
       || (ring_size (sound) < 3))
     return;

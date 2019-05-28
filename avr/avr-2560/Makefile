@@ -5,10 +5,10 @@ TARGET = avr
 TARGET_HEX = $(TARGET).hex
 TARGET_ELF = $(TARGET).elf
 
+#  buzz.o
 OBJECT_LIST = \
   avr.o \
   button.o \
-  buzz.o \
   clock.o \
   debug.o \
   decode.o \
