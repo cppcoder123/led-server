@@ -15,7 +15,8 @@ namespace
   auto chip_name = "gpiochip0";
 
   auto enable_offset = 5;       // fixme: check
-  auto irq_offset = 26;         // fixme: check
+  //auto irq_offset = 26;         // fixme: check
+  auto irq_offset = 23;         // fixme: check
 
   auto consumer = "led-d";
 

@@ -27,7 +27,9 @@ namespace
   constexpr uint8_t mode = SPI_MODE_0;
   constexpr uint8_t word_size = 8;      // 8 bits per word
   constexpr uint32_t speed = 1000;       // 1kHz ?
-  constexpr uint16_t delay = 1000;      // 1 millisecond ?
+  //constexpr uint32_t speed = 20;       // 1kHz ?
+  //constexpr uint16_t delay = 1000;      // 1 millisecond ?
+  constexpr uint16_t delay = 65535;      // 65 ms?
 }
 
 namespace led_d
@@ -127,23 +129,27 @@ namespace led_d
 
   void spi_t::drain ()
   {
-    static const std::size_t max_attempt = 20;
+    static const std::size_t max_attempt = 50;
     static const std::size_t msg_size = 50;
 
     for (std::size_t i = 0; i < max_attempt; ++i) {
-      mcu_msg_t to_mcu (msg_size, 0);
+      mcu_msg_t to_mcu (msg_size, 233);
+      // --------------------------------------------------
       // to_mcu.clear ();
       // std::generate_n (to_mcu.begin (), msg_size, [](){return 0;});
       // log_t::buffer_t buf;
       // buf << "spi: to-mcu msg size : " << to_mcu.size ();
       // log_t::info (buf);
       // buf.clear ();
+      // --------------------------------------------------
       mcu_msg_t from_mcu;
       // from_mcu.clear ();
       transfer (to_mcu, from_mcu);
+      // --------------------------------------------------
       // log_t::buffer_t buf;
       // buf << "spi: from-mcu msg size : " << from_mcu.size ();
       // log_t::info (buf);
+      // --------------------------------------------------
       if (std::count (from_mcu.begin (),
                       from_mcu.end (), SPI_WRITE_UNDERFLOW) == msg_size)
         return;

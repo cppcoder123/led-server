@@ -56,10 +56,12 @@ namespace led_d
     // fixme:
     // It is better to avoid using delay here,
     // but unclear how to do it
+    //
     // We need to add second template parameter for queue
     // as mutex type and then pass either std::mutex as before
     // or pass std::ref(std::mutex) to share it between 2 queues
     // (or other things)
+
     while (m_go == true) {
       if (m_gpio.is_irq_raised () == true) {
         write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));

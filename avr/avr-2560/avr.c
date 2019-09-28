@@ -41,7 +41,7 @@ int main ()
   while (1) {
     //buzz_try ();
     decode_try ();
-    flush_try ();
+    //flush_try ();
     keyboard_try ();
     postpone_try ();
   }

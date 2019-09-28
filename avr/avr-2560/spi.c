@@ -85,8 +85,9 @@ uint8_t spi_read_size ()
 
 uint8_t spi_write_array (uint8_t *array, uint8_t array_size)
 {
+  uint8_t status = ring_array_fill (write_buf, array, array_size);
   write_interrupt_start ();
-  return ring_array_fill (write_buf, array, array_size);
+  return status;
 }
 
 ISR (SPI_STC_vect)
@@ -102,7 +103,7 @@ ISR (SPI_STC_vect)
   }
 
   /*long interrupt handling?*/
-  SPDR = SPI_WRITE_UNDERFLOW;
+  /* SPDR = SPI_WRITE_UNDERFLOW; */
 
   uint8_t to_send;
   if (ring_symbol_drain (write_buf, &to_send) != 0) {

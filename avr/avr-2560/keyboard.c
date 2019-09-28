@@ -17,7 +17,8 @@
 
 /*12 touch pads, 1 is for reference, so 0-10 => 11 buttons*/
 #define MIN_BUTTON 0
-#define MAX_BUTTON 12
+/* #define MAX_BUTTON 12 */
+#define MAX_BUTTON 2
 
 #define NUM_CYCLES (MAX_BUTTON + 1)
 
@@ -52,7 +53,7 @@ volatile uint8_t current_button;
 
 volatile uint16_t measured_time;
 
-/* static uint8_t debug; */
+static uint8_t debug;
 
 static void state_update (uint8_t *src, uint8_t *dst)
 {
@@ -150,15 +151,19 @@ static void disable_compare_a ()
 
 static void front_wait ()
 {
-  enable_opamp ();
-  enable_capture ();
-
   TCNT1 = 0;
+
+  enable_capture ();
+  enable_opamp ();
+  /* in case if we have no capture event, advance fsm */
+  enable_compare_a ();
 }
 
 static void relax_wait ()
 {
   enable_compare_a ();
+
+  OCR1A = 1000;
 
   TCNT1 = 0;
 }
@@ -175,6 +180,14 @@ static void process_key ()
   if (measured_time >= TIME_THRESHOLD)
     state_raise_bit (curr_state, current_button);
 
+  /* if (measured_time > 50) { */
+    uint8_t low = measured_time & 0xFF;
+    uint8_t high = (measured_time & 0xFF00) >> 8;
+    encode_msg_3 (MSG_ID_DEBUG_A,
+                  SERIAL_ID_TO_IGNORE, current_button, high, low);
+    encode_msg_1 (MSG_ID_DEBUG_B, SERIAL_ID_TO_IGNORE, fsm);
+  /* } */
+  
   measured_time = 0;
 }
 
@@ -199,7 +212,8 @@ static void process_keyboard ()
    * but 'prev_state' is not zero here, so we need 
    * to send a message
    */
-  encode_msg_2 (MSG_ID_BUTTON, SERIAL_ID_TO_IGNORE, prev_state[0], prev_state[1]);
+  encode_msg_2 (MSG_ID_BUTTON, SERIAL_ID_TO_IGNORE,
+                prev_state[0], prev_state[1]);
 
   state_init (prev_state);
   state_init (curr_state);
@@ -239,7 +253,9 @@ static void init_timer ()
    * pressed with counter 256 or more.
    * We have 16 bit counter, so everything should be OK.
    */
-  TCCR1B |= ((1 << CS11) | (1 << CS10));
+  /* TCCR1B |= ((1 << CS11) | (1 << CS10)); */
+  /* TCCR1B |= (1 << CS11); */
+  TCCR1B |= (1 << CS10); /* 1:1 */
 
   /*
    * compare a mode used to relax, so it should be more than a pressed time,
@@ -250,19 +266,17 @@ static void init_timer ()
 
 void keyboard_init ()
 {
+  debug = 0;
+  /**/
   state_init (curr_state);
   state_init (prev_state);
+  init_timer ();
+  init_opamp ();
   /**/
   fsm = FSM_BEFORE_CHARGE;
   first_button ();
   test_pin_fall ();
   relax_wait ();
-
-  init_timer ();
-
-  init_opamp ();
-
-  /* debug = 0; */
 }
 
 void keyboard_try ()
@@ -298,17 +312,27 @@ void keyboard_try ()
 ISR (TIMER1_CAPT_vect)
 {
   disable_interrupt ();
-
+  
   measured_time = ICR1;
+
   fsm = FSM_BEFORE_DISCHARGE;
+
 }
 
 ISR (TIMER1_COMPA_vect)
 {
   disable_interrupt ();
 
-  if (fsm == FSM_DISCHARGE)
+  /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, fsm); */
+
+  if (fsm == FSM_CHARGE)
+    /*CAPT event is missed, but we need to discharge*/
+    fsm = FSM_BEFORE_DISCHARGE;
+  else if (fsm == FSM_DISCHARGE)
     fsm = (current_button < MAX_BUTTON) ? FSM_BEFORE_CHARGE : FSM_REPORT;
+
+
+  /* encode_msg_1 (MSG_ID_DEBUG_B, SERIAL_ID_TO_IGNORE, fsm); */
 }
 
 /* ISR (ANALOG_COMP_vect) */
