@@ -8,13 +8,13 @@ TARGET_ELF = $(TARGET).elf
 #  buzz.o
 OBJECT_LIST = \
   avr.o \
-  button.o \
   clock.o \
   debug.o \
   decode.o \
   display.o \
   encode.o \
   flush.o \
+  keyboard.o \
   postpone.o \
   power.o \
   render.o \

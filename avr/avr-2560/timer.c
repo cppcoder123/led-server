@@ -25,7 +25,7 @@ void timer_enable (uint16_t delay, timer_function fun)
   /* fixme */
 
   /*CTC mode with OCR3A*/
-  TCCR3B |= (1 << WGM12);
+  TCCR3B |= (1 << WGM32);
 
   /* counter value when interrupt shoud occur */
   OCR3A = delay;

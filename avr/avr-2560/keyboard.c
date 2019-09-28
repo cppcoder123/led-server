@@ -6,9 +6,9 @@
 
 #include "mcu/constant.h"
 
-#include "button.h"
 #include "debug.h"
 #include "encode.h"
+#include "keyboard.h"
 
 /* 0, 1 .. 7 => 8 bits */
 #define WORD_SIZE 8
@@ -33,7 +33,6 @@
  * 'fsm' shuld change between charge and discharge to handle all buttons
  * and the it should go to report to report if smth is pressed
  */
-
 enum fsm_t {
   FSM_BEFORE_CHARGE,
   FSM_CHARGE,
@@ -53,7 +52,7 @@ volatile uint8_t current_button;
 
 volatile uint16_t measured_time;
 
-static uint8_t debug;
+/* static uint8_t debug; */
 
 static void state_update (uint8_t *src, uint8_t *dst)
 {
@@ -184,11 +183,14 @@ static void process_keyboard ()
   uint8_t prev = state_is_zero (prev_state);
   uint8_t curr = state_is_zero (curr_state);
 
+  /*Two zeroes => nothing happened*/
   if ((prev != 0) && (curr != 0))
     return;
 
+  /*'curr_state' is not zero => smth is pressed*/
   if (curr == 0) {
     state_update (curr_state, prev_state);
+    state_init (curr_state);
     return;
   }
 
@@ -199,9 +201,6 @@ static void process_keyboard ()
    */
   encode_msg_2 (MSG_ID_BUTTON, SERIAL_ID_TO_IGNORE, prev_state[0], prev_state[1]);
 
-  /*
-   * Clear
-   */
   state_init (prev_state);
   state_init (curr_state);
 }
@@ -249,7 +248,7 @@ static void init_timer ()
   OCR1A = 1000;
 }
 
-void button_init ()
+void keyboard_init ()
 {
   state_init (curr_state);
   state_init (prev_state);
@@ -263,10 +262,10 @@ void button_init ()
 
   init_opamp ();
 
-  debug = 0;
+  /* debug = 0; */
 }
 
-void button_try ()
+void keyboard_try ()
 {
   if (!((fsm == FSM_BEFORE_CHARGE)
         || (fsm == FSM_BEFORE_DISCHARGE)
@@ -299,6 +298,7 @@ void button_try ()
 ISR (TIMER1_CAPT_vect)
 {
   disable_interrupt ();
+
   measured_time = ICR1;
   fsm = FSM_BEFORE_DISCHARGE;
 }
