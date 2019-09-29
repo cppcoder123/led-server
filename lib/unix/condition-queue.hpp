@@ -1,0 +1,112 @@
+/*
+ *
+ */
+#ifndef UNIX_CONDITION_QUEUE_HPP
+#define UNIX_CONDITION_QUEUE_HPP
+
+#include <mutex>
+
+#include "condition-queue-detail.hpp"
+#include "move-queue.hpp"
+
+namespace unix
+{
+
+  // mutex_t is either std::mutex or std::ref(std::mutex)
+  // similar for condition_t
+  template <typename record_t, typename mutex_t, typename condition_t>
+  class condition_queue_t
+  {
+
+  public:
+
+    condition_queue_t () = default;
+    condition_queue_t (mutex_t mutex, condition_t condition);
+    ~condition () = default;
+
+    void push (record_t record);
+
+    template <bool wait>
+    std::optional<record_t> pop ();
+
+    template <bool lock>
+    bool empty ();
+
+    template <bool lock>
+    void notify_one ();
+
+  private:
+
+    mutex_t m_mutex;
+    condition_t m_condition;
+
+    move_queue_t<record_t> m_queue;
+  };
+
+  template <typename record_t, typename mutex_t, typename condition_t>
+  void condition_queue_t<record_t, mutex_t, condition_t>::
+  condition_queue_t (mutex_t mutex, condition_t condition)
+    : m_mutex (mutex),
+      m_condition (condition)
+  {
+  }
+
+  template <typename record_t, typename mutex_t, typename condition_t>
+  void condition_queue_t<record_t, mutex_t, condition_t>::push (record_t record)
+  {
+    // take a reference
+    std::mutex &mutex (m_mutex);
+    std::lock_guard lock (mutex);
+
+    bool empty = m_queue.empty ();
+
+    m_queue.push (std::move (record));
+
+    if (empty == true) {
+      std::condition_variable &condition (m_condition);
+      m_condition.notify_one ();
+    }
+  }
+
+  template <typename record_t, typename mutex_t, typename condition_t>
+  template <bool really_wait>
+  std::optional<record_t>
+  condition_queue_t<record_t, mutex_t, condition_t>::pop ()
+  {
+    std::mutex &mutex (m_mutex);
+    std::unique_lock lock (mutex);
+    std::condition_variable &condition (m_condition);
+
+    if (m_queue.empty () == true)
+      condition_queue_detail::wait<really_wait>(mutex, condition);
+
+    if (m_queue.empty ())
+      return {};
+
+    return std::optional<record_t>(m_queue.pop ());
+  }
+
+  template <typename record_t, typename mutex_t, typename condition_t>
+  template <bool really_lock>
+  bool condition_queue_t<record_t, mutex_t, condition_t>::empty ()
+  {
+    std::mutex &mutex (m_mutex);
+    condition_queue_detail::guard<really_lock>::lock lock (mutex);
+
+    return m_queue.empty ();
+  }
+
+  template <typename record_t, typename mutex_t, typename condition_t>
+  template <bool really_lock>
+  void condition_queue_t<record_t, mutex_t, condition_t>::notify_one ()
+  {
+    std::mutex &mutex (m_mutex);
+    condition_queue_detail::unique<really_lock>::lock lock (mutex);
+
+    std::condition_variable &condition (m_condition);
+    condition.notify_one ();
+  }
+
+} // unix
+
+#endif
