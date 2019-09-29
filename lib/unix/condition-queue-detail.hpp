@@ -20,14 +20,14 @@ namespace unix
     }
 
     template <>
-    void wait<false> (std::unique_lock<std::mutex>&, std::condition_variable&)
+    inline void wait<false> (std::unique_lock<std::mutex>&, std::condition_variable&)
     {
       // Don't wait
     }
 
     struct dummy_lock_t
     {
-      dummy_lock_t (std::mutex&) = default;
+      dummy_lock_t (std::mutex&) {}
       ~dummy_lock_t () = default;
     };
 

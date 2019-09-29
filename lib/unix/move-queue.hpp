@@ -46,7 +46,7 @@ namespace unix
     record_t record = std::move (m_holder.front ());
     m_holder.pop_front ();
 
-    return optional_t<record_t>(std::move (record));
+    return std::optional<record_t>(std::move (record));
   }
 
   template <typename record_t>

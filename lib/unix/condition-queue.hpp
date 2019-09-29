@@ -5,6 +5,7 @@
 #define UNIX_CONDITION_QUEUE_HPP
 
 #include <mutex>
+#include <optional>
 
 #include "condition-queue-detail.hpp"
 #include "move-queue.hpp"
@@ -22,7 +23,7 @@ namespace unix
 
     condition_queue_t () = default;
     condition_queue_t (mutex_t mutex, condition_t condition);
-    ~condition () = default;
+    ~condition_queue_t () = default;
 
     void push (record_t record);
 
@@ -44,7 +45,7 @@ namespace unix
   };
 
   template <typename record_t, typename mutex_t, typename condition_t>
-  void condition_queue_t<record_t, mutex_t, condition_t>::
+  condition_queue_t<record_t, mutex_t, condition_t>::
   condition_queue_t (mutex_t mutex, condition_t condition)
     : m_mutex (mutex),
       m_condition (condition)
@@ -91,7 +92,7 @@ namespace unix
   bool condition_queue_t<record_t, mutex_t, condition_t>::empty ()
   {
     std::mutex &mutex (m_mutex);
-    condition_queue_detail::guard<really_lock>::lock lock (mutex);
+    typename condition_queue_detail::guard<really_lock>::lock lock (mutex);
 
     return m_queue.empty ();
   }
@@ -101,7 +102,7 @@ namespace unix
   void condition_queue_t<record_t, mutex_t, condition_t>::notify_one ()
   {
     std::mutex &mutex (m_mutex);
-    condition_queue_detail::unique<really_lock>::lock lock (mutex);
+    typename condition_queue_detail::unique<really_lock>::lock lock (mutex);
 
     std::condition_variable &condition (m_condition);
     condition.notify_one ();
