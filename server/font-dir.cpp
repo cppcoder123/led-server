@@ -36,9 +36,9 @@ namespace led_d
 
       matrix_t dst (matrix_size, 0xFF);
 
-      char_t src_mask = (1 << 0);
+      unix::char_t src_mask = (1 << 0);
       for (std::size_t i = 0; i < matrix_size; ++i) {
-        char_t transposed = 0;
+        unix::char_t transposed = 0;
         for (std::size_t j = 0; j < matrix_size; ++j) {
           transposed <<= 1;
           if (src[matrix_size - j - 1] & src_mask)

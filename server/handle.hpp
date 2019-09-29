@@ -4,14 +4,17 @@
 #ifndef HANDLE_HPP
 #define HANDLE_HPP
 
-#include <mutex>
 #include <condition_variable>
+#include <list>
+#include <mutex>
 
+#include "unix/char-type.hpp"
 #include "unix/codec.hpp"
 #include "unix/refsymbol.hpp"
 #include "unix/request.hpp"
 #include "unix/response.hpp"
 
+#include "mcu-msg.hpp"
 #include "render.hpp"
 #include "session.hpp"
 #include "type-def.hpp"
@@ -22,6 +25,10 @@ namespace led_d
   class handle_t
   {
   public:
+
+    //using mcu_msg_t = std::list<unix::char_t>;
+    using mcu_queue_t = mutex::queue_t<mcu_msg_t>;
+
     handle_t (const std::string &default_font, unix_queue_t &unix_queue,
               mcu_queue_t &to_mcu_queue, mcu_queue_t &from_mcu_queue);
     handle_t (const handle_t&) = delete;

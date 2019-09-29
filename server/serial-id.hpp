@@ -16,15 +16,15 @@ namespace led_d
 
   public:
 
-    static char_t get ();
+    static unix::char_t get ();
   };
 
   /*
    *----------------------------------------
    */
-  inline char_t serial::get ()
+  inline unix::char_t serial::get ()
   {
-    static char_t serial_id (0);
+    static unix::char_t serial_id (0);
     if (++serial_id == SERIAL_ID_TO_IGNORE)
       ++serial_id;
 

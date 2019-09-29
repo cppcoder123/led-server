@@ -105,7 +105,7 @@ namespace led_d
 
   void handle_t::handle_mcu (mcu_msg_t &msg)
   {
-    char_t msg_id = mcu::decode::get_msg_id (msg);
+    unix::char_t msg_id = mcu::decode::get_msg_id (msg);
 
     switch (msg_id) {
     case MSG_ID_VERSION:
@@ -126,7 +126,7 @@ namespace led_d
 
   void handle_t::mcu_version (const mcu_msg_t &msg)
   {
-    char_t status = 0;
+    unix::char_t status = 0;
     if (mcu::decode::split_payload (msg, status) == false) {
       log_t::buffer_t buf;
       buf << "handle: Failed to decode \"version\" message";

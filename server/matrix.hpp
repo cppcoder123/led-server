@@ -7,13 +7,13 @@
 #include <vector>
 #include <utility>
 
-#include "type-def.hpp"
+#include "unix/char-type.hpp"
 
 namespace led_d
 {
   static const auto matrix_column_size = 8;
-  using matrix_column_t = char_t;
-  using matrix_t = std::vector<char_t>;
+  using matrix_column_t = unix::char_t;
+  using matrix_t = std::vector<unix::char_t>;
 
   void matrix_invert (matrix_t &matrix);
 

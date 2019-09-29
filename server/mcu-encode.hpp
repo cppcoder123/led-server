@@ -21,14 +21,14 @@ namespace led_d
 
       template <typename ...payload_t>
       static
-      mcu_msg_t join (char_t serial, char_t msg_id, payload_t ...payload);
+      mcu_msg_t join (unix::char_t serial, unix::char_t msg_id, payload_t ...payload);
 
     private:
 
       static void do_join (mcu_msg_t &msg) {};
 
       template <typename ...payload_t>
-      static void do_join (mcu_msg_t &msg, char_t load_1, payload_t ...payload);
+      static void do_join (mcu_msg_t &msg, unix::char_t load_1, payload_t ...payload);
 
       template <typename ...payload_t>
       static void do_join (mcu_msg_t &msg, mcu_msg_t &arr, payload_t ...payload);
@@ -45,7 +45,7 @@ namespace led_d
     }
 
     template <typename ...payload_t>
-    mcu_msg_t encode::join (char_t serial, char_t msg_id, payload_t ...payload)
+    mcu_msg_t encode::join (unix::char_t serial, unix::char_t msg_id, payload_t ...payload)
     {
       mcu_msg_t msg;
       msg.push_back (serial);
@@ -57,7 +57,7 @@ namespace led_d
     }
 
     template <typename ...payload_t>
-    void encode::do_join (mcu_msg_t &msg, char_t load_1, payload_t ...payload)
+    void encode::do_join (mcu_msg_t &msg, unix::char_t load_1, payload_t ...payload)
     {
       msg.push_back (load_1);
 

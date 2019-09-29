@@ -19,6 +19,7 @@
 #include "unix/final-action.hpp"
 #include "unix/log.hpp"
 
+#include "mcu-msg.hpp"
 #include "spi.hpp"
 
 namespace
@@ -101,7 +102,7 @@ namespace led_d
     }
 
     std::size_t i = 0;
-    std::for_each (out.begin (), out.end (), [&] (char_t info) {
+    std::for_each (out.begin (), out.end (), [&] (unix::char_t info) {
         write_buf[i++] = info;
       });
 

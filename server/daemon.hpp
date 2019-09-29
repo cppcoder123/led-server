@@ -23,6 +23,8 @@ namespace led_d
 
   public:
 
+    using mcu_queue_t = handle_t::mcu_queue_t;
+
     daemon_t (const arg_t &arg);
     daemon_t (const daemon_t &arg) = delete;
     ~daemon_t ();

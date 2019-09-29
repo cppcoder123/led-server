@@ -22,8 +22,11 @@ namespace led_d
   {
 
   public:
-    device_t (const std::string &path,
-           mcu_queue_t &to_queue, mcu_queue_t &from_queue, bool show_msg);
+
+    using mcu_queue_t = handle_t::mcu_queue_t;
+
+    device_t (const std::string &path, mcu_queue_t &to_queue,
+              mcu_queue_t &from_queue, bool show_msg);
     device_t (const device_t&) = delete;
     ~device_t ();
 
