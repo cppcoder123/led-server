@@ -4,7 +4,7 @@
 #ifndef SPI_HPP
 #define SPI_HPP
 
-#include "type-def.hpp"
+#include "mcu-msg.hpp"
 
 namespace led_d
 {

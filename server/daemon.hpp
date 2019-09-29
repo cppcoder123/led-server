@@ -13,7 +13,7 @@
 #include "device.hpp"
 #include "network.hpp"
 #include "handle.hpp"
-#include "type-def.hpp"
+#include "unix-queue.hpp"
 
 namespace led_d
 {

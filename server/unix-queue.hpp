@@ -1,8 +1,8 @@
 /*
  *
  */
-#ifndef TYPE_DEF_HPP
-#define TYPE_DEF_HPP
+#ifndef UNIX_QUEUE_HPP
+#define UNIX_QUEUE_HPP
 
 #include <memory>
 

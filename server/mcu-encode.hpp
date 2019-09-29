@@ -6,7 +6,7 @@
 
 #include "mcu/constant.h"
 
-#include "type-def.hpp"
+#include "mcu-msg.hpp"
 
 namespace led_d
 {
