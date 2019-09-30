@@ -57,7 +57,7 @@ namespace led_d
     m_condition.notify_one ();
   }
 
-  void handle_t::handle_unix (unix_msg_t &msg)
+  void handle_t::handle_unix (network_msg_t &msg)
   {
     request_t request;
     response_t response;

@@ -69,7 +69,7 @@ namespace led_d
       std::string text = info.substr (0, text_len);
       info = info.substr(text_len);
       m_queue.push
-        (std::make_unique<unix_msg_t>(text, shared_from_this ()));
+        (std::make_unique<network_msg_t>(text, shared_from_this ()));
     }
   }
 
