@@ -11,7 +11,7 @@ namespace led_d
 
   network_t::network_t (unix::port_t::value_t port,
                         asio::io_context &io_context,
-                        unix_queue_t &queue)
+                        network_queue_t &queue)
     : m_context (io_context),
       m_acceptor (m_context, asio::ip::tcp::endpoint (asio::ip::tcp::v4 (), port)),
       m_socket (io_context),

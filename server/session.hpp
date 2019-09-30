@@ -13,7 +13,7 @@
 
 #include "unix/socket_rw.hpp"
 
-#include "unix-queue.hpp"
+#include "network-queue.hpp"
 
 namespace led_d
 {
@@ -22,7 +22,7 @@ namespace led_d
 
   public:
 
-    session_t (asio::ip::tcp::socket socket, unix_queue_t &queue);
+    session_t (asio::ip::tcp::socket socket, network_queue_t &queue);
     ~session_t ();
 
     void start ();
@@ -40,7 +40,7 @@ namespace led_d
 
     asio::ip::tcp::socket m_socket;
 
-    unix_queue_t &m_queue;
+    network_queue_t &m_queue;
 
     static const unsigned m_max_size = 1024;
     unix::socket_rw_t<m_max_size> m_rw;

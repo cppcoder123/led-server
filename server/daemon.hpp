@@ -10,10 +10,10 @@
 #include "asio.hpp"
 
 #include "arg.hpp"
-#include "device.hpp"
-#include "network.hpp"
 #include "handle.hpp"
-#include "unix-queue.hpp"
+#include "mcu.hpp"
+#include "network.hpp"
+#include "network-queue.hpp"
 
 namespace led_d
 {
@@ -22,8 +22,6 @@ namespace led_d
   {
 
   public:
-
-    using mcu_queue_t = handle_t::mcu_queue_t;
 
     daemon_t (const arg_t &arg);
     daemon_t (const daemon_t &arg) = delete;
@@ -36,20 +34,15 @@ namespace led_d
 
   private:
 
-    unix_queue_t m_network_queue; // from network
-    mcu_queue_t m_from_device_queue;
-    mcu_queue_t m_to_device_queue;
-
     asio::io_context m_asio_context;
 
-    network_t m_network;
-    //content_t m_content;
     handle_t m_handle;
-    device_t m_device;
+    network_t m_network;
+    mcu_t m_mcu;
 
     //std::thread m_network_thread;
     std::thread m_handle_thread;
-    std::thread m_device_thread;
+    std::thread m_mcu_thread;
   };
 
 } // namespace led_d

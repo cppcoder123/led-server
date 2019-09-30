@@ -1,52 +1,50 @@
 /**
  *
  */
-#ifndef DEVICE_HPP
-#define DEVICE_HPP
+#ifndef MCU_HPP
+#define MCU_HPP
 
 #include <stdint.h>
 
+#include <condition_variable>
+#include <mutex>
 #include <string>
 
 #include "block.hpp"
 #include "gpio.hpp"
 #include "handle.hpp"
+#include "mcu-queue.hpp"
+#include "network-queue.hpp"
 #include "parse.hpp"
 #include "spi.hpp"
-#include "unix-queue.hpp"
 
 namespace led_d
 {
 
-  class device_t
+  class mcu_t
   {
 
   public:
 
-    using mcu_queue_t = handle_t::mcu_queue_t;
-
-    device_t (const std::string &path, mcu_queue_t &to_queue,
+    mcu_t (const std::string &path,
               mcu_queue_t &from_queue, bool show_msg);
-    device_t (const device_t&) = delete;
-    ~device_t ();
+    mcu_t (const mcu_t&) = delete;
+    ~mcu_t ();
 
     void start ();
     void stop ();
+
+    mcu_queue_t& to_mcu_queue () {return m_to_queue;}
 
   private:
 
     void write_msg (const mcu_msg_t &msg);
 
-    // void device_write (uint32_t msg_size);
-    // void device_start ();
-    // void device_stop ();
-
-    // const std::string m_path;   // to device
-    // int m_device;               // file descriptor
-
     bool m_go;
 
-    mcu_queue_t &m_to_queue;    // to spi
+    std::mutex m_mutex;
+    std::condition_variable m_condition;
+    mcu_queue_t m_to_queue;     // to spi
     mcu_queue_t &m_from_queue;  // from spi
 
     gpio_t m_gpio;

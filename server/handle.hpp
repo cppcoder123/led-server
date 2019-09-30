@@ -10,14 +10,16 @@
 
 #include "unix/char-type.hpp"
 #include "unix/codec.hpp"
+#include "unix/condition-queue.hpp"
 #include "unix/refsymbol.hpp"
 #include "unix/request.hpp"
 #include "unix/response.hpp"
 
+#include "mcu-queue.hpp"
 #include "mcu-msg.hpp"
+#include "network-queue.hpp"
 #include "render.hpp"
 #include "session.hpp"
-#include "unix-queue.hpp"
 
 namespace led_d
 {
@@ -26,16 +28,16 @@ namespace led_d
   {
   public:
 
-    //using mcu_msg_t = std::list<unix::char_t>;
-    using mcu_queue_t = mutex::queue_t<mcu_msg_t>;
-
-    handle_t (const std::string &default_font, unix_queue_t &unix_queue,
-              mcu_queue_t &to_mcu_queue, mcu_queue_t &from_mcu_queue);
+    handle_t (const std::string &default_font);
     handle_t (const handle_t&) = delete;
     ~handle_t () {};
 
     void start ();
     void stop ();
+
+    network_queue_t& network_queue () {return m_network_queue;}
+    mcu_queue_t& from_mcu_queue () {return m_from_mcu_queue;}
+    void to_mcu_queue (mcu_queue_t &to_mcu_queue) {m_to_mcu_queue = &to_mcu_queue;}
 
   private:
 
@@ -56,10 +58,12 @@ namespace led_d
     // handle unix messages
     bool unix_insert (const request_t &request);
 
-    unix_queue_t &m_unix_queue;
+    std::mutex m_mutex;
+    std::condition_variable m_condition;
+    network_queue_t m_network_queue;
 
-    mcu_queue_t &m_to_mcu_queue;
-    mcu_queue_t &m_from_mcu_queue;
+    mcu_queue_t m_from_mcu_queue;
+    mcu_queue_t *m_to_mcu_queue;
 
     //content_t &m_content;
     render_t m_render;
@@ -70,9 +74,6 @@ namespace led_d
     // button presses.
     // !!! Can be zero
     session_ptr_t m_client;
-
-    std::mutex m_mutex;
-    std::condition_variable m_condition;
   };
 
 } // namespace led_d

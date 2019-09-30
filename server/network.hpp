@@ -8,7 +8,7 @@
 
 #include "asio/asio.hpp"
 
-#include "unix-queue.hpp"
+#include "network-queue.hpp"
 
 namespace led_d
 {
@@ -19,7 +19,7 @@ namespace led_d
 
     network_t (unix::port_t::value_t port,
                asio::io_context &io_context,
-               unix_queue_t &queue);
+               network_queue_t &queue);
     ~network_t () {};
 
     void start ();
@@ -33,7 +33,7 @@ namespace led_d
     asio::ip::tcp::acceptor m_acceptor;
     asio::ip::tcp::socket m_socket;
 
-    unix_queue_t &m_queue;
+    network_queue_t &m_queue;
 
     std::shared_ptr<session_t> m_session;
   };

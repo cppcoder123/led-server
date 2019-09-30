@@ -8,12 +8,12 @@
 #include "unix/request.hpp"
 
 #include "session.hpp"
-#include "unix-queue.hpp"
+#include "network-queue.hpp"
 
 namespace led_d
 {
 
-  session_t::session_t (asio::ip::tcp::socket socket, unix_queue_t &queue)
+  session_t::session_t (asio::ip::tcp::socket socket, network_queue_t &queue)
     : m_socket (std::move (socket)),
       m_queue (queue),
       m_rw (m_socket,

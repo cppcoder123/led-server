@@ -15,34 +15,33 @@
 
 namespace led_d
 {
-  handle_t::handle_t (const std::string &default_font, unix_queue_t &unix_queue,
-                      mcu_queue_t &to_mcu_queue, mcu_queue_t &from_mcu_queue)
-    : m_unix_queue (unix_queue),
-      m_to_mcu_queue (to_mcu_queue),
-      m_from_mcu_queue (from_mcu_queue),
+  handle_t::handle_t (const std::string &default_font)
+    : m_network_queue (std::ref (m_mutex), std::ref (m_condition)),
+      m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
+      m_to_mcu_queue (nullptr),
       m_render (default_font),
       m_go (true)
   {
-    m_unix_queue.set_notify (std::bind (&handle_t::notify, this));
-    m_from_mcu_queue.set_notify (std::bind (&handle_t::notify, this));
   }
 
   void handle_t::start ()
   {
 
     while (m_go == true) {
-      auto unix_msg = m_unix_queue.pop ();
-      auto mcu_msg = m_from_mcu_queue.pop ();
-      if ((!unix_msg)
-          && (!mcu_msg)) {
-        std::unique_lock<std::mutex> lock (m_mutex);
-        m_condition.wait (lock);
-        continue;
-      }
+      auto unix_msg = m_network_queue.pop<false> ();
       if (unix_msg)
         handle_unix (**unix_msg);
+
+      auto mcu_msg = m_from_mcu_queue.pop<false> ();
       if (mcu_msg)
         handle_mcu (*mcu_msg);
+
+      {
+        std::unique_lock lock (m_mutex);
+        if ((m_network_queue.empty<false> () == true)
+            && (m_from_mcu_queue.empty<false> () == true))
+          m_condition.wait (lock);
+      }
     }
   }
 
@@ -178,14 +177,14 @@ namespace led_d
       matrix_t::iterator finish = start;
       std::advance (finish, LED_ARRAY_SIZE);
       mcu_msg_t tmp (start, finish);
-      m_to_mcu_queue.push
+      m_to_mcu_queue->push
         (mcu::encode::join (serial::get (), MSG_ID_MONO_LED_ARRAY, tmp));
       start = finish;
     }
 
     len = matrix.size () % LED_ARRAY_SIZE;
     for (std::size_t i = matrix.size ()- len; i < matrix.size (); ++i)
-      m_to_mcu_queue.push
+      m_to_mcu_queue->push
         (mcu::encode::join (serial::get (), MSG_ID_MONO_LED, matrix[i]));
     
     // {

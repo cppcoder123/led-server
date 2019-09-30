@@ -65,7 +65,7 @@ namespace unix
 
     if (empty == true) {
       std::condition_variable &condition (m_condition);
-      m_condition.notify_one ();
+      condition.notify_one ();
     }
   }
 
@@ -79,7 +79,7 @@ namespace unix
     std::condition_variable &condition (m_condition);
 
     if (m_queue.empty () == true)
-      condition_queue_detail::wait<really_wait>(mutex, condition);
+      condition_queue_detail::wait<really_wait>(lock, condition);
 
     if (m_queue.empty ())
       return {};

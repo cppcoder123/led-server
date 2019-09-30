@@ -8,12 +8,15 @@
 // #include <sys/ioctl.h>
 // #include <unistd.h>
 
+
+
+#include <functional>
 #include <thread>
 
 #include "unix/log.hpp"
 #include "mcu/constant.h"
 
-#include "device.hpp"
+#include "mcu.hpp"
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"
 #include "serial-id.hpp"
@@ -25,24 +28,24 @@ namespace led_d
     auto block_delay = std::chrono::milliseconds (1);
   } // namespace anonymous
 
-  device_t::device_t (const std::string &/*path*/, mcu_queue_t &to_queue,
+  mcu_t::mcu_t (const std::string &/*path*/,
                       mcu_queue_t &from_queue, bool show_msg)
     : //m_path (path),
       m_go (true),
-      m_to_queue (to_queue),
+      m_to_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_queue (from_queue),
       m_show_msg (show_msg)
   {
   }
 
-  device_t::~device_t ()
+  mcu_t::~mcu_t ()
   {
     m_spi.stop ();
 
     m_gpio.stop ();
   }
 
-  void device_t::start ()
+  void mcu_t::start ()
   {
     // gpio is first, we need to enable level shifter
     m_gpio.start ();
@@ -71,7 +74,7 @@ namespace led_d
         std::this_thread::sleep_for (block_delay);
         continue;
       }
-      auto msg = m_to_queue.pop ();
+      auto msg = m_to_queue.pop<false> ();
       if (msg)
         write_msg (*msg);
       else
@@ -79,7 +82,7 @@ namespace led_d
     }
   }
 
-  void device_t::stop ()
+  void mcu_t::stop ()
   {
     m_go = false;
 
@@ -88,7 +91,7 @@ namespace led_d
     // fixme: smth else ???
   }
 
-  void device_t::write_msg (const mcu_msg_t &msg_src)
+  void mcu_t::write_msg (const mcu_msg_t &msg_src)
   {
     unix::char_t serial_id = mcu::decode::get_serial (msg_src);
 
