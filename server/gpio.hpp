@@ -33,8 +33,6 @@ namespace led_d
     void start ();
     void stop ();
 
-    // bool is_irq_raised ();      // fixme: remove me
-
     gpiod_chip* get_chip () {return m_chip;}
 
     static constexpr const char* get_consumer () {return "led-d";}
@@ -47,7 +45,7 @@ namespace led_d
     gpiod_line *m_irq;
 
     queue_t &m_queue;
-
+    bool m_go;
   };
 
 } // namespace led_d

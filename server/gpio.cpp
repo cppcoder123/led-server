@@ -11,7 +11,6 @@
 
 namespace
 {
-
   auto chip_name = "gpiochip0";
 
   auto enable_offset = 5;       // fixme: check
@@ -19,7 +18,6 @@ namespace
   auto irq_offset = 23;         // fixme: check
 
   auto consumer = "led-d";
-
 } // namespace
 
 namespace led_d
@@ -28,7 +26,8 @@ namespace led_d
     : m_chip (NULL),
       m_enable (NULL),
       m_irq (NULL),
-      m_queue (gpio_queue)
+      m_queue (gpio_queue),
+      m_go (true)
   {
   }
 
@@ -52,11 +51,20 @@ namespace led_d
     if (gpiod_line_request_input (m_irq, consumer) != 0)
       throw std::runtime_error ("gpio: Failed to configure irq for input");
 
-    fixme:: add gpio line monitor here
+    while (m_go == true) {
+      gpiod_line_event event;
+      // event-read should block the thread
+      if (gpiod_line_event_read (m_irq, &event) != 0)
+        throw std::runtime_error ("gpio: Failed to read line event");
+      m_queue.push ((event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
+                    ? interrupt_rised : interrupt_cleared);
+    }
   }
 
   void gpio_t::stop ()
   {
+    m_go = false;
+
     if (m_enable)
       gpiod_line_release (m_enable);
     if (m_irq)
