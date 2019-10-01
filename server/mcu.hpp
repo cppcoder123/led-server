@@ -26,8 +26,10 @@ namespace led_d
 
   public:
 
+    using gpio_queue_t = gpio_t::queue_t;
+
     mcu_t (const std::string &path,
-              mcu_queue_t &from_queue, bool show_msg);
+           mcu_queue_t &from_queue, bool show_msg);
     mcu_t (const mcu_t&) = delete;
     ~mcu_t ();
 
@@ -35,6 +37,7 @@ namespace led_d
     void stop ();
 
     mcu_queue_t& to_mcu_queue () {return m_to_queue;}
+    gpio_queue_t& gpio_queue () {return m_gpio_queue;}
 
   private:
 
@@ -47,7 +50,9 @@ namespace led_d
     mcu_queue_t m_to_queue;     // to spi
     mcu_queue_t &m_from_queue;  // from spi
 
-    gpio_t m_gpio;
+    gpio_queue_t m_gpio_queue;  // from gpio
+    bool m_interrupt_rised;
+
     spi_t m_spi;
 
     block_t m_block;

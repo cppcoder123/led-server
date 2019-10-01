@@ -24,16 +24,18 @@
 namespace led_d
 {
 
-  namespace {
-    auto block_delay = std::chrono::milliseconds (1);
-  } // namespace anonymous
+  // namespace {
+  //   auto block_delay = std::chrono::milliseconds (1);
+  // } // namespace anonymous
 
   mcu_t::mcu_t (const std::string &/*path*/,
-                      mcu_queue_t &from_queue, bool show_msg)
+                mcu_queue_t &from_queue, bool show_msg)
     : //m_path (path),
       m_go (true),
       m_to_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_queue (from_queue),
+      m_gpio_queue (std::ref (m_mutex), std::ref (m_condition)),
+      m_interrupt_rised (false),
       m_show_msg (show_msg)
   {
   }
@@ -42,13 +44,13 @@ namespace led_d
   {
     m_spi.stop ();
 
-    m_gpio.stop ();
+    //m_gpio.stop ();
   }
 
   void mcu_t::start ()
   {
     // gpio is first, we need to enable level shifter
-    m_gpio.start ();
+    //m_gpio.start ();
 
     // open unix device
     m_spi.start ();
@@ -56,29 +58,28 @@ namespace led_d
     m_to_queue.push
       (mcu::encode::join (serial::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
 
-    // fixme:
-    // It is better to avoid using delay here,
-    // but unclear how to do it
-    //
-    // We need to add second template parameter for queue
-    // as mutex type and then pass either std::mutex as before
-    // or pass std::ref(std::mutex) to share it between 2 queues
-    // (or other things)
-
     while (m_go == true) {
-      if (m_gpio.is_irq_raised () == true) {
+      if (m_interrupt_rised == true)
         write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
+      auto char_opt = m_gpio_queue.pop<false>();
+      if (char_opt)
+        m_interrupt_rised = (*char_opt == gpio_t::interrupt_rised)
+          ? true : false;
+      if (m_interrupt_rised == true)
         continue;
+      {
+        std::unique_lock lock (m_mutex);
+        if ((m_gpio_queue.empty<false>() == true)
+            && ((m_block.is_engaged () == true)
+                || (m_to_queue.empty<false>() == true))) {
+          m_condition.wait (lock);
+          continue;
+        }
       }
-      if (m_block.is_engaged () == true) {
-        std::this_thread::sleep_for (block_delay);
-        continue;
-      }
+
       auto msg = m_to_queue.pop<false> ();
       if (msg)
         write_msg (*msg);
-      else
-        std::this_thread::sleep_for (block_delay);
     }
   }
 

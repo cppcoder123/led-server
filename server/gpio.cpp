@@ -24,10 +24,11 @@ namespace
 
 namespace led_d
 {
-  gpio_t::gpio_t ()
+  gpio_t::gpio_t (queue_t &gpio_queue)
     : m_chip (NULL),
       m_enable (NULL),
-      m_irq (NULL)
+      m_irq (NULL),
+      m_queue (gpio_queue)
   {
   }
 
@@ -50,6 +51,8 @@ namespace led_d
       throw std::runtime_error ("gpio: Failed to configure enable for output");
     if (gpiod_line_request_input (m_irq, consumer) != 0)
       throw std::runtime_error ("gpio: Failed to configure irq for input");
+
+    fixme:: add gpio line monitor here
   }
 
   void gpio_t::stop ()
@@ -63,19 +66,19 @@ namespace led_d
       gpiod_chip_close (m_chip);
   }
 
-  bool gpio_t::is_irq_raised ()
-  {
-    int res = gpiod_line_get_value (m_irq);
-    if (res == 0)
-      return false;
-    if (res == 1)
-      return true;
+  // bool gpio_t::is_irq_raised ()
+  // {
+  //   int res = gpiod_line_get_value (m_irq);
+  //   if (res == 0)
+  //     return false;
+  //   if (res == 1)
+  //     return true;
 
-    log_t::buffer_t buf;
-    buf << "gpio: Error while accessing gpio line";
-    log_t::error (buf);
+  //   log_t::buffer_t buf;
+  //   buf << "gpio: Error while accessing gpio line";
+  //   log_t::error (buf);
 
-    return false;
-  }
+  //   return false;
+  // }
 
 } // namespace led_d
