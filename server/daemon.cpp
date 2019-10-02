@@ -29,7 +29,6 @@ namespace led_d
       m_network.start ();
       m_handle_thread = std::thread (&handle_t::start, &m_handle);
       m_mcu_thread = std::thread (&mcu_t::start, &m_mcu);
-      //m_gpio_thread = std::thread (&gpio_t::start, &m_gpio);
     }
     catch (std::exception &e) {
       log_t::error (std::string ("Daemon: ") + e.what ());
@@ -48,7 +47,6 @@ namespace led_d
 
     m_handle_thread.join ();
     m_mcu_thread.join ();
-    //m_gpio_thread.join ();
   }
 
 } // namespace led_d

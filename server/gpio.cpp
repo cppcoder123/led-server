@@ -18,7 +18,6 @@ namespace
   //auto irq_offset = 26;         // fixme: check
   auto irq_offset = 23;         // fixme: check
 
-  // auto consumer = "led-d";
 } // namespace
 
 namespace led_d
@@ -28,7 +27,6 @@ namespace led_d
       m_enable (NULL),
       m_irq (NULL),
       m_queue (gpio_queue),
-      //m_go (true)
       m_descriptor (context)
   {
     start ();
@@ -57,9 +55,6 @@ namespace led_d
     if (gpiod_line_request_output (m_enable, get_consumer (), 1) != 0)
       throw std::runtime_error ("gpio: Failed to configure enable for output");
 
-    // if (gpiod_line_request_input (m_irq, get_consumer ()) != 0)
-    //   throw std::runtime_error ("gpio: Failed to configure irq for input");
-
     if (gpiod_line_request_both_edges_events (m_irq, get_consumer ()) != 0)
       throw std::runtime_error ("gpio: Failed to request irq events");
 
@@ -83,8 +78,6 @@ namespace led_d
 
   void gpio_t::stop ()
   {
-    //    m_go = false;
-
     if (m_enable)
       gpiod_line_release (m_enable);
     if (m_irq)
@@ -93,21 +86,6 @@ namespace led_d
     if (m_chip)
       gpiod_chip_close (m_chip);
   }
-
-  // bool gpio_t::is_irq_raised ()
-  // {
-  //   int res = gpiod_line_get_value (m_irq);
-  //   if (res == 0)
-  //     return false;
-  //   if (res == 1)
-  //     return true;
-
-  //   log_t::buffer_t buf;
-  //   buf << "gpio: Error while accessing gpio line";
-  //   log_t::error (buf);
-
-  //   return false;
-  // }
 
   void gpio_t::handle_event (const asio::error_code &errc)
   {
@@ -125,8 +103,6 @@ namespace led_d
       return;
     }
 
-    // m_queue.push
-    //   ((is_irq_raised () == true) ? interrupt_rised : interrupt_cleared);
     m_queue.push ((event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
                   ? interrupt_rised : interrupt_cleared);
 

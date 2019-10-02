@@ -42,9 +42,6 @@ namespace led_d
 
     std::thread m_handle_thread;
     std::thread m_mcu_thread;
-    // it looks that asio-context can be used for handling gpio events,
-    // rewrite later to eliminate gpio-thread
-    //std::thread m_gpio_thread;
   };
 
 } // namespace led_d

@@ -44,8 +44,6 @@ namespace led_d
     // handle fd event
     void handle_event (const asio::error_code &errc);
 
-    bool is_irq_raised ();
-
     gpiod_chip *m_chip;
 
     gpiod_line *m_enable;
