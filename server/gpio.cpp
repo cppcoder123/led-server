@@ -3,6 +3,7 @@
  */
 
 
+#include <functional>
 #include <stdexcept>
 
 #include "unix/log.hpp"
@@ -22,15 +23,22 @@ namespace
 
 namespace led_d
 {
-  gpio_t::gpio_t (queue_t &gpio_queue)
+  gpio_t::gpio_t (queue_t &gpio_queue, asio::io_context &context)
     : m_chip (NULL),
       m_enable (NULL),
       m_irq (NULL),
       m_queue (gpio_queue),
-      m_go (true)
+      //m_go (true)
+      m_descriptor (context)
   {
+    start ();
   }
 
+  gpio_t::~gpio_t ()
+  {
+    stop ();
+  }
+  
   void gpio_t::start ()
   {
     m_chip = gpiod_chip_open_by_name (chip_name);
@@ -48,30 +56,34 @@ namespace led_d
     // configure enable for output and set to 1
     if (gpiod_line_request_output (m_enable, get_consumer (), 1) != 0)
       throw std::runtime_error ("gpio: Failed to configure enable for output");
-    if (gpiod_line_request_input (m_irq, get_consumer ()) != 0)
-      throw std::runtime_error ("gpio: Failed to configure irq for input");
 
-    struct timespec timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_nsec = 500000000;
-    //gpiod_line_event event;
+    // if (gpiod_line_request_input (m_irq, get_consumer ()) != 0)
+    //   throw std::runtime_error ("gpio: Failed to configure irq for input");
 
-    while (m_go == true) {
-      // event-read should block the thread
-      if (gpiod_line_event_wait (m_irq, &timeout) < 0)
-        throw std::runtime_error ("gpio: Failed to wait line event");
-      // if (gpiod_line_event_read (m_irq, &event) != 0)
-      //   throw std::runtime_error ("gpio: Failed to read line event");
-      // m_queue.push ((event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
-      //               ? interrupt_rised : interrupt_cleared);
-      m_queue.push
-        ((is_irq_raised () == true) ? interrupt_rised : interrupt_cleared);
+    if (gpiod_line_request_both_edges_events (m_irq, get_consumer ()) != 0)
+      throw std::runtime_error ("gpio: Failed to request irq events");
+
+    auto fd = gpiod_line_event_get_fd (m_irq);
+    if (fd < 0)
+      std::runtime_error ("gpio: Failed to get event fd");
+
+    asio::error_code errc;
+    m_descriptor.assign (fd, errc);
+    if (errc) {
+      std::ostringstream buf;
+      buf << "gpio: Error during creating stream-descriptor \""
+          << errc.message () << "\"";
+      std::runtime_error (buf.str ());
     }
+
+    m_descriptor.async_wait
+      (asio::posix::stream_descriptor::wait_read,
+       std::bind (&gpio_t::handle_event, this, std::placeholders::_1));
   }
 
   void gpio_t::stop ()
   {
-    m_go = false;
+    //    m_go = false;
 
     if (m_enable)
       gpiod_line_release (m_enable);
@@ -82,19 +94,45 @@ namespace led_d
       gpiod_chip_close (m_chip);
   }
 
-  bool gpio_t::is_irq_raised ()
+  // bool gpio_t::is_irq_raised ()
+  // {
+  //   int res = gpiod_line_get_value (m_irq);
+  //   if (res == 0)
+  //     return false;
+  //   if (res == 1)
+  //     return true;
+
+  //   log_t::buffer_t buf;
+  //   buf << "gpio: Error while accessing gpio line";
+  //   log_t::error (buf);
+
+  //   return false;
+  // }
+
+  void gpio_t::handle_event (const asio::error_code &errc)
   {
-    int res = gpiod_line_get_value (m_irq);
-    if (res == 0)
-      return false;
-    if (res == 1)
-      return true;
+    if (errc) {
+      log_t::buffer_t buf;
+      buf << "gpio: Failed to handle asio event: \""
+          << errc.message () << "\"";
+      log_t::error (buf);
+      return;
+    }
 
-    log_t::buffer_t buf;
-    buf << "gpio: Error while accessing gpio line";
-    log_t::error (buf);
+    struct gpiod_line_event event;
+    if (gpiod_line_event_read_fd (m_descriptor.native_handle (), &event) != 0) {
+      log_t::error ("gpio: Failed to read file descriptor event");
+      return;
+    }
 
-    return false;
+    // m_queue.push
+    //   ((is_irq_raised () == true) ? interrupt_rised : interrupt_cleared);
+    m_queue.push ((event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
+                  ? interrupt_rised : interrupt_cleared);
+
+    m_descriptor.async_wait
+      (asio::posix::stream_descriptor::wait_read,
+       std::bind (&gpio_t::handle_event, this, std::placeholders::_1));
   }
 
 } // namespace led_d

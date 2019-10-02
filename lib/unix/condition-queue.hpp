@@ -4,6 +4,7 @@
 #ifndef UNIX_CONDITION_QUEUE_HPP
 #define UNIX_CONDITION_QUEUE_HPP
 
+#include <condition_variable>
 #include <mutex>
 #include <optional>
 

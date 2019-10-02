@@ -66,7 +66,7 @@ int main (int argc, char **argv)
   }
   catch (std::exception &e) {
     status = 128;
-    msg << "Error during starting up: \"" << e.what () << "\"";
+    msg << "Error during start-up: \"" << e.what () << "\"";
     log_t::error (msg);
   }
 

@@ -10,6 +10,8 @@
 #include <condition_variable>
 #include <mutex>
 
+#include "asio.hpp"
+
 #include "unix/condition-queue.hpp"
 
 namespace led_d
@@ -27,8 +29,8 @@ namespace led_d
     static constexpr char interrupt_rised = 'r';
     static constexpr char interrupt_cleared = 'c';
 
-    gpio_t (queue_t &gpio_queue);
-    ~gpio_t () {};
+    gpio_t (queue_t &gpio_queue, asio::io_context &context);
+    ~gpio_t ();
 
     void start ();
     void stop ();
@@ -39,6 +41,9 @@ namespace led_d
 
   private:
 
+    // handle fd event
+    void handle_event (const asio::error_code &errc);
+
     bool is_irq_raised ();
 
     gpiod_chip *m_chip;
@@ -47,7 +52,8 @@ namespace led_d
     gpiod_line *m_irq;
 
     queue_t &m_queue;
-    bool m_go;
+    //bool m_go;
+    asio::posix::stream_descriptor m_descriptor;
   };
 
 } // namespace led_d

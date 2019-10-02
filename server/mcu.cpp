@@ -89,6 +89,10 @@ namespace led_d
 
     m_spi.stop ();
 
+    // m_gpio_queue.notify_one<> ();
+    // m_to_queue.notify_one<> ();
+    m_condition.notify_one ();
+
     // fixme: smth else ???
   }
 

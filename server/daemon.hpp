@@ -29,11 +29,11 @@ namespace led_d
     bool start ();
     void stop ();
 
-    asio::io_context& get_context () {return m_asio_context;}
+    asio::io_context& get_context () {return m_io_context;}
 
   private:
 
-    asio::io_context m_asio_context;
+    asio::io_context m_io_context;
 
     handle_t m_handle;
     network_t m_network;
@@ -44,7 +44,7 @@ namespace led_d
     std::thread m_mcu_thread;
     // it looks that asio-context can be used for handling gpio events,
     // rewrite later to eliminate gpio-thread
-    std::thread m_gpio_thread;
+    //std::thread m_gpio_thread;
   };
 
 } // namespace led_d
