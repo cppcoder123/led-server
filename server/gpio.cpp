@@ -17,7 +17,7 @@ namespace
   //auto irq_offset = 26;         // fixme: check
   auto irq_offset = 23;         // fixme: check
 
-  auto consumer = "led-d";
+  // auto consumer = "led-d";
 } // namespace
 
 namespace led_d
@@ -48,16 +48,24 @@ namespace led_d
     // configure enable for output and set to 1
     if (gpiod_line_request_output (m_enable, get_consumer (), 1) != 0)
       throw std::runtime_error ("gpio: Failed to configure enable for output");
-    if (gpiod_line_request_input (m_irq, consumer) != 0)
+    if (gpiod_line_request_input (m_irq, get_consumer ()) != 0)
       throw std::runtime_error ("gpio: Failed to configure irq for input");
 
+    struct timespec timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_nsec = 500000000;
+    //gpiod_line_event event;
+
     while (m_go == true) {
-      gpiod_line_event event;
       // event-read should block the thread
-      if (gpiod_line_event_read (m_irq, &event) != 0)
-        throw std::runtime_error ("gpio: Failed to read line event");
-      m_queue.push ((event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
-                    ? interrupt_rised : interrupt_cleared);
+      if (gpiod_line_event_wait (m_irq, &timeout) < 0)
+        throw std::runtime_error ("gpio: Failed to wait line event");
+      // if (gpiod_line_event_read (m_irq, &event) != 0)
+      //   throw std::runtime_error ("gpio: Failed to read line event");
+      // m_queue.push ((event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
+      //               ? interrupt_rised : interrupt_cleared);
+      m_queue.push
+        ((is_irq_raised () == true) ? interrupt_rised : interrupt_cleared);
     }
   }
 
@@ -74,19 +82,19 @@ namespace led_d
       gpiod_chip_close (m_chip);
   }
 
-  // bool gpio_t::is_irq_raised ()
-  // {
-  //   int res = gpiod_line_get_value (m_irq);
-  //   if (res == 0)
-  //     return false;
-  //   if (res == 1)
-  //     return true;
+  bool gpio_t::is_irq_raised ()
+  {
+    int res = gpiod_line_get_value (m_irq);
+    if (res == 0)
+      return false;
+    if (res == 1)
+      return true;
 
-  //   log_t::buffer_t buf;
-  //   buf << "gpio: Error while accessing gpio line";
-  //   log_t::error (buf);
+    log_t::buffer_t buf;
+    buf << "gpio: Error while accessing gpio line";
+    log_t::error (buf);
 
-  //   return false;
-  // }
+    return false;
+  }
 
 } // namespace led_d

@@ -39,6 +39,8 @@ namespace led_d
 
   private:
 
+    bool is_irq_raised ();
+
     gpiod_chip *m_chip;
 
     gpiod_line *m_enable;
