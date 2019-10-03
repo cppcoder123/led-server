@@ -32,14 +32,14 @@ namespace led_d
     gpio_t (queue_t &gpio_queue, asio::io_context &context);
     ~gpio_t ();
 
-    void start ();
-    void stop ();
-
     gpiod_chip* get_chip () {return m_chip;}
 
     static constexpr const char* get_consumer () {return "led-d";}
 
   private:
+
+    void start ();
+    void stop ();
 
     // handle fd event
     void handle_event (const asio::error_code &errc);

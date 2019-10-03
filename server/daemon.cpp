@@ -43,7 +43,7 @@ namespace led_d
     m_network.stop ();
     m_handle.stop ();
     m_mcu.stop ();
-    m_gpio.stop ();
+    //m_gpio.stop ();
 
     m_handle_thread.join ();
     m_mcu_thread.join ();
