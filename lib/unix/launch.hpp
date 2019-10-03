@@ -1,7 +1,6 @@
 //
 // Handle exiting signals signals
 //
-// fixme: rename to 'launch.hpp' later
 //
 #ifndef LAUNCH_HPP
 #define LAUNCH_HPP
@@ -17,7 +16,6 @@
 #include "dexec.h"
 #include "dfork.h"
 #include "dpid.h"
-#include "dsignal.h"
 
 #include "asio/asio.hpp"
 
@@ -39,8 +37,7 @@ namespace unix
               start_t start_function,
               stop_t stop_function,
               run_t run_function,
-              asio::io_context &context,
-              unsigned int timer_interval/*milliseconds*/);
+              asio::io_context &context);
     ~launch_t () {}
 
     bool start ();
@@ -52,19 +49,14 @@ namespace unix
     bool foreground ();
     bool background ();
 
-    bool signal_init ();
-
-    bool need_exit ();
-    void check_signal (const asio::error_code &error);
+    void signal_handler (const asio::error_code &errc, int sig_number);
 
     bool m_foreground;
     start_t m_start_function;
     stop_t m_stop_function;
     run_t m_run_function;
 
-    asio::io_context &m_context;
-    asio::steady_timer m_timer;
-    const std::chrono::milliseconds m_delay;
+    asio::signal_set m_signal_set;
   };
 
 
@@ -72,16 +64,21 @@ namespace unix
                              start_t start_function,
                              stop_t stop_function,
                              run_t run_function,
-                             asio::io_context &context,
-                             unsigned int timer_interval)
+                             asio::io_context &context)
     : m_foreground (fground),
       m_start_function (start_function),
       m_stop_function (stop_function),
       m_run_function (run_function),
-      m_context (context),
-      m_timer (context),
-      m_delay (timer_interval)
+      m_signal_set (context)
   {
+    m_signal_set.add (SIGINT);
+    m_signal_set.add (SIGQUIT);
+    m_signal_set.add (SIGHUP);
+    m_signal_set.add (SIGTERM);
+
+    m_signal_set.async_wait
+      (std::bind (&launch_t::signal_handler, this,
+                  std::placeholders::_1, std::placeholders::_2));
   }
 
   inline bool launch_t::start ()
@@ -93,11 +90,6 @@ namespace unix
   {
     if (m_start_function () == false)
       return false;
-
-    if (signal_init () == false)
-      return false;
-
-    check_signal (asio::error_code {});
 
     m_run_function ();
 
@@ -137,12 +129,6 @@ namespace unix
         return false;
       }
 
-      if (signal_init () == false) {
-        daemon_retval_send (2);
-        stop (true, false);
-        return false;
-      }
-
       if (m_start_function () == false) {
         daemon_retval_send (3);
         stop (true, false);
@@ -152,8 +138,6 @@ namespace unix
       daemon_retval_send (0);
 
       log_t::info ("Daemon successfully started");
-
-      check_signal (asio::error_code {});
 
       m_run_function ();
 
@@ -165,94 +149,25 @@ namespace unix
   {
     log_t::info ("Exiting...");
 
-    m_timer.cancel ();
-
     if (stop_callback == true)
       m_stop_function ();
 
-    daemon_signal_done ();
+    m_signal_set.cancel ();
 
     if ((m_foreground == false)
         && (pid_file == true))
       daemon_pid_file_remove ();
   }
 
-  bool launch_t::signal_init ()
+  void launch_t::signal_handler (const asio::error_code &errc,
+                                 int /*sig_number*/)
   {
-    bool status = true;
-
-    if (daemon_signal_init (SIGINT, SIGQUIT, SIGHUP, SIGTERM, 0) < 0) {
-      log_t::buffer_t msg;
-      msg << "Failed to register signal handlers - " << strerror (errno);
-      log_t::error (msg.str ());
-      status = false;
-    }
-
-    return status;
-  }
-
-  bool launch_t::need_exit ()
-  {
-    int fd = daemon_signal_fd ();
-    fd_set sig_set;
-
-    FD_ZERO (&sig_set);
-    FD_SET (fd, &sig_set);
-
-    timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 0;
-
-    if (select (FD_SETSIZE, &sig_set, 0, 0, &timeout) < 0) {
-      if (errno == EINTR)
-        return false;
-      log_t::buffer_t msg;
-      msg << "select (): " << strerror (errno);
-      log_t::error (msg);
-      return true;
-    }
-
-    if (FD_ISSET (fd, &sig_set)) {
-      int sig = SIGINT;
-
-      while ((sig = daemon_signal_next ()) > 0) {
-        switch (sig) {
-        case SIGINT:
-        case SIGQUIT:
-        case SIGTERM:
-          log_t::info ("SIGINT/SIGQUIT/SIGTERM has arrived");
-          return true;
-          break;
-        case SIGHUP:
-          log_t::info ("SIGHUP has arrived");
-          //daemon_exec ("/", 0, "/bin/ls", "ls", 0);
-          break;
-        default:
-          log_t::info ("Unknown signal has arrived");
-          break;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  void launch_t::check_signal (const asio::error_code &error)
-  {
-    if (error) {
-      // asio error ?
-      stop (true, true);
+    if (errc) {
+      log_t::error ("launch: Error during signal handling");
       return;
     }
 
-    if (need_exit () == false) {
-      // just reschedule
-      m_timer.expires_at (std::chrono::steady_clock::now () + m_delay);
-      m_timer.async_wait
-        (std::bind
-         (&launch_t::check_signal, this, std::placeholders::_1));
-    } else
-      stop (true, true);
+    stop (true, true);
   }
 
 }// namespace unix

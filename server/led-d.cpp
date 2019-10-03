@@ -52,7 +52,7 @@ int main (int argc, char **argv)
        std::bind (&daemon_t::start, &daemon),
        std::bind (&daemon_t::stop, &daemon),
        [&context] {context.run ();},
-       context, 500/*2 times per second*/);
+       context);
 
     if (launch.start () == false) {
       log_t::buffer_t buf;

@@ -45,7 +45,7 @@ int main (int argc, char **argv)
      std::bind (&led_info_d::daemon_t::start, &daemon),
      [&context] () {context.stop ();},
      [&context] () {context.run ();},
-     context, 500);
+     context);
 
   if (launch.start () == false) {
     log_t::buffer_t msg;
