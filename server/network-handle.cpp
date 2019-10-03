@@ -7,15 +7,15 @@
 
 #include "unix/log.hpp"
 
-#include "handle.hpp"
+#include "network-handle.hpp"
 #include "matrix.hpp"
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"
-#include "serial-id.hpp"
+#include "mcu-id.hpp"
 
 namespace led_d
 {
-  handle_t::handle_t (const std::string &default_font)
+  network_handle_t::network_handle_t (const std::string &default_font)
     : m_network_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_to_mcu_queue (nullptr),
@@ -24,7 +24,7 @@ namespace led_d
   {
   }
 
-  void handle_t::start ()
+  void network_handle_t::start ()
   {
 
     while (m_go == true) {
@@ -45,19 +45,19 @@ namespace led_d
     }
   }
 
-  void handle_t::stop ()
+  void network_handle_t::stop ()
   {
     m_go = false;
     //
     notify ();
   }
 
-  void handle_t::notify ()
+  void network_handle_t::notify ()
   {
     m_condition.notify_one ();
   }
 
-  void handle_t::handle_unix (network_msg_t &msg)
+  void network_handle_t::handle_unix (network_msg_t &msg)
   {
     request_t request;
     response_t response;
@@ -102,7 +102,7 @@ namespace led_d
       log_t::error ("Failed to encode \"response\" message");
   }
 
-  void handle_t::handle_mcu (mcu_msg_t &msg)
+  void network_handle_t::handle_mcu (mcu_msg_t &msg)
   {
     unix::char_t msg_id = mcu::decode::get_msg_id (msg);
 
@@ -116,33 +116,33 @@ namespace led_d
     default:
       {
         log_t::buffer_t buf;
-        buf << "handle: Unknown message from mcu is arrived: " << (int) msg_id;
+        buf << "network-handle: Unknown message from mcu is arrived: " << (int) msg_id;
         log_t::error (buf);
       }
       break;
     }
   }
 
-  void handle_t::mcu_version (const mcu_msg_t &msg)
+  void network_handle_t::mcu_version (const mcu_msg_t &msg)
   {
     unix::char_t status = 0;
     if (mcu::decode::split_payload (msg, status) == false) {
       log_t::buffer_t buf;
-      buf << "handle: Failed to decode \"version\" message";
+      buf << "network-handle: Failed to decode \"version\" message";
       log_t::error (buf);
       return;
     }
 
     if (status != STATUS_SUCCESS)
       throw std::runtime_error
-        ("handle: Pi & Mcu protocol version mismatch, can't continue...");
+        ("network-handle: Pi & Mcu protocol version mismatch, can't continue...");
 
     log_t::buffer_t buf;
-    buf << "handle: Protocol version is confirmed!";
+    buf << "network-handle: Protocol version is confirmed!";
     log_t::info (buf);
   }
 
-  void handle_t::mcu_poll ()
+  void network_handle_t::mcu_poll ()
   {
     if (!m_client)
       return;
@@ -155,12 +155,12 @@ namespace led_d
       m_client->write (buf);
     else {
       log_t::buffer_t buf;
-      buf << "handle: Failed to encode \"poll\" response";
+      buf << "network-handle: Failed to encode \"poll\" response";
       log_t::error (buf);
     }
   }
 
-  bool handle_t::unix_insert (const request_t &request)
+  bool network_handle_t::unix_insert (const request_t &request)
   {
     matrix_t matrix;
     if (m_render.pixelize (matrix, request.info, request.format) == false) {
@@ -178,14 +178,14 @@ namespace led_d
       std::advance (finish, LED_ARRAY_SIZE);
       mcu_msg_t tmp (start, finish);
       m_to_mcu_queue->push
-        (mcu::encode::join (serial::get (), MSG_ID_MONO_LED_ARRAY, tmp));
+        (mcu::encode::join (mcu_id::get (), MSG_ID_MONO_LED_ARRAY, tmp));
       start = finish;
     }
 
     len = matrix.size () % LED_ARRAY_SIZE;
     for (std::size_t i = matrix.size ()- len; i < matrix.size (); ++i)
       m_to_mcu_queue->push
-        (mcu::encode::join (serial::get (), MSG_ID_MONO_LED, matrix[i]));
+        (mcu::encode::join (mcu_id::get (), MSG_ID_MONO_LED, matrix[i]));
     
     // {
     //   // fixme: debug

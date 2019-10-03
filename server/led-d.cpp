@@ -8,7 +8,7 @@
 #include "unix/log.hpp"
 
 #include "arg.hpp"
-#include "daemon.hpp"
+#include "base.hpp"
 
 int main (int argc, char **argv)
 {
@@ -44,13 +44,13 @@ int main (int argc, char **argv)
 
   int status = 0;
   try {
-    daemon_t daemon (arg);
-    auto &context = daemon.get_context ();
+    base_t base (arg);
+    auto &context = base.get_context ();
 
     unix::launch_t launch
       (arg.foreground,
-       std::bind (&daemon_t::start, &daemon),
-       std::bind (&daemon_t::stop, &daemon),
+       std::bind (&base_t::start, &base),
+       std::bind (&base_t::stop, &base),
        [&context] {context.run ();},
        context);
 

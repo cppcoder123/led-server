@@ -1,8 +1,8 @@
 /*
- * Calculate serial id
+ * Calculate mcu id
  */
-#ifndef SERIAL_ID_HPP
-#define SERIAL_ID_HPP
+#ifndef MCU_ID_HPP
+#define MCU_ID_HPP
 
 #include "mcu/constant.h"
 
@@ -11,7 +11,7 @@
 namespace led_d
 {
 
-  class serial
+  class mcu_id
   {
 
   public:
@@ -22,7 +22,7 @@ namespace led_d
   /*
    *----------------------------------------
    */
-  inline unix::char_t serial::get ()
+  inline unix::char_t mcu_id::get ()
   {
     static unix::char_t serial_id (0);
     if (++serial_id == SERIAL_ID_TO_IGNORE)

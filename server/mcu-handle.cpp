@@ -2,29 +2,21 @@
  *
  */
 
-// #include <fcntl.h>
-// #include <linux/types.h>
-// #include <linux/spi/spidev.h>
-// #include <sys/ioctl.h>
-// #include <unistd.h>
-
-
-
 #include <functional>
 #include <thread>
 
 #include "unix/log.hpp"
 #include "mcu/constant.h"
 
-#include "mcu.hpp"
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"
-#include "serial-id.hpp"
+#include "mcu-handle.hpp"
+#include "mcu-id.hpp"
 
 namespace led_d
 {
 
-  mcu_t::mcu_t (const std::string &/*path*/,
+  mcu_handle_t::mcu_handle_t (const std::string &/*path*/,
                 mcu_queue_t &from_queue, bool show_msg)
     : //m_path (path),
       m_go (true),
@@ -36,18 +28,18 @@ namespace led_d
   {
   }
 
-  mcu_t::~mcu_t ()
+  mcu_handle_t::~mcu_handle_t ()
   {
     m_channel.stop ();
   }
 
-  void mcu_t::start ()
+  void mcu_handle_t::start ()
   {
     // open unix device
     m_channel.start ();
 
     m_to_queue.push
-      (mcu::encode::join (serial::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
+      (mcu::encode::join (mcu_id::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
 
     while (m_go == true) {
       if (m_interrupt_rised == true)
@@ -74,7 +66,7 @@ namespace led_d
     }
   }
 
-  void mcu_t::stop ()
+  void mcu_handle_t::stop ()
   {
     m_go = false;
 
@@ -83,7 +75,7 @@ namespace led_d
     m_condition.notify_one ();
   }
 
-  void mcu_t::write_msg (const mcu_msg_t &msg_src)
+  void mcu_handle_t::write_msg (const mcu_msg_t &msg_src)
   {
     unix::char_t serial_id = mcu::decode::get_serial (msg_src);
 
@@ -119,7 +111,7 @@ namespace led_d
 
     msg.clear ();
     for (auto &number : in_msg)
-      if (m_parse.push (number, msg) == true) {
+      if (m_mcu_parse.push (number, msg) == true) {
         unix::char_t serial = 0;
         unix::char_t msg_id = MSG_ID_EMPTY;
         if (mcu::decode::split (msg, serial, msg_id) == true) {
@@ -135,7 +127,7 @@ namespace led_d
             m_from_queue.push (msg);
         } else {
           log_t::buffer_t buf;
-          buf << "mcu: Failed to decode mcu message";
+          buf << "mcu-handle: Failed to decode mcu message";
           log_t::error (buf);
         }
       }

@@ -1,8 +1,8 @@
 /*
  *
  */
-#ifndef HANDLE_HPP
-#define HANDLE_HPP
+#ifndef NETWORK_HANDLE_HPP
+#define NETWORK_HANDLE_HPP
 
 #include <condition_variable>
 #include <list>
@@ -24,13 +24,13 @@
 namespace led_d
 {
 
-  class handle_t
+  class network_handle_t
   {
   public:
 
-    handle_t (const std::string &default_font);
-    handle_t (const handle_t&) = delete;
-    ~handle_t () {};
+    network_handle_t (const std::string &default_font);
+    network_handle_t (const network_handle_t&) = delete;
+    ~network_handle_t () {};
 
     void start ();
     void stop ();

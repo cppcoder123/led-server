@@ -1,8 +1,8 @@
 /**
  *
  */
-#ifndef MCU_HPP
-#define MCU_HPP
+#ifndef MCU_HANDLE_HPP
+#define MCU_HANDLE_HPP
 
 #include <stdint.h>
 
@@ -10,28 +10,28 @@
 #include <mutex>
 #include <string>
 
-#include "block.hpp"
-#include "handle.hpp"
+#include "mcu-block.hpp"
+#include "mcu-parse.hpp"
 #include "mcu-queue.hpp"
+#include "network-handle.hpp"
 #include "network-queue.hpp"
-#include "parse.hpp"
 #include "spi-dev.hpp"
 #include "spi-irq.hpp"
 
 namespace led_d
 {
 
-  class mcu_t
+  class mcu_handle_t
   {
 
   public:
 
     using irq_queue_t = spi_irq_t::queue_t;
 
-    mcu_t (const std::string &path,
+    mcu_handle_t (const std::string &path,
            mcu_queue_t &from_queue, bool show_msg);
-    mcu_t (const mcu_t&) = delete;
-    ~mcu_t ();
+    mcu_handle_t (const mcu_handle_t&) = delete;
+    ~mcu_handle_t ();
 
     void start ();
     void stop ();
@@ -55,8 +55,8 @@ namespace led_d
 
     spi_dev_t m_channel;
 
-    block_t m_block;
-    parse_t m_parse;
+    mcu_block_t m_block;
+    mcu_parse_t m_mcu_parse;
 
     bool m_show_msg;
   };

@@ -1,23 +1,23 @@
 //
 // Should we continue writing to device ()?
 //
-#ifndef LED_D_BLOCK_HPP
-#define LED_D_BLOCK_HPP
+#ifndef MCU_BLOCK_HPP
+#define MCU_BLOCK_HPP
 
 #include "unix/char-type.hpp"
 
 namespace led_d
 {
 
-  class block_t
+  class mcu_block_t
   {
   public:
-    block_t ()
+    mcu_block_t ()
       : m_pending (false),
         m_pending_id (0)
     {
     }
-    ~block_t () = default;
+    ~mcu_block_t () = default;
 
     bool is_engaged () const;
 

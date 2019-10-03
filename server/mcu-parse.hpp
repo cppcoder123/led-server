@@ -1,8 +1,8 @@
 /*
  *
  */
-#ifndef PARSE_HPP
-#define PARSE_HPP
+#ifndef MCU_PARSE_HPP
+#define MCU_PARSE_HPP
 
 #include "mcu-msg.hpp"
 
@@ -11,11 +11,11 @@
 namespace led_d
 {
 
-  class parse_t
+  class mcu_parse_t
   {
   public:
-    parse_t () = default;
-    ~parse_t () = default;
+    mcu_parse_t () = default;
+    ~mcu_parse_t () = default;
 
     // return true if complete msg is arrived,
     // unwrap-ed msg is assigned to 'msg'
@@ -24,7 +24,7 @@ namespace led_d
   private:
     mcu_msg_t m_buf;
   };
-  
+
 } // namespace led_d
 
 #endif

@@ -1,30 +1,30 @@
 //
 //
 //
-#ifndef LED_D_DAEMON_HPP
-#define LED_D_DAEMON_HPP
+#ifndef BASE_HPP
+#define BASE_HPP
 
 #include <thread>
 
 #include "asio.hpp"
 
 #include "arg.hpp"
-#include "handle.hpp"
-#include "mcu.hpp"
+#include "mcu-handle.hpp"
+#include "network-handle.hpp"
 #include "network.hpp"
 #include "spi-irq.hpp"
 
 namespace led_d
 {
 
-  class daemon_t
+  class base_t
   {
 
   public:
 
-    daemon_t (const arg_t &arg);
-    daemon_t (const daemon_t &arg) = delete;
-    ~daemon_t ();
+    base_t (const arg_t &arg);
+    base_t (const base_t &arg) = delete;
+    ~base_t ();
 
     bool start ();
     void stop ();
@@ -35,12 +35,12 @@ namespace led_d
 
     asio::io_context m_io_context;
 
-    handle_t m_handle;
+    network_handle_t m_network_handle;
     network_t m_network;
-    mcu_t m_mcu;
+    mcu_handle_t m_mcu_handle;
     spi_irq_t m_irq;
 
-    std::thread m_handle_thread;
+    std::thread m_network_thread;
     std::thread m_mcu_thread;
   };
 
