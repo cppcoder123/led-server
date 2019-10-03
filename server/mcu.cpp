@@ -24,10 +24,6 @@
 namespace led_d
 {
 
-  // namespace {
-  //   auto block_delay = std::chrono::milliseconds (1);
-  // } // namespace anonymous
-
   mcu_t::mcu_t (const std::string &/*path*/,
                 mcu_queue_t &from_queue, bool show_msg)
     : //m_path (path),
@@ -42,18 +38,13 @@ namespace led_d
 
   mcu_t::~mcu_t ()
   {
-    m_spi.stop ();
-
-    //m_spi_irq.stop ();
+    m_channel.stop ();
   }
 
   void mcu_t::start ()
   {
-    // spi_irq is first, we need to enable level shifter
-    //m_spi_irq.start ();
-
     // open unix device
-    m_spi.start ();
+    m_channel.start ();
 
     m_to_queue.push
       (mcu::encode::join (serial::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
@@ -87,13 +78,9 @@ namespace led_d
   {
     m_go = false;
 
-    m_spi.stop ();
+    m_channel.stop ();
 
-    // m_spi_irq_queue.notify_one<> ();
-    // m_to_queue.notify_one<> ();
     m_condition.notify_one ();
-
-    // fixme: smth else ???
   }
 
   void mcu_t::write_msg (const mcu_msg_t &msg_src)
@@ -110,7 +97,7 @@ namespace led_d
       m_block.engage (serial_id);
 
     mcu_msg_t in_msg;
-    m_spi.transfer (msg, in_msg);
+    m_channel.transfer (msg, in_msg);
 
     if (m_show_msg == true) {
       log_t::buffer_t buf;
@@ -148,7 +135,7 @@ namespace led_d
             m_from_queue.push (msg);
         } else {
           log_t::buffer_t buf;
-          buf << "spi: Failed to decode mcu message";
+          buf << "mcu: Failed to decode mcu message";
           log_t::error (buf);
         }
       }

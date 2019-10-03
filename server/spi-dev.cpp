@@ -20,7 +20,7 @@
 #include "unix/log.hpp"
 
 #include "mcu-msg.hpp"
-#include "spi.hpp"
+#include "spi-dev.hpp"
 
 namespace
 {
@@ -36,16 +36,16 @@ namespace
 namespace led_d
 {
 
-  spi_t::spi_t ()
+  spi_dev_t::spi_dev_t ()
     : m_device (0)
   {
   }
 
-  spi_t::~spi_t ()
+  spi_dev_t::~spi_dev_t ()
   {
   }
 
-  void spi_t::start ()
+  void spi_dev_t::start ()
   {
     m_device = open (path, O_RDWR);
     if (m_device < 0)
@@ -72,14 +72,14 @@ namespace led_d
     drain ();
   }
 
-  void spi_t::stop ()
+  void spi_dev_t::stop ()
   {
     if (m_device > 0)
       close (m_device);
     m_device = 0;
   }
 
-  void spi_t::transfer (const mcu_msg_t &out, mcu_msg_t &in)
+  void spi_dev_t::transfer (const mcu_msg_t &out, mcu_msg_t &in)
   {
     static uint8_t *write_buf = nullptr;
     static uint8_t *read_buf = nullptr;
@@ -128,7 +128,7 @@ namespace led_d
       in.push_back (read_buf[i]);
   }
 
-  void spi_t::drain ()
+  void spi_dev_t::drain ()
   {
     static const std::size_t max_attempt = 50;
     static const std::size_t msg_size = 50;
@@ -157,13 +157,13 @@ namespace led_d
       std::for_each (from_mcu.begin (), from_mcu.end (), [](uint8_t val){
           if (val != SPI_WRITE_UNDERFLOW) {
             log_t::buffer_t buf;
-            buf << "AAA: spi: from-mcu not normal : " << (unsigned) val;
+            buf << "AAA: spi-dev: from-mcu not normal : " << (unsigned) val;
             log_t::info (buf);
           }
         });
     }
 
-    throw std::runtime_error ("spi: Failed to drain Spi channel");
+    throw std::runtime_error ("spi-dev: Failed to drain Spi channel");
   }
 
 } // namespace led_d

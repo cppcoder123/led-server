@@ -15,8 +15,8 @@
 #include "mcu-queue.hpp"
 #include "network-queue.hpp"
 #include "parse.hpp"
+#include "spi-dev.hpp"
 #include "spi-irq.hpp"
-#include "spi.hpp"
 
 namespace led_d
 {
@@ -53,7 +53,7 @@ namespace led_d
     irq_queue_t m_irq_queue;    // from spi-irq
     bool m_interrupt_rised;
 
-    spi_t m_spi;
+    spi_dev_t m_channel;
 
     block_t m_block;
     parse_t m_parse;

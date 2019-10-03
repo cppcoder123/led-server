@@ -1,20 +1,23 @@
 //
 // Spi device handling
 //
-#ifndef SPI_HPP
-#define SPI_HPP
+#ifndef SPI_DEV_HPP
+#define SPI_DEV_HPP
 
 #include "mcu-msg.hpp"
 
 namespace led_d
 {
 
-  class spi_t
+  class spi_dev_t
   {
 
   public:
-    spi_t ();
-    ~spi_t ();
+
+    spi_dev_t ();
+    ~spi_dev_t ();
+
+    static void init ();
 
     void start ();
     void stop ();

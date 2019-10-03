@@ -12,8 +12,8 @@ namespace led_d
   font_dir_t::font_dir_t (const std::string &default_font)
     : m_font_map ({
         std::make_pair (font_name_t::id_ibm, get_info (font_name_t::id_ibm)),
-        std::make_pair (font_name_t::id_slim, get_info (font_name_t::id_slim)),
-        std::make_pair (font_name_t::id_greek, get_info (font_name_t::id_greek))
+        std::make_pair (font_name_t::id_slim, get_info (font_name_t::id_slim))
+        //std::make_pair (font_name_t::id_greek, get_info (font_name_t::id_greek))
       }),
       m_default_font (m_font_map.at (font_name_t::get (default_font)))
   {

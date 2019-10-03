@@ -10,7 +10,7 @@ TARGET = led-d
 #
 
 OBJECT_LIST = led-d.o arg.o block.o daemon.o font-dir.o font.o handle.o \
-  mcu.o network.o parse.o render.o session.o spi-irq.o spi.o
+  mcu.o network.o parse.o render.o session.o spi-dev.o spi-irq.o
 
 #
 #

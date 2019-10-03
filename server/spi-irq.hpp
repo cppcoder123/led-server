@@ -1,5 +1,5 @@
 /*
- *
+ * Handle spi interrupt line, enable level shifter
  */
 #ifndef SPI_IRQ_HPP
 #define SPI_IRQ_HPP
