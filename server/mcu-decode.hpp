@@ -35,7 +35,8 @@ namespace led_d
     private:
 
       using iterator_t = mcu_msg_t::const_iterator;
-      static bool do_split (const mcu_msg_t &msg, iterator_t &iter, unix::char_t &serial, unix::char_t &msg_id);
+      static bool do_split (const mcu_msg_t &msg, iterator_t &iter,
+                            unix::char_t &serial, unix::char_t &msg_id);
 
       template <typename ...payload_t>
       static bool do_split (const mcu_msg_t &msg, iterator_t &iter,
