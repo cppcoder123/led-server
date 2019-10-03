@@ -86,11 +86,7 @@ namespace unix
 
   inline bool launch_t::start ()
   {
-    bool status = (m_foreground == true) ? foreground () : background ();
-    if (status == false)
-      return false;
-
-    return true;
+    return (m_foreground == true) ? foreground () : background ();
   }
 
   inline bool launch_t::foreground ()
