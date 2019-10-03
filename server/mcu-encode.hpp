@@ -20,8 +20,8 @@ namespace led_d
       static void wrap (mcu_msg_t &msg);
 
       template <typename ...payload_t>
-      static
-      mcu_msg_t join (unix::char_t serial, unix::char_t msg_id, payload_t ...payload);
+      static mcu_msg_t join (unix::char_t serial,
+                             unix::char_t msg_id, payload_t ...payload);
 
     private:
 
