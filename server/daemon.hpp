@@ -38,7 +38,7 @@ namespace led_d
     handle_t m_handle;
     network_t m_network;
     mcu_t m_mcu;
-    spi_irq_t m_spi_irq;
+    spi_irq_t m_irq;
 
     std::thread m_handle_thread;
     std::thread m_mcu_thread;
