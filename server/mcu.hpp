@@ -11,11 +11,11 @@
 #include <string>
 
 #include "block.hpp"
-#include "gpio.hpp"
 #include "handle.hpp"
 #include "mcu-queue.hpp"
 #include "network-queue.hpp"
 #include "parse.hpp"
+#include "spi-irq.hpp"
 #include "spi.hpp"
 
 namespace led_d
@@ -26,7 +26,7 @@ namespace led_d
 
   public:
 
-    using gpio_queue_t = gpio_t::queue_t;
+    using irq_queue_t = spi_irq_t::queue_t;
 
     mcu_t (const std::string &path,
            mcu_queue_t &from_queue, bool show_msg);
@@ -37,7 +37,7 @@ namespace led_d
     void stop ();
 
     mcu_queue_t& to_mcu_queue () {return m_to_queue;}
-    gpio_queue_t& gpio_queue () {return m_gpio_queue;}
+    irq_queue_t& irq_queue () {return m_irq_queue;}
 
   private:
 
@@ -50,7 +50,7 @@ namespace led_d
     mcu_queue_t m_to_queue;     // to spi
     mcu_queue_t &m_from_queue;  // from spi
 
-    gpio_queue_t m_gpio_queue;  // from gpio
+    irq_queue_t m_irq_queue;    // from spi-irq
     bool m_interrupt_rised;
 
     spi_t m_spi;

@@ -8,7 +8,7 @@
 
 #include "unix/log.hpp"
 
-#include "gpio.hpp"
+#include "spi-irq.hpp"
 
 namespace
 {
@@ -18,65 +18,67 @@ namespace
   //auto irq_offset = 26;         // fixme: check
   auto irq_offset = 23;         // fixme: check
 
+  auto consumer = "led-d";
+
 } // namespace
 
 namespace led_d
 {
-  gpio_t::gpio_t (queue_t &gpio_queue, asio::io_context &context)
+  spi_irq_t::spi_irq_t (queue_t &irq_queue, asio::io_context &context)
     : m_chip (NULL),
       m_enable (NULL),
       m_irq (NULL),
-      m_queue (gpio_queue),
+      m_queue (irq_queue),
       m_descriptor (context)
   {
     start ();
   }
 
-  gpio_t::~gpio_t ()
+  spi_irq_t::~spi_irq_t ()
   {
     stop ();
   }
   
-  void gpio_t::start ()
+  void spi_irq_t::start ()
   {
     m_chip = gpiod_chip_open_by_name (chip_name);
     if (m_chip == NULL)
-      throw std::runtime_error ("gpio: Failed to open the chip");
+      throw std::runtime_error ("spi_irq: Failed to open the chip");
 
     m_enable = gpiod_chip_get_line (m_chip, enable_offset);
     if (m_enable == NULL)
-      throw std::runtime_error ("gpio: Failed to open enable line");
+      throw std::runtime_error ("spi_irq: Failed to open enable line");
 
     m_irq = gpiod_chip_get_line (m_chip, irq_offset);
     if (m_irq == NULL)
-      throw std::runtime_error ("gpio: Failed to open irq line");
+      throw std::runtime_error ("spi_irq: Failed to open irq line");
 
     // configure enable for output and set to 1
-    if (gpiod_line_request_output (m_enable, get_consumer (), 1) != 0)
-      throw std::runtime_error ("gpio: Failed to configure enable for output");
+    if (gpiod_line_request_output (m_enable, consumer, 1) != 0)
+      throw std::runtime_error ("spi_irq: Failed to configure enable for output");
 
-    if (gpiod_line_request_both_edges_events (m_irq, get_consumer ()) != 0)
-      throw std::runtime_error ("gpio: Failed to request irq events");
+    if (gpiod_line_request_both_edges_events (m_irq, consumer) != 0)
+      throw std::runtime_error ("spi_irq: Failed to request irq events");
 
     auto fd = gpiod_line_event_get_fd (m_irq);
     if (fd < 0)
-      std::runtime_error ("gpio: Failed to get event fd");
+      std::runtime_error ("spi_irq: Failed to get event fd");
 
     asio::error_code errc;
     m_descriptor.assign (fd, errc);
     if (errc) {
       std::ostringstream buf;
-      buf << "gpio: Error during creating stream-descriptor \""
+      buf << "spi_irq: Error during creating stream-descriptor \""
           << errc.message () << "\"";
       std::runtime_error (buf.str ());
     }
 
     m_descriptor.async_wait
       (asio::posix::stream_descriptor::wait_read,
-       std::bind (&gpio_t::handle_event, this, std::placeholders::_1));
+       std::bind (&spi_irq_t::handle_event, this, std::placeholders::_1));
   }
 
-  void gpio_t::stop ()
+  void spi_irq_t::stop ()
   {
     if (m_enable)
       gpiod_line_release (m_enable);
@@ -87,11 +89,11 @@ namespace led_d
       gpiod_chip_close (m_chip);
   }
 
-  void gpio_t::handle_event (const asio::error_code &errc)
+  void spi_irq_t::handle_event (const asio::error_code &errc)
   {
     if (errc) {
       log_t::buffer_t buf;
-      buf << "gpio: Failed to handle asio event: \""
+      buf << "spi_irq: Failed to handle asio event: \""
           << errc.message () << "\"";
       log_t::error (buf);
       return;
@@ -99,7 +101,7 @@ namespace led_d
 
     struct gpiod_line_event event;
     if (gpiod_line_event_read_fd (m_descriptor.native_handle (), &event) != 0) {
-      log_t::error ("gpio: Failed to read file descriptor event");
+      log_t::error ("spi_irq: Failed to read file descriptor event");
       return;
     }
 
@@ -108,7 +110,7 @@ namespace led_d
 
     m_descriptor.async_wait
       (asio::posix::stream_descriptor::wait_read,
-       std::bind (&gpio_t::handle_event, this, std::placeholders::_1));
+       std::bind (&spi_irq_t::handle_event, this, std::placeholders::_1));
   }
 
 } // namespace led_d

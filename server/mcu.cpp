@@ -34,7 +34,7 @@ namespace led_d
       m_go (true),
       m_to_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_queue (from_queue),
-      m_gpio_queue (std::ref (m_mutex), std::ref (m_condition)),
+      m_irq_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_interrupt_rised (false),
       m_show_msg (show_msg)
   {
@@ -44,13 +44,13 @@ namespace led_d
   {
     m_spi.stop ();
 
-    //m_gpio.stop ();
+    //m_spi_irq.stop ();
   }
 
   void mcu_t::start ()
   {
-    // gpio is first, we need to enable level shifter
-    //m_gpio.start ();
+    // spi_irq is first, we need to enable level shifter
+    //m_spi_irq.start ();
 
     // open unix device
     m_spi.start ();
@@ -61,15 +61,15 @@ namespace led_d
     while (m_go == true) {
       if (m_interrupt_rised == true)
         write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
-      auto char_opt = m_gpio_queue.pop<false>();
+      auto char_opt = m_irq_queue.pop<false>();
       if (char_opt)
-        m_interrupt_rised = (*char_opt == gpio_t::interrupt_rised)
+        m_interrupt_rised = (*char_opt == spi_irq_t::interrupt_rised)
           ? true : false;
       if (m_interrupt_rised == true)
         continue;
       {
         std::unique_lock lock (m_mutex);
-        if ((m_gpio_queue.empty<false>() == true)
+        if ((m_irq_queue.empty<false>() == true)
             && ((m_block.is_engaged () == true)
                 || (m_to_queue.empty<false>() == true))) {
           m_condition.wait (lock);
@@ -89,7 +89,7 @@ namespace led_d
 
     m_spi.stop ();
 
-    // m_gpio_queue.notify_one<> ();
+    // m_spi_irq_queue.notify_one<> ();
     // m_to_queue.notify_one<> ();
     m_condition.notify_one ();
 

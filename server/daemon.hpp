@@ -9,10 +9,10 @@
 #include "asio.hpp"
 
 #include "arg.hpp"
-#include "gpio.hpp"
 #include "handle.hpp"
 #include "mcu.hpp"
 #include "network.hpp"
+#include "spi-irq.hpp"
 
 namespace led_d
 {
@@ -38,7 +38,7 @@ namespace led_d
     handle_t m_handle;
     network_t m_network;
     mcu_t m_mcu;
-    gpio_t m_gpio;
+    spi_irq_t m_spi_irq;
 
     std::thread m_handle_thread;
     std::thread m_mcu_thread;

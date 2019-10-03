@@ -14,7 +14,7 @@ namespace led_d
     : m_handle (arg.default_font),
       m_network (arg.port, m_io_context, m_handle.network_queue ()),
       m_mcu (arg.device, m_handle.from_mcu_queue (), arg.spi_msg),
-      m_gpio (m_mcu.gpio_queue (), m_io_context)
+      m_spi_irq (m_mcu.irq_queue (), m_io_context)
   {
     m_handle.to_mcu_queue (m_mcu.to_mcu_queue ());
   }
@@ -43,7 +43,6 @@ namespace led_d
     m_network.stop ();
     m_handle.stop ();
     m_mcu.stop ();
-    //m_gpio.stop ();
 
     m_handle_thread.join ();
     m_mcu_thread.join ();

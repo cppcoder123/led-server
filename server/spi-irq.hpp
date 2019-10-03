@@ -1,8 +1,8 @@
 /*
  *
  */
-#ifndef GPIO_HPP
-#define GPIO_HPP
+#ifndef SPI_IRQ_HPP
+#define SPI_IRQ_HPP
 
 #include <gpiod.h>
 
@@ -17,7 +17,7 @@
 namespace led_d
 {
 
-  class gpio_t
+  class spi_irq_t
   {
   public:
 
@@ -29,12 +29,8 @@ namespace led_d
     static constexpr char interrupt_rised = 'r';
     static constexpr char interrupt_cleared = 'c';
 
-    gpio_t (queue_t &gpio_queue, asio::io_context &context);
-    ~gpio_t ();
-
-    gpiod_chip* get_chip () {return m_chip;}
-
-    static constexpr const char* get_consumer () {return "led-d";}
+    spi_irq_t (queue_t &irq_queue, asio::io_context &context);
+    ~spi_irq_t ();
 
   private:
 
@@ -50,7 +46,6 @@ namespace led_d
     gpiod_line *m_irq;
 
     queue_t &m_queue;
-    //bool m_go;
     asio::posix::stream_descriptor m_descriptor;
   };
 
