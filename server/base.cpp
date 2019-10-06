@@ -30,6 +30,7 @@ namespace led_d
       m_network.start ();
       m_network_thread = std::thread (&network_handle_t::start, &m_network_handle);
       m_mcu_thread = std::thread (&mcu_handle_t::start, &m_mcu_handle);
+      m_init.start ();
     }
     catch (std::exception &e) {
       log_t::error (std::string ("Base: ") + e.what ());
@@ -41,6 +42,7 @@ namespace led_d
 
   void base_t::stop ()
   {
+    m_init.stop ();
     m_network.stop ();
     m_network_handle.stop ();
     m_mcu_handle.stop ();

@@ -16,6 +16,9 @@ namespace led_d
     spi_init_t ();
     ~spi_init_t ();
 
+    void start ();
+    void stop ();
+
     static const char* consumer () {return "led-d";}
 
     gpiod_chip* chip () {return m_chip;}
