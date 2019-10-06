@@ -30,13 +30,13 @@ namespace led_d
 
   mcu_handle_t::~mcu_handle_t ()
   {
-    m_channel.stop ();
+    //m_device.stop ();
   }
 
   void mcu_handle_t::start ()
   {
     // open unix device
-    m_channel.start ();
+    m_device.start ();
 
     m_to_queue.push
       (mcu::encode::join (mcu_id::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
@@ -70,7 +70,7 @@ namespace led_d
   {
     m_go = false;
 
-    m_channel.stop ();
+    m_device.stop ();
 
     m_condition.notify_one ();
   }
@@ -89,7 +89,7 @@ namespace led_d
       m_block.engage (serial_id);
 
     mcu_msg_t in_msg;
-    m_channel.transfer (msg, in_msg);
+    m_device.transfer (msg, in_msg);
 
     if (m_show_msg == true) {
       log_t::buffer_t buf;

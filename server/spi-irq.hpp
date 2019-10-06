@@ -1,5 +1,5 @@
 /*
- * Handle spi interrupt line, enable level shifter
+ * Handle spi interrupt line
  */
 #ifndef SPI_IRQ_HPP
 #define SPI_IRQ_HPP
@@ -13,6 +13,8 @@
 #include "asio.hpp"
 
 #include "unix/condition-queue.hpp"
+
+#include "spi-init.hpp"
 
 namespace led_d
 {
@@ -29,7 +31,7 @@ namespace led_d
     static constexpr char interrupt_rised = 'r';
     static constexpr char interrupt_cleared = 'c';
 
-    spi_irq_t (queue_t &irq_queue, asio::io_context &context);
+    spi_irq_t (spi_init_t &spi_init, queue_t &irq_queue, asio::io_context &context);
     ~spi_irq_t ();
 
   private:
@@ -40,9 +42,8 @@ namespace led_d
     // handle fd event
     void handle_event (const asio::error_code &errc);
 
-    gpiod_chip *m_chip;
+    spi_init_t &m_init;
 
-    gpiod_line *m_enable;
     gpiod_line *m_irq;
 
     queue_t &m_queue;

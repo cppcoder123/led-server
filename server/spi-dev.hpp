@@ -17,8 +17,6 @@ namespace led_d
     spi_dev_t ();
     ~spi_dev_t ();
 
-    static void init ();
-
     void start ();
     void stop ();
 

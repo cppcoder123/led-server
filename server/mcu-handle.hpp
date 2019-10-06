@@ -53,7 +53,7 @@ namespace led_d
     irq_queue_t m_irq_queue;    // from spi-irq
     bool m_interrupt_rised;
 
-    spi_dev_t m_channel;
+    spi_dev_t m_device;         // unix device
 
     mcu_block_t m_block;
     mcu_parse_t m_mcu_parse;

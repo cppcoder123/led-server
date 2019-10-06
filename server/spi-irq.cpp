@@ -12,21 +12,13 @@
 
 namespace
 {
-  auto chip_name = "gpiochip0";
-
-  auto enable_offset = 5;       // fixme: check
-  //auto irq_offset = 26;         // fixme: check
   auto irq_offset = 23;         // fixme: check
-
-  auto consumer = "led-d";
-
 } // namespace
 
 namespace led_d
 {
-  spi_irq_t::spi_irq_t (queue_t &irq_queue, asio::io_context &context)
-    : m_chip (NULL),
-      m_enable (NULL),
+  spi_irq_t::spi_irq_t (spi_init_t &init, queue_t &irq_queue, asio::io_context &context)
+    : m_init (init),
       m_irq (NULL),
       m_queue (irq_queue),
       m_descriptor (context)
@@ -41,23 +33,11 @@ namespace led_d
   
   void spi_irq_t::start ()
   {
-    m_chip = gpiod_chip_open_by_name (chip_name);
-    if (m_chip == NULL)
-      throw std::runtime_error ("spi_irq: Failed to open the chip");
-
-    m_enable = gpiod_chip_get_line (m_chip, enable_offset);
-    if (m_enable == NULL)
-      throw std::runtime_error ("spi_irq: Failed to open enable line");
-
-    m_irq = gpiod_chip_get_line (m_chip, irq_offset);
+    m_irq = gpiod_chip_get_line (m_init.chip (), irq_offset);
     if (m_irq == NULL)
       throw std::runtime_error ("spi_irq: Failed to open irq line");
 
-    // configure enable for output and set to 1
-    if (gpiod_line_request_output (m_enable, consumer, 1) != 0)
-      throw std::runtime_error ("spi_irq: Failed to configure enable for output");
-
-    if (gpiod_line_request_both_edges_events (m_irq, consumer) != 0)
+    if (gpiod_line_request_both_edges_events (m_irq, m_init.consumer ()) != 0)
       throw std::runtime_error ("spi_irq: Failed to request irq events");
 
     auto fd = gpiod_line_event_get_fd (m_irq);
@@ -80,13 +60,8 @@ namespace led_d
 
   void spi_irq_t::stop ()
   {
-    if (m_enable)
-      gpiod_line_release (m_enable);
     if (m_irq)
       gpiod_line_release (m_irq);
-
-    if (m_chip)
-      gpiod_chip_close (m_chip);
   }
 
   void spi_irq_t::handle_event (const asio::error_code &errc)
