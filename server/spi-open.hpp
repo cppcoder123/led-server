@@ -1,20 +1,20 @@
 /*
- * Init level converter, enable level shifter
+ * Enable level converter (and spi)
  */
-#ifndef SPI_INIT_HPP
-#define SPI_INIT_HPP
+#ifndef SPI_OPEN_HPP
+#define SPI_OPEN_HPP
 
 #include <gpiod.h>
 
 namespace led_d
 {
 
-  class spi_init_t
+  class spi_open_t
   {
   public:
 
-    spi_init_t ();
-    ~spi_init_t ();
+    spi_open_t ();
+    ~spi_open_t ();
 
     void start ();
     void stop ();

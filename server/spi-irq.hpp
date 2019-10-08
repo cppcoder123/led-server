@@ -14,7 +14,7 @@
 
 #include "unix/condition-queue.hpp"
 
-#include "spi-init.hpp"
+#include "spi-open.hpp"
 
 namespace led_d
 {
@@ -31,7 +31,7 @@ namespace led_d
     static constexpr char interrupt_rised = 'r';
     static constexpr char interrupt_cleared = 'c';
 
-    spi_irq_t (spi_init_t &spi_init, queue_t &irq_queue, asio::io_context &context);
+    spi_irq_t (spi_open_t &spi_open, queue_t &irq_queue, asio::io_context &context);
     ~spi_irq_t ();
 
   private:
@@ -42,7 +42,7 @@ namespace led_d
     // handle fd event
     void handle_event (const asio::error_code &errc);
 
-    spi_init_t &m_init;
+    spi_open_t &m_spi_open;
 
     gpiod_line *m_irq;
 

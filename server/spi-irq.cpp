@@ -17,8 +17,8 @@ namespace
 
 namespace led_d
 {
-  spi_irq_t::spi_irq_t (spi_init_t &init, queue_t &irq_queue, asio::io_context &context)
-    : m_init (init),
+  spi_irq_t::spi_irq_t (spi_open_t &spi_open, queue_t &irq_queue, asio::io_context &context)
+    : m_spi_open (spi_open),
       m_irq (NULL),
       m_queue (irq_queue),
       m_descriptor (context)
@@ -33,11 +33,11 @@ namespace led_d
   
   void spi_irq_t::start ()
   {
-    m_irq = gpiod_chip_get_line (m_init.chip (), irq_offset);
+    m_irq = gpiod_chip_get_line (m_spi_open.chip (), irq_offset);
     if (m_irq == NULL)
       throw std::runtime_error ("spi_irq: Failed to open irq line");
 
-    if (gpiod_line_request_both_edges_events (m_irq, m_init.consumer ()) != 0)
+    if (gpiod_line_request_both_edges_events (m_irq, m_spi_open.consumer ()) != 0)
       throw std::runtime_error ("spi_irq: Failed to request irq events");
 
     auto fd = gpiod_line_event_get_fd (m_irq);
