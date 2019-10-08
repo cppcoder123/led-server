@@ -19,12 +19,6 @@ OBJECT_LIST = led-d.o arg.o base.o font-dir.o font.o mcu-block.o mcu-handle.o \
 
 LDFLAGS = -L $(LIB_DAEMON)/src -ldaemon -lgpiod -lpthread
 
-
-GCC_VERSION := $(shell g++ -dumpversion)
-ifeq ($(GCC_VERSION), 6.3.0)
-OPTIONAL_DEFINE := -DGCC6
-endif
-
 CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_DAEMON)/include \
   -I $(LIB_ASIO) -I $(LIB_ROOT) $(OPTIONAL_DEFINE)
 
