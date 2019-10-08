@@ -102,9 +102,8 @@ namespace led_d
     }
 
     std::size_t i = 0;
-    std::for_each (out.begin (), out.end (), [&] (unix::char_t info) {
-        write_buf[i++] = info;
-      });
+    for (auto info : out)
+      write_buf[i++] = info;
 
     struct spi_ioc_transfer buf;
     memset (&buf, 0, sizeof (buf));
