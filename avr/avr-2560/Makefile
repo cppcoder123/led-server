@@ -17,8 +17,8 @@ OBJECT_LIST = \
   keyboard.o \
   postpone.o \
   power.o \
+  queue.o \
   render.o \
-  ring.o \
   spi.o \
   timer.o
 
