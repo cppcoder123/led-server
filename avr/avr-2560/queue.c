@@ -6,7 +6,7 @@
 
 #include "mcu/constant.h"
 
-#include "ring.h"
+#include "queue.h"
 
 /*
  * Treat array as ring buffer:
@@ -79,20 +79,20 @@ static uint8_t drain_symbol (volatile uint8_t *buf)
 
 /*------------------------------*/
 
-void ring_init (volatile uint8_t *buf, uint8_t max_size)
+void queue_init (volatile uint8_t *buf, uint8_t max_size)
 {
   buf[SIZE] = max_size;
   buf[START] = SHIFT;
   buf[FINISH] = SHIFT;
   buf[FULL] = 0;
 
-  /*#ifdef RING_DEBUG*/
+  /*#ifdef QUEUE_DEBUG*/
   for (uint8_t i = SHIFT; i < max_size; ++i)
-    buf[i] = RING_INIT_PATTERN;
+    buf[i] = QUEUE_INIT_PATTERN;
   /*#endif*/
 }
 
-uint8_t ring_size (volatile uint8_t *buf)
+uint8_t queue_size (volatile uint8_t *buf)
 {
   uint8_t tmp;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
@@ -102,14 +102,14 @@ uint8_t ring_size (volatile uint8_t *buf)
   return tmp;
 }
 
-void ring_clear (volatile uint8_t *buf)
+void queue_clear (volatile uint8_t *buf)
 {
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
-    ring_init (buf, buf[SIZE]);
+    queue_init (buf, buf[SIZE]);
   }
 }
 
-uint8_t ring_space (volatile uint8_t *buf)
+uint8_t queue_space (volatile uint8_t *buf)
 {
   // capacity - size
   uint8_t space;
@@ -120,7 +120,7 @@ uint8_t ring_space (volatile uint8_t *buf)
   return space;
 }
 
-uint8_t ring_symbol_fill (volatile uint8_t *buf, uint8_t symbol)
+uint8_t queue_symbol_fill (volatile uint8_t *buf, uint8_t symbol)
 {
   uint8_t status;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
@@ -131,7 +131,7 @@ uint8_t ring_symbol_fill (volatile uint8_t *buf, uint8_t symbol)
   return status;
 }
 
-uint8_t ring_symbol_drain (volatile uint8_t *buf, uint8_t *symbol)
+uint8_t queue_symbol_drain (volatile uint8_t *buf, uint8_t *symbol)
 {
   uint8_t status;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
@@ -142,7 +142,7 @@ uint8_t ring_symbol_drain (volatile uint8_t *buf, uint8_t *symbol)
   return status;
 }
 
-uint8_t ring_symbol_get (volatile uint8_t *buf, uint8_t index, uint8_t *symbol)
+uint8_t queue_symbol_get (volatile uint8_t *buf, uint8_t index, uint8_t *symbol)
 {
   uint8_t status;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
@@ -158,33 +158,33 @@ uint8_t ring_symbol_get (volatile uint8_t *buf, uint8_t index, uint8_t *symbol)
   return status;
 }
 
-uint8_t ring_array_fill (volatile uint8_t *ring,
+uint8_t queue_array_fill (volatile uint8_t *queue,
                          uint8_t *arr, uint8_t fill_size)
 {
   uint8_t status;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
-    if ((status = is_fillable (ring, fill_size)) != 0)
+    if ((status = is_fillable (queue, fill_size)) != 0)
       for (uint8_t i = 0; i < fill_size; ++i)
-        fill_symbol (ring, arr[i]);
+        fill_symbol (queue, arr[i]);
   }
 
   return status;
 }
 
-uint8_t ring_array_drain (volatile uint8_t *ring,
+uint8_t queue_array_drain (volatile uint8_t *queue,
                           uint8_t *arr, uint8_t drain_size)
 {
   uint8_t status;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
-    if ((status = is_drainable (ring, drain_size)) != 0)
+    if ((status = is_drainable (queue, drain_size)) != 0)
       for (uint8_t i = 0; i < drain_size; ++i)
-        arr[i] = drain_symbol (ring);
+        arr[i] = drain_symbol (queue);
   }
 
   return status;
 }
 
-uint8_t ring_is_fillable (volatile uint8_t *buf, uint8_t fill_size)
+uint8_t queue_is_fillable (volatile uint8_t *buf, uint8_t fill_size)
 {
   uint8_t status;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
@@ -194,7 +194,7 @@ uint8_t ring_is_fillable (volatile uint8_t *buf, uint8_t fill_size)
   return status;
 }
 
-uint8_t ring_is_drainable (volatile uint8_t *buf, uint8_t drain_size)
+uint8_t queue_is_drainable (volatile uint8_t *buf, uint8_t drain_size)
 {
   uint8_t status;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
@@ -206,7 +206,7 @@ uint8_t ring_is_drainable (volatile uint8_t *buf, uint8_t drain_size)
 
 
 #if 0
-uint8_t ring_get (volatile struct ring_t *buf, uint8_t index,
+uint8_t queue_get (volatile struct queue_t *buf, uint8_t index,
                    volatile uint8_t **data)
 {
   if (index >= buf->size)
@@ -221,7 +221,7 @@ uint8_t ring_get (volatile struct ring_t *buf, uint8_t index,
 
 
 #if 0
-uint8_t ring_drain (volatile struct ring_t *buf, uint8_t drain_size)
+uint8_t queue_drain (volatile struct queue_t *buf, uint8_t drain_size)
 {
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
     if (is_drainable (buf, drain_size) == 0)
@@ -242,7 +242,7 @@ uint8_t ring_drain (volatile struct ring_t *buf, uint8_t drain_size)
   return 1;
 }
 
-uint8_t ring_refill (volatile struct ring_t *buf,
+uint8_t queue_refill (volatile struct queue_t *buf,
                       volatile uint8_t *src, uint8_t src_size)
 {
   if (buf->max_size < src_size)
@@ -259,8 +259,8 @@ uint8_t ring_refill (volatile struct ring_t *buf,
   return 1;
 }
 
-uint8_t ring_move (volatile struct ring_t *from,
-                    volatile struct ring_t *to)
+uint8_t queue_move (volatile struct queue_t *from,
+                    volatile struct queue_t *to)
 {
   if (to->max_size < from->size)
     return 0;
@@ -276,12 +276,12 @@ uint8_t ring_move (volatile struct ring_t *from,
   return 1;
 }
 
-void ring_clear (volatile struct ring_t *buf)
+void queue_clear (volatile struct queue_t *buf)
 {
   buf->size = 0;
 }
 
-uint8_t ring_size (volatile struct ring_t *buf)
+uint8_t queue_size (volatile struct queue_t *buf)
 {
   return buf->size;
 }

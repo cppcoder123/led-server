@@ -24,6 +24,7 @@ enum {
   MSG_ID_EMPTY,
 
   /*avr=>pi: button(s) is(are) pressed*/
+  /*payload-1: button state, payload-2: prev button state*/
   MSG_ID_BUTTON,
 
   /*pi=>avr: one column as payload,*/
