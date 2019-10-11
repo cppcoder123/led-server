@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+#define TWI_SUCCESS 1           /* fixme */
+
 typedef void (*twi_write_callback) (uint8_t /*status*/);
 typedef void (*twi_read_callback) (uint8_t /*status*/, uint8_t /*value*/);
 

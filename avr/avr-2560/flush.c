@@ -7,7 +7,7 @@
 #include "display.h"
 #include "encode.h"
 #include "flush.h"
-#include "ring.h"
+#include "queue.h"
 
 #define MATRIX_SIZE 32
 
@@ -40,7 +40,7 @@ static void mode_change (uint8_t new_mode)
 void flush_init ()
 {
   /*fixme*/
-  ring_init (mono_data, MONO_SIZE);
+  queue_init (mono_data, MONO_SIZE);
   mode = FLUSH_DISABLED;
   global_mode = FLUSH_GLOBAL_DISABLED;
 }
@@ -57,12 +57,12 @@ void flush_disable ()
 
 uint8_t flush_push_mono (uint8_t symbol)
 {
-  return ring_symbol_fill (mono_data, symbol);
+  return queue_symbol_fill (mono_data, symbol);
 }
 
 uint8_t flush_push_mono_array (uint8_t *arr, uint8_t arr_size)
 {
-  return ring_array_fill (mono_data, arr, arr_size);
+  return queue_array_fill (mono_data, arr, arr_size);
 }
 
 void flush_enable_shift ()
@@ -81,20 +81,20 @@ void flush_try ()
     /*we are not ready*/
     return;
 
-  if (ring_size (mono_data) < MATRIX_SIZE) {
+  if (queue_size (mono_data) < MATRIX_SIZE) {
     if (mode != FLUSH_SHIFT)
       return;
     if (global_mode == FLUSH_GLOBAL_ENABLED)
       encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, 0);
     for (uint8_t i = 0; i < MATRIX_SIZE; ++i)
-      ring_symbol_fill (mono_data, 0);
+      queue_symbol_fill (mono_data, 0);
   }
 
   display_mono_start ();
 
   uint8_t symbol;
   for (uint8_t i = 0; i < MATRIX_SIZE; ++i)
-    if (ring_symbol_get (mono_data, i, &symbol) != 0)
+    if (queue_symbol_get (mono_data, i, &symbol) != 0)
       display_mono (symbol);
     else
       display_mono (1);
@@ -102,9 +102,9 @@ void flush_try ()
   display_mono_stop ();
 
   if (mode == FLUSH_SHIFT)
-    ring_symbol_drain (mono_data, &symbol);
+    queue_symbol_drain (mono_data, &symbol);
   else if (mode == FLUSH_CLEAR)
-    ring_clear (mono_data);
+    queue_clear (mono_data);
 
   mode = FLUSH_DISABLED;
 }
