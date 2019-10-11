@@ -130,3 +130,4 @@ void keyboard_try ()
 
 // fixme: add ext intr handler here and its init in 'keyboard_init'
 // it should update mode variable
+//
