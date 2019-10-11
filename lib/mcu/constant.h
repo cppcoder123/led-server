@@ -14,7 +14,7 @@
 #define SPI_WRITE_UNDERFLOW 240 /* not an error */
 #define SPI_SPEED_ERROR 235
 
-#define RING_INIT_PATTERN 230
+#define QUEUE_INIT_PATTERN 230
 
 #define MSG_OVERHEAD 6 /* it is less actually */
 #define LED_ARRAY_SIZE 20
@@ -45,6 +45,20 @@ enum {
 
   /* avr=>pi: request data to display, 0 as payload */
   MSG_ID_POLL,
+
+  /* notify twi read error */
+  /* avr => pi: error value as payload */
+  MSG_ID_TWI_READ_ERROR,
+
+  /* notify twi write error */
+  /* avr => pi: error value as payload */
+  MSG_ID_TWI_WRITE_ERROR,
+
+  /* avr => pi: error during finger detection, error as payload */
+  MSG_ID_KEY_ERROR,
+
+  /* avr => pi: error during finger detection handling, mode as payload */
+  MSG_ID_KEY_HANDLE_ERROR,
 
   /* avr=>pi: debug */
   MSG_ID_DEBUG_A,

@@ -20,7 +20,8 @@ OBJECT_LIST = \
   queue.o \
   render.o \
   spi.o \
-  timer.o
+  timer.o \
+  twi.o
 
 MCU = atmega2560
 
