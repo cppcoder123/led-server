@@ -11,8 +11,10 @@
 #include "keyboard.h"
 #include "twi.h"
 
+#define BOARD_ERROR_SHIFT 200
+
 #define BOARD_WAKEUP 0x01
-#define BOARD_NO_ERROR 0          /* fixme */
+#define BOARD_DETECT_SUCCESS 0  /* fixme */
 
 #define BOARD_REG_2 0x40
 #define BOARD_REG_ERROR_STATUS 0x1A
@@ -59,33 +61,33 @@ static void write_completed (uint8_t status)
   if (status == TWI_SUCCESS)
     return;
 
-  encode_msg_1 (MSG_ID_TWI_READ_ERROR, SERIAL_ID_TO_IGNORE, status);
+  encode_msg_1 (MSG_ID_BOARD_WRITE_ERROR, SERIAL_ID_TO_IGNORE, status);
 }
 
 static void read_completed (uint8_t status, uint8_t data)
 {
   if (status != TWI_SUCCESS) {
-    encode_msg_1 (MSG_ID_TWI_WRITE_ERROR, SERIAL_ID_TO_IGNORE, status);
+    encode_msg_1 (MSG_ID_BOARD_READ_ERROR, SERIAL_ID_TO_IGNORE, status);
     mode = mode_idle;
     return;
   }
 
   switch (mode) {
   case mode_read_error_start:
-    if (data == BOARD_NO_ERROR) {
+    if (data == BOARD_DETECT_SUCCESS) {
       mode = mode_read_error_finish;
     } else {
-      encode_msg_1 (MSG_ID_KEY_ERROR, SERIAL_ID_TO_IGNORE, data);
+      encode_msg_1 (MSG_ID_BOARD_DETECT_ERROR, SERIAL_ID_TO_IGNORE, data);
       mode = mode_idle;
     }
     break;
   case mode_read_data_start:
     state = data;
-    mode = mode_idle;
+    mode = mode_read_data_finish;
     break;
   default:
+    encode_msg_1 (MSG_ID_BOARD_HANDLE_ERROR, SERIAL_ID_TO_IGNORE, mode);
     mode = mode_idle;
-    encode_msg_1 (MSG_ID_TWI_WRITE_ERROR, SERIAL_ID_TO_IGNORE, status);
     break;
   }
 }
@@ -120,7 +122,8 @@ void keyboard_try ()
     twi_write_reg (BOARD_REG_2, BOARD_WAKEUP, write_completed);
     break;
   default:
-    encode_msg_1 (MSG_ID_KEY_HANDLE_ERROR, SERIAL_ID_TO_IGNORE, mode);
+    encode_msg_1 (MSG_ID_BOARD_HANDLE_ERROR, SERIAL_ID_TO_IGNORE,
+                  BOARD_ERROR_SHIFT + mode);
     break;
   }
 }

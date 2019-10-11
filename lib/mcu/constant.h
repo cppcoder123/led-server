@@ -48,17 +48,17 @@ enum {
 
   /* notify twi read error */
   /* avr => pi: error value as payload */
-  MSG_ID_TWI_READ_ERROR,
+  MSG_ID_BOARD_READ_ERROR,
 
   /* notify twi write error */
   /* avr => pi: error value as payload */
-  MSG_ID_TWI_WRITE_ERROR,
+  MSG_ID_BOARD_WRITE_ERROR,
 
   /* avr => pi: error during finger detection, error as payload */
-  MSG_ID_KEY_ERROR,
+  MSG_ID_BOARD_DETECT_ERROR,
 
   /* avr => pi: error during finger detection handling, mode as payload */
-  MSG_ID_KEY_HANDLE_ERROR,
+  MSG_ID_BOARD_HANDLE_ERROR,
 
   /* avr=>pi: debug */
   MSG_ID_DEBUG_A,
