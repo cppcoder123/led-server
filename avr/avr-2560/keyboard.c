@@ -93,9 +93,13 @@ static void read_completed (uint8_t status, uint8_t data)
 void keyboard_try ()
 {
   switch (mode) {
+  case mode_init_start:
   case mode_detect_start:
   case mode_read_error_start:
   case mode_read_data_start:
+    break;
+  case mode_init_finish:
+    mode = mode_idle;
     break;
   case mode_detect_finish:
     mode = mode_read_error_start;
