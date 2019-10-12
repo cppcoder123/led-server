@@ -11,8 +11,9 @@
 #include "flush.h"
 #include "keyboard.h"
 #include "postpone.h"
-#include "power.h"
+//#include "power.h"
 #include "spi.h"
+#include "twi.h"
 
 static void init ()
 {
@@ -26,10 +27,11 @@ static void init ()
   flush_init ();
   keyboard_init ();
   postpone_init ();
-  power_init ();
+  //  power_init ();
+  twi_init ();
 
   /* enable r-pi */
-  power_up ();
+  //power_up ();
 
   sei ();
 }
@@ -44,6 +46,7 @@ int main ()
     //flush_try ();
     keyboard_try ();
     postpone_try ();
+    twi_try ();
   }
 
   return 0;

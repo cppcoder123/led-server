@@ -30,7 +30,7 @@
 #define BOARD_VALUE_CALIBRATE_APPLY 0x87
 /* it doesn't matter what we have for x */
 /* 0xxx x000 (negate=>) 1xxx x111 => 1000 0111 => 0x87*/
-#define BOARD_VALUE_CALIBRATED_MASK 0x87
+#define BOARD_VALUE_CALIBRATED_MASK 0x86
 /* MSB and LSB to 1 */
 #define BOARD_VALUE_GENERAL_STATUS_MASK 0x81
 /* all bits should be zero */
@@ -122,7 +122,7 @@ static void read_reg (uint8_t reg)
   twi_read_reg (reg, read_completed);
 }
 
-static uint8_t check_status (uint8_t mask)
+static uint8_t check_zero (uint8_t mask)
 {
   return ((read_value & mask) == 0) ? 1 : 0;
 }
@@ -163,7 +163,7 @@ void keyboard_try ()
     read_reg (BOARD_REG_CONTROL_1);
     break;
   case mode_calibrate_wait_check:
-    if (check_status (BOARD_VALUE_CALIBRATED_MASK) == 0)
+    if (check_zero (BOARD_VALUE_CALIBRATED_MASK) == 0)
       mode -= 2;                /* one step backward */
     break;
   case mode_calibrate_param:
@@ -183,7 +183,7 @@ void keyboard_try ()
     read_reg (BOARD_REG_GENERAL_STATUS);
     break;
   case mode_general_status_check:
-    if (check_status (BOARD_VALUE_GENERAL_STATUS_MASK) == 0) {
+    if (check_zero (BOARD_VALUE_GENERAL_STATUS_MASK) == 0) {
       mode = mode_error;
     }
     mode_advance = 1;
@@ -192,7 +192,7 @@ void keyboard_try ()
     read_reg (BOARD_REG_CHANNEL_STATUS);
     break;
   case mode_channel_status_check:
-    if (check_status (BOARD_VALUE_CHANNEL_STATUS_MASK) == 0) {
+    if (check_zero (BOARD_VALUE_CHANNEL_STATUS_MASK) == 0) {
       mode = mode_error;
     }
     mode_advance = 1;

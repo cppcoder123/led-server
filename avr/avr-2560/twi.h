@@ -7,7 +7,16 @@
 
 #include <stdint.h>
 
-#define TWI_SUCCESS 1           /* fixme */
+enum {
+  TWI_SUCCESS,
+  TWI_START_FAILURE,            /* write */
+  TWI_START_SLAVE_FAILURE,
+  TWI_START_DATA_1_FAILURE,
+  TWI_START_DATA_2_FAILURE,
+  TWI_RESTART_FAILURE,          /* read */
+  TWI_RESTART_SLAVE_FAILURE,
+  TWI_RESTART_DATA_FAILURE
+};
 
 typedef void (*twi_write_callback) (uint8_t /*status*/);
 typedef void (*twi_read_callback) (uint8_t /*status*/, uint8_t /*value*/);
