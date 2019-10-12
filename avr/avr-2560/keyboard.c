@@ -110,9 +110,9 @@ static void read_completed (uint8_t status, uint8_t data)
   if (status != TWI_SUCCESS) {
     encode_msg_1 (MSG_ID_BOARD_READ_ERROR, SERIAL_ID_TO_IGNORE, status);
     mode = mode_error;
+  } else {
+    read_value = data;
   }
-
-  read_value = data;
   
   mode_advance = 1;
 }
@@ -151,7 +151,8 @@ void keyboard_try ()
   
   switch (mode_tmp) {
   case mode_error:
-    board_reset ();
+    /* board_reset (); */
+    /* hang here forever */
     break;
   case mode_reset:
     mode_advance = 1;           /* nothing to do */
