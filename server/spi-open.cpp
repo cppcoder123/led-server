@@ -11,7 +11,7 @@ namespace
 
   auto chip_name = "gpiochip0";
 
-  auto enable_offset = 26;      // fixme: check
+  auto enable_offset = 22;      // fixme: check
 
 } // anonymous
 
@@ -26,6 +26,7 @@ namespace led_d
 
   spi_open_t::~spi_open_t ()
   {
+    stop ();
   }
 
   void spi_open_t::start ()
@@ -45,10 +46,14 @@ namespace led_d
 
   void spi_open_t::stop ()
   {
-    if (m_enable)
+    if (m_enable) {
       gpiod_line_release (m_enable);
+      m_enable = nullptr;
+    }
 
-    if (m_chip)
+    if (m_chip) {
       gpiod_chip_close (m_chip);
+      m_chip = nullptr;
+    }
   }
 } // led_d

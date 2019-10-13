@@ -12,7 +12,7 @@
 
 namespace
 {
-  auto irq_offset = 23;         // fixme: check
+  auto irq_offset = 27;         // fixme: check
 } // namespace
 
 namespace led_d
@@ -23,7 +23,6 @@ namespace led_d
       m_queue (irq_queue),
       m_descriptor (context)
   {
-    start ();
   }
 
   spi_irq_t::~spi_irq_t ()
@@ -60,8 +59,10 @@ namespace led_d
 
   void spi_irq_t::stop ()
   {
-    if (m_irq)
+    if (m_irq) {
       gpiod_line_release (m_irq);
+      m_irq = nullptr;
+    }
   }
 
   void spi_irq_t::handle_event (const asio::error_code &errc)

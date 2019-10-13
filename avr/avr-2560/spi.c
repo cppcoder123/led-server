@@ -12,8 +12,8 @@
 #include "spi.h"
 
 #define SPI_MISO PORTB3
-/* irq pin is connected to pi's gpio-26 */
-#define SPI_IRQ PORTB4
+/* irq pin is connected to pi's gpio-27 */
+#define SPI_IRQ PORTB6
 
 #define READ_SIZE 255
 #define WRITE_SIZE 255

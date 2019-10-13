@@ -129,8 +129,8 @@ namespace led_d
 
   void spi_dev_t::drain ()
   {
-    static const std::size_t max_attempt = 50;
-    static const std::size_t msg_size = 50;
+    static const std::size_t max_attempt = 5;
+    static const std::size_t msg_size = 10;
 
     for (std::size_t i = 0; i < max_attempt; ++i) {
       mcu_msg_t to_mcu (msg_size, 233);
@@ -146,9 +146,9 @@ namespace led_d
       // from_mcu.clear ();
       transfer (to_mcu, from_mcu);
       // --------------------------------------------------
-      // log_t::buffer_t buf;
-      // buf << "spi: from-mcu msg size : " << from_mcu.size ();
-      // log_t::info (buf);
+      log_t::buffer_t buf;
+      buf << "spi: from-mcu msg size : " << from_mcu.size ();
+      log_t::info (buf);
       // --------------------------------------------------
       if (std::count (from_mcu.begin (),
                       from_mcu.end (), SPI_WRITE_UNDERFLOW) == msg_size)

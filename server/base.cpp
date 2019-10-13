@@ -26,10 +26,11 @@ namespace led_d
   bool base_t::start ()
   {
     try {
+      m_spi_open.start ();
+      m_irq.start ();
       m_network.start ();
       m_network_thread = std::thread (&network_handle_t::start, &m_network_handle);
       m_mcu_thread = std::thread (&mcu_handle_t::start, &m_mcu_handle);
-      m_spi_open.start ();
     }
     catch (std::exception &e) {
       log_t::error (std::string ("Base: ") + e.what ());
