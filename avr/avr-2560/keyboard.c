@@ -217,6 +217,11 @@ void keyboard_try ()
   }
 }
 
+uint8_t keyboard_status ()
+{
+  return (mode == mode_error) ? KEYBOARD_ERROR : KEYBOARD_OK;
+}
+
 /* handle external interrupt from board */
 ISR (INT2_vect)
 {

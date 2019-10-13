@@ -10,6 +10,7 @@
 #include "decode.h"
 #include "encode.h"
 #include "flush.h"
+#include "keyboard.h"
 #include "spi.h"
 
 #define IN_SIZE (LED_ARRAY_SIZE + MSG_OVERHEAD)
@@ -50,6 +51,13 @@ static void decode ()
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
+    {
+      uint8_t board = keyboard_status ();
+      uint8_t board_id = (board == KEYBOARD_OK)
+        ? MSG_ID_BOARD_STATUS_OK : MSG_ID_BOARD_STATUS_ERROR;
+      uint8_t board_payload = (board == KEYBOARD_OK) ? 0 : board;
+      encode_msg_1 (board_id, SERIAL_ID_TO_IGNORE, board_payload);
+    }
     flush_enable ();
     break;
   case MSG_ID_QUERY:

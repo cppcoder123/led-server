@@ -46,6 +46,12 @@ enum {
   /* avr=>pi: request data to display, 0 as payload */
   MSG_ID_POLL,
 
+  /* avr => pi: board good status*/
+  MSG_ID_BOARD_STATUS_OK,
+
+  /* avr => pi: board bad status*/
+  MSG_ID_BOARD_STATUS_ERROR,
+
   /* notify twi read error */
   /* avr => pi: error value as payload */
   MSG_ID_BOARD_READ_ERROR,
