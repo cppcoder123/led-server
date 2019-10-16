@@ -52,11 +52,10 @@ static void decode ()
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
     {
-      uint8_t board = keyboard_status ();
-      uint8_t board_id = (board == KEYBOARD_OK)
+      uint8_t keyboard_mode = 0;
+      uint8_t msg_id = (keyboard_status (&keyboard_mode) == KEYBOARD_OK)
         ? MSG_ID_BOARD_STATUS_OK : MSG_ID_BOARD_STATUS_ERROR;
-      uint8_t board_payload = (board == KEYBOARD_OK) ? 0 : board;
-      encode_msg_1 (board_id, SERIAL_ID_TO_IGNORE, board_payload);
+      encode_msg_1 (msg_id, SERIAL_ID_TO_IGNORE, keyboard_mode);
     }
     flush_enable ();
     break;

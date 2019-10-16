@@ -3,11 +3,14 @@
 #include <stdint.h>
 #include <util/twi.h>
 
+#include "mcu/constant.h"
+
+#include "encode.h"
 #include "twi.h"
 
 #define STATUS_MASK (TWSR & 0xF8)
 
-#define SLAVE_ADDRESS 0x16      /* addr selection wire to GND */
+#define SLAVE_ADDRESS 0x17      /* addr selection wire to +5v */
 
 enum {
   mode_start,
@@ -36,8 +39,11 @@ void twi_init ()
   read_cb = 0;
 
   /* bit rate: scl rate should 4*10^6 / (16 + 2 * TWBR * (4 ^TWPS)) */
-  /* so 4*10^6 / (16 + 2 * 0x08 * 1)  = aprox 102kHz */
-  TWBR = 0x08;
+  /* false: so 4*10^6 / (16 + 2 * 0x08 * 1)  = aprox 102kHz */
+  /* TWBR = 0x08; */
+  TWBR = 0xFF;
+  TWSR |= (1 << TWPS0) | (1 << TWPS1); /* min clock freq */
+
   /* enable twi, enable twi interrupt */
   TWCR |= (1 << TWEN) | (1 << TWIE);
 }
@@ -115,7 +121,9 @@ static void stop ()
 
 static uint8_t slave (uint8_t read)
 {
-  return (SLAVE_ADDRESS << 1) | ((read != 0) ? 1 : 0);
+  uint8_t addr = (SLAVE_ADDRESS << 1) | ((read != 0) ? 1 : 0);
+  encode_msg_1 (MSG_ID_DEBUG_C, SERIAL_ID_TO_IGNORE, addr);
+  return addr;
 }
 
 static void restart ()
@@ -140,6 +148,7 @@ ISR (TWI_vect)
     break;
   case mode_slave:
     if (STATUS_MASK != TW_MT_SLA_ACK) {
+      encode_msg_1 (MSG_ID_DEBUG_B, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_START_SLAVE_FAILURE;
       stop ();
     } else {

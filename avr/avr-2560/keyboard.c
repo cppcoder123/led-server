@@ -37,6 +37,7 @@
 #define BOARD_VALUE_CHANNEL_STATUS_MASK 0xFF
 
 #define PORT_RESET PORTC0
+#define PORT_INT PORTD2
 
 /* mode of operation */
 enum {
@@ -86,6 +87,11 @@ void keyboard_init ()
 
   EICRA |= (1 << ISC20) | (1 << ISC21); /* rising edge */
   EIMSK |= (1 << INT2);                 /* enable int2 interrupt */
+  /* DDRD |= (1 << PORT_INT); */
+
+  /* port c0 drives reset line, configure it as output, write 1 */
+  DDRC |= (1 << PORT_RESET);
+  PORTC |= (1 << PORT_RESET);
 
   board_reset ();
 }
@@ -95,9 +101,9 @@ static void write_completed (uint8_t status)
   if (status != TWI_SUCCESS) {
     encode_msg_1 (MSG_ID_BOARD_WRITE_ERROR, SERIAL_ID_TO_IGNORE, status);
     mode = mode_error;
+  } else {
+    mode_advance = 1;
   }
-
-  mode_advance = 1;
 }
 
 static void write_reg (uint8_t reg, uint8_t data)
@@ -112,9 +118,9 @@ static void read_completed (uint8_t status, uint8_t data)
     mode = mode_error;
   } else {
     read_value = data;
+    mode_advance = 1;
   }
   
-  mode_advance = 1;
 }
 
 static void read_reg (uint8_t reg)
@@ -144,10 +150,13 @@ void keyboard_try ()
 
   uint8_t mode_tmp = mode;
 
-  if (mode < mode_last)
+  if ((mode < mode_last)
+      || (mode != mode_error))
     ++mode;
 
   mode_advance = 0;
+
+  encode_msg_1 (MSG_ID_DEBUG_C, SERIAL_ID_TO_IGNORE, 77);
   
   switch (mode_tmp) {
   case mode_error:
@@ -217,13 +226,20 @@ void keyboard_try ()
   }
 }
 
-uint8_t keyboard_status ()
+uint8_t keyboard_status (uint8_t *mode_value)
 {
-  return (mode == mode_error) ? KEYBOARD_ERROR : KEYBOARD_OK;
+  *mode_value = mode;
+  return (mode == mode_idle) ? KEYBOARD_OK : KEYBOARD_ERROR;
 }
+
+/* uint8_t keyboard_mode () */
+/* { */
+/*   return mode; */
+/* } */
 
 /* handle external interrupt from board */
 ISR (INT2_vect)
 {
   mode_advance = 1;
+  encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 111);
 }

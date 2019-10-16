@@ -14,6 +14,6 @@ enum {
   KEYBOARD_OK,
   KEYBOARD_ERROR
 };
-uint8_t keyboard_status ();
+uint8_t keyboard_status (uint8_t *mode);
 
 #endif
