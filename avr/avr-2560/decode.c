@@ -51,12 +51,7 @@ static void decode ()
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
-    {
-      uint8_t keyboard_mode = 0;
-      uint8_t msg_id = (keyboard_status (&keyboard_mode) == KEYBOARD_OK)
-        ? MSG_ID_BOARD_STATUS_OK : MSG_ID_BOARD_STATUS_ERROR;
-      encode_msg_1 (msg_id, SERIAL_ID_TO_IGNORE, keyboard_mode);
-    }
+    keyboard_enable ();
     flush_enable ();
     break;
   case MSG_ID_QUERY:

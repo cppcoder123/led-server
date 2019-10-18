@@ -46,11 +46,8 @@ enum {
   /* avr=>pi: request data to display, 0 as payload */
   MSG_ID_POLL,
 
-  /* avr => pi: board good status*/
-  MSG_ID_BOARD_STATUS_OK,
-
-  /* avr => pi: board bad status*/
-  MSG_ID_BOARD_STATUS_ERROR,
+  /* avr => pi: board is ready to operate, 0 as payload*/
+  MSG_ID_BOARD_ENABLED,
 
   /* notify twi read error */
   /* avr => pi: error value as payload */
@@ -67,9 +64,22 @@ enum {
   MSG_ID_BOARD_HANDLE_ERROR,
 
   /* avr=>pi: debug */
-  MSG_ID_DEBUG_A,
+  MSG_ID_DEBUG_A,               /* 13 */
   MSG_ID_DEBUG_B,
   MSG_ID_DEBUG_C,
+  MSG_ID_DEBUG_D,               /* 16 */
+  MSG_ID_DEBUG_E,
+  MSG_ID_DEBUG_F,
+  MSG_ID_DEBUG_G,               /* 19 */
+  MSG_ID_DEBUG_H,               /* 20 */
+  MSG_ID_DEBUG_I,               /* 21 */
+  MSG_ID_DEBUG_J,
+  MSG_ID_DEBUG_K,
+  MSG_ID_DEBUG_L,               /* 24 */
+  MSG_ID_DEBUG_M,
+  MSG_ID_DEBUG_N,               /* 26 */
+  MSG_ID_DEBUG_O,
+  MSG_ID_DEBUG_P,
 };
 
 enum {
