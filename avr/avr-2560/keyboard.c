@@ -82,7 +82,8 @@ static volatile uint8_t mode_advance = 0;
 static uint8_t state = 0;
 
 /* read register value */
-static uint8_t read_value = 0;
+static uint8_t byte_buf = 0;
+static uint8_t word_buf[TWI_WORD_SIZE];
 
 static void board_reset ()
 {
@@ -99,7 +100,9 @@ void keyboard_init ()
 
   state = 0;
 
-  read_value = 0;
+  byte_buf = 0;
+  for (uint8_t i = 0; i < TWI_WORD_SIZE; ++i)
+    word_buf[i] = 0;
 
   /* don't do it here to prevent enable before 'keyboard_enable' call */
   EICRA |= (1 << ISC20) | (1 << ISC21); /* rising edge */
@@ -138,13 +141,13 @@ static void write_word (uint8_t reg, uint8_t data)
   }
 }
 
-static void read_completed (uint8_t status, uint8_t data)
+static void read_byte_completed (uint8_t status, volatile uint8_t *data)
 {
   if (status != TWI_SUCCESS) {
     encode_msg_1 (MSG_ID_BOARD_READ_ERROR, SERIAL_ID_TO_IGNORE, status);
     mode = mode_error;
   } else {
-    read_value = data;
+    byte_buf = *data;
     mode_advance = 1;
   }
   
@@ -152,9 +155,30 @@ static void read_completed (uint8_t status, uint8_t data)
 
 static void read_byte (uint8_t reg)
 {
-  if (twi_read_byte (reg, read_completed) == 0) {
+  if (twi_read_byte (reg, read_byte_completed) == 0) {
     encode_msg_1 (MSG_ID_BOARD_READ_ERROR,
                   SERIAL_ID_TO_IGNORE, TWI_READ_BYTE_ERROR);
+    twi_debug_cb ();
+  }
+}
+
+static void read_word_completed (uint8_t status, volatile uint8_t *data)
+{
+  if (status != TWI_SUCCESS) {
+    encode_msg_1 (MSG_ID_BOARD_READ_ERROR, SERIAL_ID_TO_IGNORE, status);
+    mode = mode_error;
+  } else {
+    for (uint8_t i = 0; i < TWI_WORD_SIZE; ++i)
+      word_buf[i] = data[i];
+    mode_advance = 1;
+  }
+}
+
+static void read_word (uint8_t reg)
+{
+  if (twi_read_word (reg, read_word_completed) == 0) {
+    encode_msg_1 (MSG_ID_BOARD_READ_ERROR,
+                  SERIAL_ID_TO_IGNORE, TWI_READ_WORD_ERROR);
     twi_debug_cb ();
   }
 }
@@ -166,10 +190,10 @@ static uint8_t is_ready ()      /* to go ahead */
   /*
     we need to check that WriteReq & ParaCh & StaCal bits are zeroes,
     1000 0110 - 1 for bits we need to check,
-    negate read_value and compare AND for equal to mask
+    negate byte_buf and compare AND for equal to mask
   */
 
-  return (((~read_value) & READY_MASK) == READY_MASK) ? 1 : 0;
+  return (((~byte_buf) & READY_MASK) == READY_MASK) ? 1 : 0;
 }
 
 static void handle_data (uint8_t new_state)
@@ -211,13 +235,13 @@ void keyboard_try ()
     write_byte (REG_CONTROL_1, 0x80);
     break;
   case mode_enable_read: 
-    /* encode_msg_1 (MSG_ID_DEBUG_M, SERIAL_ID_TO_IGNORE, read_value); */
+    /* encode_msg_1 (MSG_ID_DEBUG_M, SERIAL_ID_TO_IGNORE, byte_buf); */
     read_byte (REG_CONTROL_1);
     /* read_byte (REG_USE_CHANNEL); */
     break;
   case mode_enable_check:
     if (is_ready () == 0) {
-      encode_msg_1 (MSG_ID_DEBUG_L, SERIAL_ID_TO_IGNORE, read_value);
+      encode_msg_1 (MSG_ID_DEBUG_L, SERIAL_ID_TO_IGNORE, byte_buf);
       mode -= 2;                /* read control-1 again */
     }
     mode_advance = 1;
@@ -287,14 +311,14 @@ void keyboard_try ()
     read_byte (REG_ERROR);
     break;
   case mode_wakeup_wait_check:
-    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, read_value); */
+    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, byte_buf); */
     break;
   case mode_read_channel_error:
     read_byte (REG_CHANNEL_ERROR);
     break;
   case mode_check_channel_error:
-    if (read_value != 0)
-      encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, read_value);
+    if (byte_buf != 0)
+      encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf);
     mode_advance = 1;
     break;
   case mode_read_error:
@@ -302,9 +326,9 @@ void keyboard_try ()
     /* read_byte (REG_CHANNEL_ERROR); */
     break;
   case mode_check_error:
-    /* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, read_value); */
-    if ((read_value & 0x81) != 0) {
-      encode_msg_1 (MSG_ID_DEBUG_U, SERIAL_ID_TO_IGNORE, read_value);
+    /* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, byte_buf); */
+    if ((byte_buf & 0x81) != 0) {
+      encode_msg_1 (MSG_ID_DEBUG_U, SERIAL_ID_TO_IGNORE, byte_buf);
       /* either syserr or calerr */
       mode = mode_error;
     }
@@ -315,8 +339,8 @@ void keyboard_try ()
     read_byte (REG_DATA);
     break;
   case mode_handle_data:
-    /* encode_msg_1 (MSG_ID_DEBUG_T, SERIAL_ID_TO_IGNORE, read_value); */
-    handle_data (read_value);
+    /* encode_msg_1 (MSG_ID_DEBUG_T, SERIAL_ID_TO_IGNORE, byte_buf); */
+    handle_data (byte_buf);
     mode_advance = 1;
     break;
   case mode_main_wakeup:

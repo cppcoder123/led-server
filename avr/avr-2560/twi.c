@@ -17,6 +17,9 @@
 
 #define SLAVE_ADDRESS 0x17      /* addr selection wire to +5v */
 
+#define TRANSFER_BYTE 0
+#define TRANSFER_WORD 7
+
 enum {
   mode_write_start,     /* W: start writing */
   mode_write_slave,     /* W: slave device addr, w */
@@ -33,19 +36,23 @@ enum {
 static volatile uint8_t mode = mode_idle;
 
 static volatile uint8_t status = TWI_SUCCESS;
-static volatile uint8_t buf[2];
+
+static volatile uint8_t reg_buf = 0;
+static volatile uint8_t data_buf[TWI_WORD_SIZE];
 
 static twi_write_callback write_cb;
 static twi_read_callback read_cb;
 
-static uint8_t bytes_to_write = 1;
+static volatile uint8_t transfer_count = 0; /* in either direction */
+static volatile uint8_t transfer_limit = TRANSFER_BYTE;
 
 void twi_init ()
 {
   write_cb = NULL;
   read_cb = NULL;
 
-  bytes_to_write = 1;
+  transfer_count = 0;
+  transfer_limit = TRANSFER_BYTE;
 
   /* bit rate: scl rate should 4*10^6 / (16 + 2 * TWBR * (4 ^TWPS)) */
   /* false: so 4*10^6 / (16 + 2 * 0x08 * 1)  = aprox 102kHz */
@@ -74,7 +81,7 @@ void twi_try ()
     write_cb (status);
     write_cb = NULL;
   } else if (read_cb) {
-    read_cb (status, buf[1]);
+    read_cb (status, data_buf);
     read_cb = NULL;
   }
 }
@@ -93,24 +100,36 @@ static void stop ()
   TWCR &= ~CONTROL_MASK;
 
   mode = mode_idle;
-  bytes_to_write = 1;
 }
 
-uint8_t twi_read_byte (uint8_t reg, twi_read_callback cb)
+static uint8_t twi_read (uint8_t reg, twi_read_callback cb)
 {
   if (busy () != 0)
     return 0;
 
-  read_cb = cb;
-
   status = TWI_SUCCESS;
+  read_cb = cb;
+  reg_buf = reg;
 
-  buf[0] = reg;
-  buf[1] = 0;
+  transfer_count = 0;
 
   start (mode_write_start);
   
   return 1;
+}
+
+uint8_t twi_read_byte (uint8_t reg, twi_read_callback cb)
+{
+  transfer_limit = TRANSFER_BYTE;
+
+  return twi_read (reg, cb);
+}
+
+uint8_t twi_read_word (uint8_t reg, twi_read_callback cb)
+{
+  transfer_limit = TRANSFER_WORD;
+
+  return twi_read (reg, cb);
 }
 
 static uint8_t twi_write (uint8_t reg, uint8_t value, twi_write_callback cb)
@@ -118,12 +137,14 @@ static uint8_t twi_write (uint8_t reg, uint8_t value, twi_write_callback cb)
   if (busy () != 0)
     return 0;
 
-  write_cb = cb;
-
   status = TWI_SUCCESS;
+  write_cb = cb;
+  reg_buf = reg;
 
-  buf[0] = reg;
-  buf[1] = value;
+  /* we don't need to write different values for word bytes now */
+  data_buf[0] = value;
+
+  transfer_count = 0;
 
   start (mode_write_start);
 
@@ -132,22 +153,16 @@ static uint8_t twi_write (uint8_t reg, uint8_t value, twi_write_callback cb)
 
 uint8_t twi_write_byte (uint8_t reg, uint8_t value, twi_write_callback cb)
 {
-  if (twi_write (reg, value, cb) == 0)
-    return 0;
+  transfer_limit = TRANSFER_BYTE;
 
-  bytes_to_write = 1;
-
-  return 1;
+  return twi_write (reg, value, cb);
 }
 
 uint8_t twi_write_word (uint8_t reg, uint8_t value, twi_write_callback cb)
 {
-  if (twi_write (reg, value, cb) == 0)
-    return 0;
+  transfer_limit = TRANSFER_WORD;
 
-  bytes_to_write = 8;
-
-  return 1;
+  return twi_write (reg, value, cb);
 }
 
 void twi_debug_cb ()
@@ -206,7 +221,7 @@ ISR (TWI_vect)
       stop ();
     } else {
       /* encode_msg_1 (MSG_ID_DEBUG_G, SERIAL_ID_TO_IGNORE, buf[0]); */
-      TWDR = buf[0];            /* register */
+      TWDR = reg_buf;
     }
     break;
   case mode_write_reg:
@@ -219,7 +234,7 @@ ISR (TWI_vect)
       if (reading () != 0) {
         start (mode_read_start);
       } else {
-        TWDR = buf[1];
+        TWDR = data_buf[0];
       }
     }
     break;
@@ -228,8 +243,8 @@ ISR (TWI_vect)
     if (check_status_register (TW_MT_DATA_ACK) == 0) {
       status = TWI_WRITE_VALUE_ERROR;
       stop ();
-    } else if (bytes_to_write > 1) {
-      --bytes_to_write;
+    } else if (transfer_count < transfer_limit) {
+      ++transfer_count;
       mode -= 2;              /* go to write reg again */
     } else {
       stop ();
@@ -261,22 +276,17 @@ ISR (TWI_vect)
     if (check_status_register (TW_MR_DATA_ACK) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_Q, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_READ_VALUE_ERROR;
+      stop ();
     } else {
-      buf[1] = TWDR;
-      TWCR &= ~(1 << TWEN);     /* send nack ? */
+      data_buf[transfer_count++] = TWDR;
+      if (transfer_count < transfer_limit) {
+        --mode;                 /* the same mode */
+      } else {
+        TWCR &= ~(1 << TWEN);     /* send nack ? */
+        stop ();
+      }
     }
-    stop ();
     break;
-    /* case mode_read_stop: */
-    /*   if () */
-    /*   mode = mode_idle; */
-    /* if (STATUS_MASK != TW_MR_DATA_ACK) { */
-    /*   encode_msg_1 (MSG_ID_DEBUG_I, SERIAL_ID_TO_IGNORE, STATUS_MASK); */
-    /*   status = TWI_RESTART_DATA_FAILURE; */
-    /* } else */
-    /*   buf[1] = TWDR;            /\* reg value *\/ */
-    /* stop (); */
-    /* break; */
   case mode_idle:
     /* is it possible to get here? not sure */
     mode = mode_idle;
