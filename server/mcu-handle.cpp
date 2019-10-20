@@ -41,7 +41,7 @@ namespace led_d
     m_to_queue.push
       (mcu::encode::join (mcu_id::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
 
-    while (m_go == true) {
+    while (m_go.load () == true) {
       if (m_interrupt_rised == true)
         write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
       auto char_opt = m_irq_queue.pop<false>();
@@ -68,7 +68,7 @@ namespace led_d
 
   void mcu_handle_t::stop ()
   {
-    m_go = false;
+    m_go.store (false);
 
     m_device.stop ();
 

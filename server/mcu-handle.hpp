@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 
+#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <string>
@@ -43,7 +44,7 @@ namespace led_d
 
     void write_msg (const mcu_msg_t &msg);
 
-    bool m_go;
+    std::atomic_bool m_go;
 
     std::mutex m_mutex;
     std::condition_variable m_condition;

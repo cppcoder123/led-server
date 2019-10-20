@@ -8,6 +8,10 @@
 #include "encode.h"
 #include "twi.h"
 
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
+
 #define STATUS_MASK (TWSR & 0xF8)
 #define CONTROL_MASK ((1 << TWEN) | (1 << TWIE))
 
@@ -38,15 +42,17 @@ static uint8_t bytes_to_write = 1;
 
 void twi_init ()
 {
-  write_cb = 0;
-  read_cb = 0;
+  write_cb = NULL;
+  read_cb = NULL;
 
   bytes_to_write = 1;
 
   /* bit rate: scl rate should 4*10^6 / (16 + 2 * TWBR * (4 ^TWPS)) */
   /* false: so 4*10^6 / (16 + 2 * 0x08 * 1)  = aprox 102kHz */
   /* TWBR = 0x08; */
-  TWBR = 0xFF;
+  /* TWBR = 0xFF; */
+  /* TWBR = 0x08; */
+  TWBR = 0x02;
   TWSR |= (1 << TWPS0) | (1 << TWPS1); /* min clock freq */
 
   /* enable twi, enable twi interrupt */
@@ -55,7 +61,7 @@ void twi_init ()
 
 static uint8_t busy ()
 {
-  return ((write_cb != 0) || (read_cb != 0)) ? 1 : 0;
+  return ((write_cb != NULL) || (read_cb != NULL)) ? 1 : 0;
 }
 
 void twi_try ()
@@ -66,10 +72,10 @@ void twi_try ()
 
   if (write_cb) {
     write_cb (status);
-    write_cb = 0;
+    write_cb = NULL;
   } else if (read_cb) {
     read_cb (status, buf[1]);
-    read_cb = 0;
+    read_cb = NULL;
   }
 }
 
@@ -100,7 +106,7 @@ uint8_t twi_read_byte (uint8_t reg, twi_read_callback cb)
   status = TWI_SUCCESS;
 
   buf[0] = reg;
-  buf[1] = 123;                 /* easy to note */
+  buf[1] = 0;
 
   start (mode_write_start);
   
@@ -142,6 +148,16 @@ uint8_t twi_write_word (uint8_t reg, uint8_t value, twi_write_callback cb)
   bytes_to_write = 8;
 
   return 1;
+}
+
+void twi_debug_cb ()
+{
+  if (write_cb != NULL)
+    encode_msg_1 (MSG_ID_DEBUG_R, SERIAL_ID_TO_IGNORE, 100);
+  if (read_cb != NULL)
+    encode_msg_1 (MSG_ID_DEBUG_R, SERIAL_ID_TO_IGNORE, 200);
+  if ((write_cb == NULL) && (read_cb == NULL))
+    encode_msg_1 (MSG_ID_DEBUG_R, SERIAL_ID_TO_IGNORE, 0);
 }
 
 static uint8_t reading ()
@@ -236,8 +252,15 @@ ISR (TWI_vect)
     if (check_status_register (TW_MR_SLA_ACK) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_K, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_READ_SLAVE_ERROR;
-    /* } else if (check_status_register (TW_MR_DATA_ACK) == 0) { */
-    /*   status = TWI_READ_VALUE_ERROR; */
+      stop ();
+    } else {
+       TWCR &= ~(1 << TWSTA);
+    }
+    break;
+  case mode_read_value:
+    if (check_status_register (TW_MR_DATA_ACK) == 0) {
+      encode_msg_1 (MSG_ID_DEBUG_Q, SERIAL_ID_TO_IGNORE, STATUS_MASK);
+      status = TWI_READ_VALUE_ERROR;
     } else {
       buf[1] = TWDR;
       TWCR &= ~(1 << TWEN);     /* send nack ? */

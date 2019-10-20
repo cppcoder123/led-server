@@ -80,6 +80,16 @@ enum {
   MSG_ID_DEBUG_N,               /* 26 */
   MSG_ID_DEBUG_O,
   MSG_ID_DEBUG_P,
+  MSG_ID_DEBUG_Q,
+  MSG_ID_DEBUG_R,               /* 30 */
+  MSG_ID_DEBUG_S,
+  MSG_ID_DEBUG_T,
+  MSG_ID_DEBUG_U,
+  MSG_ID_DEBUG_V,
+  MSG_ID_DEBUG_W,
+  MSG_ID_DEBUG_X,               /* 36 */
+  MSG_ID_DEBUG_Y,
+  MSG_ID_DEBUG_Z,
 };
 
 enum {

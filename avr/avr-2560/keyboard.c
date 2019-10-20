@@ -21,7 +21,8 @@
 #define REG_USE_CHANNEL 0x00
 #define REG_GAIN 0x01           /* first gain register, 1 per channel */
 #define REG_THRESHOLD 0x09      /* first threshold register, 1 per channel */
-#define REG_ERROR_STATUS 0x1A
+#define REG_ERROR 0x1A
+#define REG_CHANNEL_ERROR 0x1B
 #define REG_AVERAGE_COUNT 0x1D
 #define REG_FILTER 0x1E
 #define REG_DEBOUNCE_COUNT 0x1F
@@ -50,7 +51,7 @@ enum {
   mode_threshold,               /* param */
   mode_average_count,           /* param */
   mode_filter,                  /* param */
-  mode_debounce_count,          /* param */
+  mode_debounce_count,          /* param 10 */
   mode_offcal_cycle,            /* param */
   mode_offcal_plus,             /* param */
   mode_offcal_minus,            /* param */
@@ -59,15 +60,20 @@ enum {
   mode_cdac_base,               /* param */
   mode_measurument_mode,        /* param */
   mode_param_apply,             /* apply new params */
-  /* main loop */
   mode_wakeup_write,            /* write wakeup command */
-  mode_wakeup_wait,             /* wait the interrupt */
-  mode_read_error_status,       /* read error */
-  mode_check_error_status,      /* check error */
+  mode_wakeup_write_ack,        /* handle write ack (do nothing) 20 */ 
+  /* main loop */
+  mode_wakeup_wait,             /* wait the interrupt 21*/
+  mode_wakeup_wait_check,
+  mode_read_channel_error,      /* error per channel */
+  mode_check_channel_error,     /* print channel error */
+  mode_read_error,              /* read error */
+  mode_check_error,             /* check error */
   mode_read_data,               /* read buttons states */
   mode_handle_data,             /* handle button data */
-  mode_idle,                    /* ready for next cycle */
-  mode_last = mode_idle         /* last mode */
+  mode_main_wakeup,             /* start mesurement again */
+  mode_main_wakeup_ack,         /* write reg ack */
+  mode_last = mode_main_wakeup_ack /* last mode */
 };
 static uint8_t mode = mode_reset;
 static volatile uint8_t mode_advance = 0;
@@ -95,6 +101,7 @@ void keyboard_init ()
 
   read_value = 0;
 
+  /* don't do it here to prevent enable before 'keyboard_enable' call */
   EICRA |= (1 << ISC20) | (1 << ISC21); /* rising edge */
   EIMSK |= (1 << INT2);                 /* enable int2 interrupt */
 
@@ -115,13 +122,20 @@ static void write_completed (uint8_t status)
 
 static void write_byte (uint8_t reg, uint8_t data)
 {
-  if (twi_write_byte (reg, data, write_completed) == 0)
-    encode_msg_1 (MSG_ID_DEBUG_P, SERIAL_ID_TO_IGNORE, 222);
+  if (twi_write_byte (reg, data, write_completed) == 0) {
+    encode_msg_1 (MSG_ID_BOARD_WRITE_ERROR,
+                  SERIAL_ID_TO_IGNORE, TWI_WRITE_BYTE_ERROR);
+    twi_debug_cb ();
+  }
 }
 
 static void write_word (uint8_t reg, uint8_t data)
 {
-  twi_write_word (reg, data, write_completed);
+  if (twi_write_word (reg, data, write_completed) == 0) {
+    encode_msg_1 (MSG_ID_BOARD_WRITE_ERROR,
+                  SERIAL_ID_TO_IGNORE, TWI_WRITE_WORD_ERROR);
+    twi_debug_cb ();
+  }
 }
 
 static void read_completed (uint8_t status, uint8_t data)
@@ -138,11 +152,14 @@ static void read_completed (uint8_t status, uint8_t data)
 
 static void read_byte (uint8_t reg)
 {
-  if (twi_read_byte (reg, read_completed) == 0)
-    encode_msg_1 (MSG_ID_DEBUG_N, SERIAL_ID_TO_IGNORE, 222);
+  if (twi_read_byte (reg, read_completed) == 0) {
+    encode_msg_1 (MSG_ID_BOARD_READ_ERROR,
+                  SERIAL_ID_TO_IGNORE, TWI_READ_BYTE_ERROR);
+    twi_debug_cb ();
+  }
 }
 
-static uint8_t is_calibraion_ready ()
+static uint8_t is_ready ()      /* to go ahead */
 {
 #define READY_MASK 0x86
 
@@ -173,12 +190,12 @@ void keyboard_try ()
   uint8_t mode_old = mode;
 
   if ((mode < mode_last)
-      || (mode != mode_error))
+      && (mode != mode_error))
     ++mode;
 
   mode_advance = 0;
 
-  encode_msg_1 (MSG_ID_DEBUG_B, SERIAL_ID_TO_IGNORE, mode_old);
+  /* encode_msg_1 (MSG_ID_DEBUG_B, SERIAL_ID_TO_IGNORE, mode_old); */
   
   switch (mode_old) {
   case mode_error:
@@ -196,25 +213,31 @@ void keyboard_try ()
   case mode_enable_read: 
     /* encode_msg_1 (MSG_ID_DEBUG_M, SERIAL_ID_TO_IGNORE, read_value); */
     read_byte (REG_CONTROL_1);
+    /* read_byte (REG_USE_CHANNEL); */
     break;
   case mode_enable_check:
-    if (is_calibraion_ready () == 0) {
+    if (is_ready () == 0) {
       encode_msg_1 (MSG_ID_DEBUG_L, SERIAL_ID_TO_IGNORE, read_value);
-      /* read_byte (REG_CONTROL_1); */
-      mode -= 3;                /* write control-1 again */
-      mode_advance = 1;
+      mode -= 2;                /* read control-1 again */
     }
+    mode_advance = 1;
     break;
   case mode_use_channel:
-    write_byte (REG_USE_CHANNEL, 0xFF); /* all of them */
+    /* all of them FF */
+    write_byte (REG_USE_CHANNEL, 0x0F);
+    /* write_byte (REG_USE_CHANNEL, 0x1F); */
+    /* write_byte (REG_USE_CHANNEL, 0x0F); */
     break;
   case mode_gain:
     /* ! 8 registers */
-    write_word (REG_GAIN, 0x60);
+    /* write_word (REG_GAIN, 0x60); */
+    /* write_word (REG_GAIN, 0xD0); */
+    write_word (REG_GAIN, 0x80);
     break;
   case mode_threshold:
     /* ! 8 registers */
-    write_word (REG_THRESHOLD, 0x32);
+    /* write_word (REG_THRESHOLD, 0x32); */
+    write_word (REG_THRESHOLD, 0x31);
     break;
   case mode_average_count:
     write_byte (REG_AVERAGE_COUNT, 0x40);
@@ -229,10 +252,12 @@ void keyboard_try ()
     write_byte (REG_OFFCAL_CYCLE, 0x01);
     break;
   case mode_offcal_plus:
-    write_byte (REG_OFFCAL_PLUS, 0x03);
+    /* write_byte (REG_OFFCAL_PLUS, 0x03); */
+    write_byte (REG_OFFCAL_PLUS, 0x01);
     break;
   case mode_offcal_minus:
-    write_byte (REG_OFFCAL_MINUS, 0x03);
+    /* write_byte (REG_OFFCAL_MINUS, 0x03); */
+    write_byte (REG_OFFCAL_MINUS, 0x01);
     break;
   case mode_cancel_count_lower:
     write_byte (REG_CANCEL_COUNT_LOWER, 0x58);
@@ -252,15 +277,34 @@ void keyboard_try ()
   case mode_wakeup_write:
     write_byte (REG_CONTROL_2, 0x01);
     break;
+  case mode_wakeup_write_ack:
+    /* next step is to wait hw interrupt */
+     mode_advance = 1;
+    break;
   case mode_wakeup_wait:
-    // waiting for interrupt here
+     /* waiting for interrupt here */
+    /* mode_advance = 1; */
+    read_byte (REG_ERROR);
+    break;
+  case mode_wakeup_wait_check:
+    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, read_value); */
+    break;
+  case mode_read_channel_error:
+    read_byte (REG_CHANNEL_ERROR);
+    break;
+  case mode_check_channel_error:
+    if (read_value != 0)
+      encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, read_value);
     mode_advance = 1;
     break;
-  case mode_read_error_status:
-    read_byte (REG_ERROR_STATUS);
+  case mode_read_error:
+    read_byte (REG_ERROR);
+    /* read_byte (REG_CHANNEL_ERROR); */
     break;
-  case mode_check_error_status:
+  case mode_check_error:
+    /* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, read_value); */
     if ((read_value & 0x81) != 0) {
+      encode_msg_1 (MSG_ID_DEBUG_U, SERIAL_ID_TO_IGNORE, read_value);
       /* either syserr or calerr */
       mode = mode_error;
     }
@@ -271,30 +315,36 @@ void keyboard_try ()
     read_byte (REG_DATA);
     break;
   case mode_handle_data:
+    /* encode_msg_1 (MSG_ID_DEBUG_T, SERIAL_ID_TO_IGNORE, read_value); */
     handle_data (read_value);
     mode_advance = 1;
     break;
-  /* case mode_data_read: */
-  /*   read_byte (REG_DATA); */
-  /*   break; */
-  /* case mode_data_handle: */
-  /*   mode_advance = 1; */
-  /*   handle_data (read_value); */
-  /*   break; */
-  case mode_idle:
+  case mode_main_wakeup:
+    write_byte (REG_CONTROL_2, 0x01);
+    break;
+  case mode_main_wakeup_ack:
+    mode = mode_wakeup_wait;
+    /* no advance here, we are waiting hw interrupt */
     mode_advance = 1;
-    mode = mode_wakeup_write;
     break;
   default:
     mode_advance = 1;
+    encode_msg_1 (MSG_ID_BOARD_HANDLE_ERROR,
+                  SERIAL_ID_TO_IGNORE, mode_old);
     mode = mode_error;
-    encode_msg_1 (MSG_ID_BOARD_HANDLE_ERROR, SERIAL_ID_TO_IGNORE, mode);
     break;
   }
 }
 
 void keyboard_enable ()
 {
+  /* EICRA |= (1 << ISC20) | (1 << ISC21); */ /* rising edge */
+  /* EIMSK |= (1 << INT2);  */                /* enable int2 interrupt */
+
+  twi_init ();
+
+  state = 0;
+
   mode = mode_reset;
   board_reset ();
 }
@@ -307,6 +357,9 @@ void keyboard_disable ()
 /* handle external interrupt from board */
 ISR (INT2_vect)
 {
-  mode_advance = 1;
-  encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 111);
+  /* undocumented reset in mode_enable_read ? */
+  /*   after writing 0x80 to REG_CONTROL_1 */
+  if (mode != mode_enable_read)
+    mode_advance = 1;
+  /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 111); */
 }
