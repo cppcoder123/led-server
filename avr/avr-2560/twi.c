@@ -278,8 +278,9 @@ ISR (TWI_vect)
       status = TWI_READ_VALUE_ERROR;
       stop ();
     } else {
-      data_buf[transfer_count++] = TWDR;
+      data_buf[transfer_count] = TWDR;
       if (transfer_count < transfer_limit) {
+        ++transfer_count;
         --mode;                 /* the same mode */
       } else {
         TWCR &= ~(1 << TWEN);     /* send nack ? */
