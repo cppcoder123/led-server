@@ -49,6 +49,7 @@ uint8_t twi_read_word (uint8_t reg, twi_read_callback cb);
 /* write one byte to specified register */
 uint8_t twi_write_byte (uint8_t reg, uint8_t value, twi_write_callback cb);
 
+/* It looks this function has bug(s), some efforts needed */
 /* write one word (8 byte) to specified register */
 uint8_t twi_write_word (uint8_t reg, uint8_t value, twi_write_callback cb);
 

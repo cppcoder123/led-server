@@ -280,8 +280,10 @@ ISR (TWI_vect)
     } else {
       data_buf[transfer_count] = TWDR;
       if (transfer_count < transfer_limit) {
+        /* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, data_buf[transfer_count]); */
         ++transfer_count;
         --mode;                 /* the same mode */
+        TWCR |= CONTROL_MASK;
       } else {
         TWCR &= ~(1 << TWEN);     /* send nack ? */
         stop ();

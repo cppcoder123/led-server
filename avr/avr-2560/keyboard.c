@@ -21,6 +21,14 @@
 #define REG_USE_CHANNEL 0x00
 #define REG_GAIN 0x01           /* first gain register, 1 per channel */
 #define REG_THRESHOLD 0x09      /* first threshold register, 1 per channel */
+#define REG_CIN_0 0x11
+#define REG_CIN_1 0x12
+#define REG_CIN_2 0x13
+#define REG_CIN_3 0x14
+#define REG_CIN_4 0x15
+#define REG_CIN_5 0x16
+#define REG_CIN_6 0x17
+#define REG_CIN_7 0x18
 #define REG_ERROR 0x1A
 #define REG_CHANNEL_ERROR 0x1B
 #define REG_AVERAGE_COUNT 0x1D
@@ -69,6 +77,15 @@ enum {
   mode_check_channel_error,     /* print channel error */
   mode_read_error,              /* read error */
   mode_check_error,             /* check error */
+  mode_read_cin_0,              /* read cin values */
+  mode_read_cin_1,
+  mode_read_cin_2,
+  mode_read_cin_3,
+  mode_read_cin_4,
+  mode_read_cin_5,
+  mode_read_cin_6,
+  mode_read_cin_7,
+  mode_done_cin,
   mode_read_data,               /* read buttons states */
   mode_handle_data,             /* handle button data */
   mode_main_wakeup,             /* start mesurement again */
@@ -256,7 +273,7 @@ void keyboard_try ()
     /* ! 8 registers */
     /* write_word (REG_GAIN, 0x60); */
     /* write_word (REG_GAIN, 0xD0); */
-    write_word (REG_GAIN, 0x80);
+    write_word (REG_GAIN, 0x60);
     break;
   case mode_threshold:
     /* ! 8 registers */
@@ -334,6 +351,47 @@ void keyboard_try ()
     }
     mode_advance = 1;
     break;
+  case mode_read_cin_0:
+    read_byte (REG_CIN_0);
+    break;
+  case mode_read_cin_1:
+    /* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); */
+    read_byte (REG_CIN_1);
+    break;
+  case mode_read_cin_2:
+    /* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); */
+    read_byte (REG_CIN_2);
+    break;
+  case mode_read_cin_3:
+    /* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); */
+    read_byte (REG_CIN_3);
+    break;
+  case mode_read_cin_4:
+    /* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); */
+    read_byte (REG_CIN_4);
+    break;
+  case mode_read_cin_5:
+    /* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); */
+    read_byte (REG_CIN_5);
+    break;
+  case mode_read_cin_6:
+    /* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); */
+    read_byte (REG_CIN_6);
+    break;
+  case mode_read_cin_7:
+    /* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); */
+    read_byte (REG_CIN_7);
+    break;
+  case mode_done_cin:
+    /* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); */
+    mode_advance = 1;
+    break;
+  /* case mode_dump_cin: */
+  /*   encode_msg_8 (MSG_ID_DEBUG_S, SERIAL_ID_TO_IGNORE, */
+  /*                 word_buf[0], word_buf[1], word_buf[2], word_buf[3], */
+  /*                 word_buf[4], word_buf[5], word_buf[6], word_buf[7]); */
+  /*   mode_advance = 1; */
+  /*   break; */
   case mode_read_data:
     /* try to read button state (pressed or released) */
     read_byte (REG_DATA);
