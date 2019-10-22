@@ -13,7 +13,7 @@
 #endif
 
 #define STATUS_MASK (TWSR & 0xF8)
-#define CONTROL_MASK ((1 << TWEN) | (1 << TWIE))
+/* #define CONTROL_MASK ((1 << TWEN) | (1 << TWIE)) */
 
 #define SLAVE_ADDRESS 0x17      /* addr selection wire to +5v */
 
@@ -60,10 +60,10 @@ void twi_init ()
   /* TWBR = 0xFF; */
   /* TWBR = 0x08; */
   TWBR = 0x02;
-  TWSR |= (1 << TWPS0) | (1 << TWPS1); /* min clock freq */
+  TWSR |= (1 << TWPS0) | (1 << TWPS1); /* min clock freq fixme: remove*/
 
-  /* enable twi, enable twi interrupt */
-  /* TWCR |= (1 << TWEN) | (1 << TWIE); do in the start*/
+  /* enable twi interrupt */
+  TWCR |= (1 << TWIE);
 }
 
 static uint8_t busy ()
@@ -90,14 +90,18 @@ static void start (uint8_t new_mode)
 {
   mode = (new_mode == mode_write_start) ? mode_write_start : mode_read_start;
 
-  TWCR |= (1 << TWSTA) | CONTROL_MASK;
+  TWCR |= (1 << TWSTA);
   TWCR &= ~(1 << TWSTO);
+
+  TWCR |= (1 << TWEN);
 }
 
 static void stop ()
 {
   TWCR |= (1 << TWSTO);
-  TWCR &= ~CONTROL_MASK;
+  TWCR &= ~(1 << TWSTA);
+
+  TWCR &= ~(1 << TWEN);
 
   mode = mode_idle;
 }
@@ -270,6 +274,8 @@ ISR (TWI_vect)
       stop ();
     } else {
        TWCR &= ~(1 << TWSTA);
+       if (transfer_count > TRANSFER_BYTE)
+         TWCR |= (1 << TWEN);
     }
     break;
   case mode_read_value:
@@ -283,9 +289,9 @@ ISR (TWI_vect)
         /* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, data_buf[transfer_count]); */
         ++transfer_count;
         --mode;                 /* the same mode */
-        TWCR |= CONTROL_MASK;
+        TWCR |= (1 << TWEN);
       } else {
-        TWCR &= ~(1 << TWEN);     /* send nack ? */
+        TWCR &= ~(1 << TWEN);     /* send nack - automatic ? */
         stop ();
       }
     }
