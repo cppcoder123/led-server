@@ -195,18 +195,17 @@ void counter_get (uint8_t id, uint8_t *low, uint8_t *high)
   }
 }
 
-/* fixme: remove comment 2nc definition */
-/* ISR(TIMER0_OVF_vect) */
-/* { */
-/*   counter_handle handle = overflow[COUNTER_0]; */
+ISR(TIMER0_OVF_vect)
+{
+  counter_handle handle = overflow[COUNTER_0];
 
-/*   if (handle == 0) { */
-/*     /\*send err msg*\/ */
-/*     return; */
-/*   } */
+  if (handle == 0) {
+    /*send err msg*/
+    return;
+  }
 
-/*   handle(); */
-/* } */
+  handle();
+}
 
 ISR(TIMER1_OVF_vect)
 {
@@ -305,30 +304,29 @@ ISR(TIMER2_COMPA_vect)
   handle();
 }
 
-/* fixme: remove, redefition */
-/* ISR(TIMER3_COMPA_vect) */
-/* { */
-/*   counter_handle handle = compare_a[COUNTER_3]; */
+ISR(TIMER3_COMPA_vect)
+{
+  counter_handle handle = compare_a[COUNTER_3];
 
-/*   if (handle == 0) { */
-/*     /\*send err msg*\/ */
-/*     return; */
-/*   } */
+  if (handle == 0) {
+    /*send err msg*/
+    return;
+  }
 
-/*   handle(); */
-/* } */
+  handle();
+}
 
-/* ISR(TIMER4_COMPA_vect) */
-/* { */
-/*   counter_handle handle = compare_a[COUNTER_4]; */
+ISR(TIMER4_COMPA_vect)
+{
+  counter_handle handle = compare_a[COUNTER_4];
 
-/*   if (handle == 0) { */
-/*     /\*send err msg*\/ */
-/*     return; */
-/*   } */
+  if (handle == 0) {
+    /*send err msg*/
+    return;
+  }
 
-/*   handle(); */
-/* } */
+  handle();
+}
 
 ISR(TIMER5_COMPA_vect)
 {
