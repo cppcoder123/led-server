@@ -29,6 +29,7 @@ enum {
   mode_read_start,      /* R: start reading */
   mode_read_slave,      /* R: slave addr, r */
   mode_read_value,      /* R: slave read value */
+  mode_read_done,       /* R: time to send STOP */
   /* mode_read_stop,   */     /* R: stop reading */
   mode_idle,
   mode_last = mode_idle
@@ -63,7 +64,7 @@ void twi_init ()
   TWSR |= (1 << TWPS0) | (1 << TWPS1); /* min clock freq fixme: remove*/
 
   /* enable twi interrupt */
-  TWCR |= (1 << TWIE);
+  TWCR |= (1 << TWEN) | (1 << TWIE);
 }
 
 static uint8_t busy ()
@@ -92,8 +93,9 @@ static void start (uint8_t new_mode)
 
   TWCR |= (1 << TWSTA);
   TWCR &= ~(1 << TWSTO);
-
-  TWCR |= (1 << TWEN);
+  
+  /* TWCR |= (1 << TWEN) | (1 << TWIE) | (1 << TWEA); */
+  TWCR |= (1 << TWEN) | (1 << TWIE);
 }
 
 static void stop ()
@@ -101,7 +103,7 @@ static void stop ()
   TWCR |= (1 << TWSTO);
   TWCR &= ~(1 << TWSTA);
 
-  TWCR &= ~(1 << TWEN);
+  /* TWCR &= ~(1 << TWEN); */
 
   mode = mode_idle;
 }
@@ -209,6 +211,7 @@ ISR (TWI_vect)
 
   switch (mode_old) {
   case mode_write_start:
+    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 70);
     if (check_status_register (TW_START) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_J, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_WRITE_START_ERROR;
@@ -219,6 +222,7 @@ ISR (TWI_vect)
     }
     break;
   case mode_write_slave:
+    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 80);
     if (check_status_register (TW_MT_SLA_ACK) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_D, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_WRITE_SLAVE_ERROR;
@@ -229,6 +233,7 @@ ISR (TWI_vect)
     }
     break;
   case mode_write_reg:
+    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90);
     if (check_status_register (TW_MT_DATA_ACK) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_E, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       /* either reg error or value error */
@@ -243,7 +248,7 @@ ISR (TWI_vect)
     }
     break;
   case mode_write_value:
-    /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, STATUS_MASK); */
+    encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, STATUS_MASK);
     if (check_status_register (TW_MT_DATA_ACK) == 0) {
       status = TWI_WRITE_VALUE_ERROR;
       stop ();
@@ -259,6 +264,7 @@ ISR (TWI_vect)
   /*   fixme; */
   /*   break; */
   case mode_read_start:
+    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 100);
     if (check_status_register (TW_REP_START) == 0) {
       status = TWI_READ_START_ERROR;
       stop ();
@@ -268,17 +274,19 @@ ISR (TWI_vect)
     }
     break;
   case mode_read_slave:
+    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 110);
     if (check_status_register (TW_MR_SLA_ACK) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_K, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_READ_SLAVE_ERROR;
       stop ();
     } else {
        TWCR &= ~(1 << TWSTA);
-       if (transfer_count > TRANSFER_BYTE)
-         TWCR |= (1 << TWEN);
+       if (transfer_count < transfer_limit)
+         TWCR |= (1 << TWEA);
     }
     break;
   case mode_read_value:
+    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 120);
     if (check_status_register (TW_MR_DATA_ACK) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_Q, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_READ_VALUE_ERROR;
@@ -289,12 +297,19 @@ ISR (TWI_vect)
         /* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, data_buf[transfer_count]); */
         ++transfer_count;
         --mode;                 /* the same mode */
-        TWCR |= (1 << TWEN);
+        TWCR |= (1 << TWEA);
       } else {
-        TWCR &= ~(1 << TWEN);     /* send nack - automatic ? */
-        stop ();
+        TWCR &= ~(1 << TWEA);   /* send nack - do we need this ? */
+        /* stop (); */
       }
     }
+    break;
+  case mode_read_done:
+    if (check_status_register (TW_MR_DATA_NACK) == 0) {
+      encode_msg_1 (MSG_ID_DEBUG_P, SERIAL_ID_TO_IGNORE, STATUS_MASK);
+      status = TWI_READ_DONE_ERROR;
+    }
+    stop ();
     break;
   case mode_idle:
     /* is it possible to get here? not sure */
