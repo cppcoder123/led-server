@@ -9,6 +9,7 @@ TARGET_ELF = $(TARGET).elf
 OBJECT_LIST = \
   avr.o \
   clock.o \
+  counter.o \
   debug.o \
   decode.o \
   display.o \
