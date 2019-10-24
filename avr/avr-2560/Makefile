@@ -15,7 +15,7 @@ OBJECT_LIST = \
   display.o \
   encode.o \
   flush.o \
-  keyboard.o \
+  key-board.o \
   postpone.o \
   power.o \
   queue.o \

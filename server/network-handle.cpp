@@ -116,7 +116,10 @@ namespace led_d
     default:
       {
         log_t::buffer_t buf;
-        buf << "network-handle: Unknown message from mcu is arrived: " << (int) msg_id;
+        buf << "network-handle: Unknown message from mcu is arrived: "
+            << (int) msg_id << " - ";
+        for (auto i : msg) 
+          buf << (int) i << " ";
         log_t::error (buf);
       }
       break;

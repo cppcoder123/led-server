@@ -211,18 +211,19 @@ ISR (TWI_vect)
 
   switch (mode_old) {
   case mode_write_start:
-    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 70);
+    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 70); */
     if (check_status_register (TW_START) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_J, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_WRITE_START_ERROR;
       stop ();
     } else {
       TWDR = slave (0);         /* slave addr, writing */
+      /* TWCR |= (1 << TWEN); */
       TWCR &= ~(1 << TWSTA);
     }
     break;
   case mode_write_slave:
-    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 80);
+    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 80); */
     if (check_status_register (TW_MT_SLA_ACK) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_D, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_WRITE_SLAVE_ERROR;
@@ -233,29 +234,35 @@ ISR (TWI_vect)
     }
     break;
   case mode_write_reg:
-    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90);
+    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90); */
     if (check_status_register (TW_MT_DATA_ACK) == 0) {
+      /* encode_msg_2 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90, 1); */
       encode_msg_1 (MSG_ID_DEBUG_E, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       /* either reg error or value error */
       status = TWI_WRITE_REG_ERROR;
       stop ();
     } else {
       if (reading () != 0) {
+        /* encode_msg_2 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90, 2); */
         start (mode_read_start);
       } else {
+        /* encode_msg_2 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90, 3); */
         TWDR = data_buf[0];
       }
     }
     break;
   case mode_write_value:
-    encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, STATUS_MASK);
+    /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, STATUS_MASK); */
     if (check_status_register (TW_MT_DATA_ACK) == 0) {
+      /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, 11); */
       status = TWI_WRITE_VALUE_ERROR;
       stop ();
     } else if (transfer_count < transfer_limit) {
+      /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, 22); */
       ++transfer_count;
       mode -= 2;              /* go to write reg again */
     } else {
+      /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, 33); */
       stop ();
     }
     break;
@@ -264,7 +271,7 @@ ISR (TWI_vect)
   /*   fixme; */
   /*   break; */
   case mode_read_start:
-    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 100);
+    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 100); */
     if (check_status_register (TW_REP_START) == 0) {
       status = TWI_READ_START_ERROR;
       stop ();
@@ -274,7 +281,7 @@ ISR (TWI_vect)
     }
     break;
   case mode_read_slave:
-    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 110);
+    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 110); */
     if (check_status_register (TW_MR_SLA_ACK) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_K, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_READ_SLAVE_ERROR;
@@ -286,7 +293,7 @@ ISR (TWI_vect)
     }
     break;
   case mode_read_value:
-    encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 120);
+    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 120); */
     if (check_status_register (TW_MR_DATA_ACK) == 0) {
       encode_msg_1 (MSG_ID_DEBUG_Q, SERIAL_ID_TO_IGNORE, STATUS_MASK);
       status = TWI_READ_VALUE_ERROR;
