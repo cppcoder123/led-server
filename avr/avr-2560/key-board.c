@@ -119,15 +119,19 @@ static uint8_t byte_buf = 0;
 static uint8_t word_buf[TWI_WORD_SIZE];
 
 
-static void advance_clear ()
-{
-  advance &= ~(ADVANCE_FLAG_MASK | ADVANCE_GO_MASK);
-}
+/* static void advance_clear () */
+/* { */
+/*   advance &= ~(ADVANCE_FLAG_MASK | ADVANCE_GO_MASK); */
+/* } */
 
 static void advance_flag (uint8_t way)
 {
-  /* apply flag mask */
-  advance |= way & ADVANCE_FLAG_MASK;
+  advance = 0;
+
+  if ((way != ADVANCE_FLAG_RW) && (way != ADVANCE_FLAG_INT))
+    return;
+
+  advance = way;
 }
 
 static void board_reset ()
@@ -138,7 +142,6 @@ static void board_reset ()
   PORTC |= (1 << PORT_RESET);
 
   mode = mode_reset;
-  advance_clear ();
   advance_flag (ADVANCE_FLAG_INT);
 }
 
@@ -296,8 +299,6 @@ void key_board_try ()
       && (mode != mode_error))
     ++mode;
 
-  advance_clear ();
-  
   /* in most cases we are waiting for rw */
   advance_flag (ADVANCE_FLAG_RW);
 
@@ -392,7 +393,6 @@ void key_board_try ()
     write_byte (REG_CONTROL_1, 0x87);
     break;
   case mode_wakeup_write:
-    advance_clear ();
     advance_flag (ADVANCE_FLAG_INT); /* wait rw & int 2 advance steps*/
     write_byte (REG_CONTROL_2, 0x01);
     break;
