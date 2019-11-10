@@ -6,6 +6,7 @@
 
 #include <avr/interrupt.h>
 #include <stdint.h>
+/* #include <util/atomic.h> */
 #include <util/delay.h>
 
 #include "mcu/constant.h"
@@ -22,18 +23,13 @@
 #define REG_GAIN 0x01           /* first gain register, 1 per channel */
 #define REG_THRESHOLD 0x09      /* first threshold register, 1 per channel */
 #define REG_CIN_0 0x11
-/* #define REG_CIN_1 0x12 */
-/* #define REG_CIN_2 0x13 */
-/* #define REG_CIN_3 0x14 */
-/* #define REG_CIN_4 0x15 */
-/* #define REG_CIN_5 0x16 */
-/* #define REG_CIN_6 0x17 */
-/* #define REG_CIN_7 0x18 */
 #define REG_ERROR 0x1A
 #define REG_CHANNEL_ERROR 0x1B
 #define REG_AVERAGE_COUNT 0x1D
 #define REG_FILTER 0x1E
 #define REG_DEBOUNCE_COUNT 0x1F
+#define REG_SHORT_INTERVAL 0x20
+#define REG_LONG_INTERVAL 0x21
 #define REG_OFFCAL_CYCLE 0x22
 #define REG_OFFCAL_PLUS 0x23
 #define REG_OFFCAL_MINUS 0x24
@@ -41,6 +37,7 @@
 #define REG_CANCEL_COUNT_HIGHER 0x26
 #define REG_CDAC_BASE 0x3D
 #define REG_MEASUREMENT_MODE 0x3E
+
 #define REG_DATA 0x19  /* needed data should be here :) */
 
 /* This is the way how we advance our state machine */
@@ -75,6 +72,8 @@ enum {
   mode_average_count,           /* param */
   mode_filter,                  /* param */
   mode_debounce_count,          /* param 10 */
+  mode_short_interval,           /* param 0x05 */
+  mode_long_interval,            /* param 0x01 */
   mode_offcal_cycle,            /* param */
   mode_offcal_plus,             /* param */
   mode_offcal_minus,            /* param */
@@ -83,33 +82,19 @@ enum {
   mode_cdac_base,               /* param */
   mode_measurument_mode,        /* param */
   mode_param_apply,             /* apply new params */
-  mode_wakeup_write,            /* write wakeup command */
-  mode_wakeup_write_ack,        /* handle write ack (do nothing) 20 */
-  /* main loop */
   mode_wakeup_wait,             /* wait the interrupt 21*/
-  mode_wakeup_wait_check,
-  mode_read_channel_error,      /* error per channel */
-  mode_check_channel_error,     /* print channel error */
+  /* main loop */
+  mode_loop_start,              /* main loop start */
+  /* mode_read_channel_error,      /\* error per channel *\/ */
+  /* mode_check_channel_error,     /\* print channel error *\/ */
   mode_read_error,              /* read error */
   mode_check_error,             /* check error */
-  mode_read_cin,                /* read cin values */
-  /* mode_read_cin_1, */
-  /* mode_read_cin_2, */
-  /* mode_read_cin_3, */
-  /* mode_read_cin_4, */
-  /* mode_read_cin_5, */
-  /* mode_read_cin_6, */
-  /* mode_read_cin_7, */
-  /* mode_done_cin, */
-  mode_dump_cin,
   mode_read_data,               /* read buttons states */
   mode_handle_data,             /* handle button data */
-  mode_main_wakeup,             /* start mesurement again */
-  mode_main_wakeup_ack,         /* write reg ack */
-  mode_last = mode_main_wakeup_ack /* last mode */
+  mode_loop_finish,
 };
-static volatile uint8_t mode = mode_reset;
-static volatile uint8_t advance = 0;
+volatile uint8_t mode = mode_reset;
+volatile uint8_t advance = 0;
 
 /* state of our buttons */
 static uint8_t state = 0;
@@ -194,7 +179,6 @@ static uint8_t advance_check ()
 
 static void write_completed (uint8_t status)
 {
-  /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 88); */
   if (status != TWI_SUCCESS) {
     encode_msg_1 (MSG_ID_BOARD_WRITE_ERROR, SERIAL_ID_TO_IGNORE, status);
     mode = mode_error;
@@ -223,7 +207,6 @@ static void write_word (uint8_t reg, uint8_t data)
 
 static void read_byte_completed (uint8_t status, volatile uint8_t *data)
 {
-  /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 66); */
   if (status != TWI_SUCCESS) {
     encode_msg_1 (MSG_ID_BOARD_READ_ERROR, SERIAL_ID_TO_IGNORE, status);
     mode = mode_error;
@@ -243,27 +226,27 @@ static void read_byte (uint8_t reg)
   }
 }
 
-static void read_word_completed (uint8_t status, volatile uint8_t *data)
-{
-  /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 77); */
-  if (status != TWI_SUCCESS) {
-    encode_msg_1 (MSG_ID_BOARD_READ_ERROR, SERIAL_ID_TO_IGNORE, status);
-    mode = mode_error;
-  } else {
-    for (uint8_t i = 0; i < TWI_WORD_SIZE; ++i)
-      word_buf[i] = data[i];
-    advance_go (ADVANCE_FLAG_RW);
-  }
-}
+/* static void read_word_completed (uint8_t status, volatile uint8_t *data) */
+/* { */
+/*   /\* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 77); *\/ */
+/*   if (status != TWI_SUCCESS) { */
+/*     encode_msg_1 (MSG_ID_BOARD_READ_ERROR, SERIAL_ID_TO_IGNORE, status); */
+/*     mode = mode_error; */
+/*   } else { */
+/*     for (uint8_t i = 0; i < TWI_WORD_SIZE; ++i) */
+/*       word_buf[i] = data[i]; */
+/*     advance_go (ADVANCE_FLAG_RW); */
+/*   } */
+/* } */
 
-static void read_word (uint8_t reg)
-{
-  if (twi_read_word (reg, read_word_completed) == 0) {
-    encode_msg_1 (MSG_ID_BOARD_READ_ERROR,
-                  SERIAL_ID_TO_IGNORE, TWI_READ_WORD_ERROR);
-    twi_debug_cb ();
-  }
-}
+/* static void read_word (uint8_t reg) */
+/* { */
+/*   if (twi_read_word (reg, read_word_completed) == 0) { */
+/*     encode_msg_1 (MSG_ID_BOARD_READ_ERROR, */
+/*                   SERIAL_ID_TO_IGNORE, TWI_READ_WORD_ERROR); */
+/*     twi_debug_cb (); */
+/*   } */
+/* } */
 
 static uint8_t is_ready ()      /* to go ahead */
 {
@@ -290,19 +273,25 @@ static void handle_data (uint8_t new_state)
 
 void key_board_try ()
 {
-  if (advance_check () == 0)
+  if ((mode == mode_error)
+      || (advance_check () == 0))
     return;
 
-  uint8_t mode_old = mode;
-
-  if ((mode < mode_last)
-      && (mode != mode_error))
-    ++mode;
-
+  advance = 0;
   /* in most cases we are waiting for rw */
   advance_flag (ADVANCE_FLAG_RW);
 
-  encode_msg_2 (MSG_ID_DEBUG_B, SERIAL_ID_TO_IGNORE, mode_old, 109);
+  uint8_t mode_old = mode;
+
+  if (mode != mode_error) {
+    if (mode < mode_loop_finish) {
+      ++mode;
+    } else {
+      mode = mode_loop_start;
+    }
+  }
+
+  debug_1 (DEBUG_KEY_BOARD, DEBUG_15, mode);
   
   switch (mode_old) {
   case mode_error:
@@ -311,196 +300,134 @@ void key_board_try ()
   case mode_reset:
     /* wait 2 micro-seconds after reset */
     _delay_ms (1);
-    /* advance_clear (); */
-    /* advance_flag (ADVANCE_FLAG_INT); */
     advance_go (ADVANCE_FLAG_RW);
     break;
   case mode_enable_start:
-    /* read_byte (REG_CONTROL_1); */
-    /* advance_clear (); */
-    /* advance_flag (ADVANCE_FLAG_INT); */
-
-    write_byte (REG_CONTROL_1, 0x80);
+    write_byte (REG_CONTROL_1, 0x88);
     break;
   case mode_enable_read: 
-    /* encode_msg_1 (MSG_ID_DEBUG_M, SERIAL_ID_TO_IGNORE, byte_buf); */
     _delay_ms (10);
     read_byte (REG_CONTROL_1);
-    /* undocumented reset ?*/
-    /* advance_clear (); */
-    /* advance_flag (ADVANCE_FLAG_INT); */
-    /* read_byte (REG_USE_CHANNEL); */
     break;
   case mode_enable_check:
-    /* encode_msg_2 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 44, byte_buf); */
     if (is_ready () == 0) {
-      encode_msg_1 (MSG_ID_DEBUG_L, SERIAL_ID_TO_IGNORE, byte_buf);
+      debug_1 (DEBUG_KEY_BOARD, DEBUG_0, byte_buf);
       mode -= 2;                /* read control-1 again */
     }
     advance_go (ADVANCE_FLAG_RW);
     break;
   case mode_use_channel:
     /* all of them FF */
-    write_byte (REG_USE_CHANNEL, 0x0F);
-    /* write_byte (REG_USE_CHANNEL, 0x1F); */
-    /* write_byte (REG_USE_CHANNEL, 0x0F); */
+    write_byte (REG_USE_CHANNEL, 0xFF);
     break;
   case mode_gain:
-    /* ! 8 registers */
-    /* write_word (REG_GAIN, 0x60); */
-    /* write_word (REG_GAIN, 0xD0); */
-    write_word (REG_GAIN, 0x60);
+    write_word (REG_GAIN, 0x50); /* recommended value */
+    /* write_word (REG_GAIN, 0x20); */
     break;
   case mode_threshold:
     /* ! 8 registers */
-    write_word (REG_THRESHOLD, 0x32);
-    /* write_word (REG_THRESHOLD, 0x31); fixme ???*/
-    /* advance_go (ADVANCE_FLAG_RW); */
+    /* write_word (REG_THRESHOLD, 0x0A); recommended value */
+    write_word (REG_THRESHOLD, 0x0A);
     break;
   case mode_average_count:
-    write_byte (REG_AVERAGE_COUNT, 0x40);
+    /* write_byte (REG_AVERAGE_COUNT, 0x40); */
+    write_byte (REG_AVERAGE_COUNT, 0x80);
     break;
   case mode_filter:
-    write_byte (REG_FILTER, 0x04);
+    /* write_byte (REG_FILTER, 0x04); 0x00 or 0x0C */
+    write_byte (REG_FILTER, 0x0);
     break;
   case mode_debounce_count:
-    write_byte (REG_DEBOUNCE_COUNT, 0x02);
+    /* write_byte (REG_DEBOUNCE_COUNT, 0x02); */
+    write_byte (REG_DEBOUNCE_COUNT, 0x01);
+    break;
+  case mode_short_interval:
+    write_byte (REG_SHORT_INTERVAL, 0x05); /*recommended value*/
+    /* write_byte (REG_SHORT_INTERVAL, 0xFF); */
+    break;
+  case mode_long_interval:
+    write_byte (REG_LONG_INTERVAL, 0x01); /*recommended value*/
+    /* write_byte (REG_LONG_INTERVAL, 0xFF); */
     break;
   case mode_offcal_cycle:
-    write_byte (REG_OFFCAL_CYCLE, 0x01);
+    /* write_byte (REG_OFFCAL_CYCLE, 0x01); */
+    write_byte (REG_OFFCAL_CYCLE, 0x04);
     break;
   case mode_offcal_plus:
-    /* write_byte (REG_OFFCAL_PLUS, 0x03); */
-    write_byte (REG_OFFCAL_PLUS, 0x01);
+    write_byte (REG_OFFCAL_PLUS, 0x03);
+    /* write_byte (REG_OFFCAL_PLUS, 0x01); */
     break;
   case mode_offcal_minus:
-    /* write_byte (REG_OFFCAL_MINUS, 0x03); */
-    write_byte (REG_OFFCAL_MINUS, 0x01);
+    write_byte (REG_OFFCAL_MINUS, 0x03);
+    /* write_byte (REG_OFFCAL_MINUS, 0x01); */
     break;
   case mode_cancel_count_lower:
-    write_byte (REG_CANCEL_COUNT_LOWER, 0x58);
+    /* write_byte (REG_CANCEL_COUNT_LOWER, 0x58); */
+    write_byte (REG_CANCEL_COUNT_LOWER, 0x32);
     break;
   case mode_cancel_count_higher:
-    write_byte (REG_CANCEL_COUNT_HIGHER, 0x02);
+    /* write_byte (REG_CANCEL_COUNT_HIGHER, 0x02); */
+    write_byte (REG_CANCEL_COUNT_HIGHER, 0x01);
     break;
   case mode_cdac_base:
     write_byte (REG_CDAC_BASE, 0x80);
     break;
   case mode_measurument_mode:
+    /* write_byte (REG_MEASUREMENT_MODE, 0x00); */
     write_byte (REG_MEASUREMENT_MODE, 0x00);
     break;
   case mode_param_apply:
-    write_byte (REG_CONTROL_1, 0x87);
-    break;
-  case mode_wakeup_write:
-    advance_flag (ADVANCE_FLAG_INT); /* wait rw & int 2 advance steps*/
-    write_byte (REG_CONTROL_2, 0x01);
-    break;
-  case mode_wakeup_write_ack:
-    /* next step is to wait hw interrupt */
-    /* goto next state but wait for interrupt */
-    /* advance_clear (); */
-    /* advance_flag (ADVANCE_FLAG_INT); */
-    advance_go (ADVANCE_FLAG_RW);
+    write_byte (REG_CONTROL_1, 0x8F);
     break;
   case mode_wakeup_wait:
-     /* waiting for interrupt here */
-    /* mode_advance = 1; */
-    /* advance_clear (); */
-    /* advance_flag (ADVANCE_FLAG_INT);  wait int as well */
-    /* read_byte (REG_ERROR); */
-    advance_go (ADVANCE_FLAG_RW);
+    advance_flag (ADVANCE_FLAG_INT);
+    /* _delay_ms (5); */
     break;
-  case mode_wakeup_wait_check:
-    /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, byte_buf); */
-    advance_go (ADVANCE_FLAG_RW);
-    break;
-  case mode_read_channel_error:
-    read_byte (REG_CHANNEL_ERROR);
-    break;
-  case mode_check_channel_error:
-    if (byte_buf != 0)
-      encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf);
+  case mode_loop_start:
+    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_2); */
+    /* write_byte (REG_CONTROL_2, 0x00); */
     advance_go (ADVANCE_FLAG_RW);
     break;
   case mode_read_error:
+    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_8); */
     read_byte (REG_ERROR);
     /* read_byte (REG_CHANNEL_ERROR); */
     break;
   case mode_check_error:
-    /* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, byte_buf); */
+    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_7); */
     if ((byte_buf & 0x81) != 0) {
-      encode_msg_1 (MSG_ID_DEBUG_U, SERIAL_ID_TO_IGNORE, byte_buf);
+      debug_1 (DEBUG_KEY_BOARD, DEBUG_4, byte_buf);
       /* either syserr or calerr */
       mode = mode_error;
     }
     advance_go (ADVANCE_FLAG_RW);
     break;
-  case mode_read_cin:
-    read_word (REG_CIN_0);
-    break;
-  /* case mode_read_cin_1: */
-  /*   /\* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); *\/ */
-  /*   read_byte (REG_CIN_1); */
-  /*   break; */
-  /* case mode_read_cin_2: */
-  /*   /\* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); *\/ */
-  /*   read_byte (REG_CIN_2); */
-  /*   break; */
-  /* case mode_read_cin_3: */
-  /*   /\* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); *\/ */
-  /*   read_byte (REG_CIN_3); */
-  /*   break; */
-  /* case mode_read_cin_4: */
-  /*   /\* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); *\/ */
-  /*   read_byte (REG_CIN_4); */
-  /*   break; */
-  /* case mode_read_cin_5: */
-  /*   /\* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); *\/ */
-  /*   read_byte (REG_CIN_5); */
-  /*   break; */
-  /* case mode_read_cin_6: */
-  /*   /\* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); *\/ */
-  /*   read_byte (REG_CIN_6); */
-  /*   break; */
-  /* case mode_read_cin_7: */
-  /*   /\* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); *\/ */
-  /*   read_byte (REG_CIN_7); */
-  /*   break; */
-  /* case mode_done_cin: */
-  /*   /\* encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, byte_buf); *\/ */
-  /*   mode_advance = 1; */
-  /*   break; */
-  case mode_dump_cin:
-    encode_msg_8 (MSG_ID_DEBUG_S, SERIAL_ID_TO_IGNORE,
-                  word_buf[0], word_buf[1], word_buf[2], word_buf[3],
-                  word_buf[4], word_buf[5], word_buf[6], word_buf[7]);
-    advance_go (ADVANCE_FLAG_RW);
-    break;
   case mode_read_data:
-    encode_msg_1 (MSG_ID_DEBUG_Y, SERIAL_ID_TO_IGNORE, 222);
+    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_6); */
     /* try to read button state (pressed or released) */
     read_byte (REG_DATA);
     break;
   case mode_handle_data:
-    encode_msg_1 (MSG_ID_DEBUG_T, SERIAL_ID_TO_IGNORE, byte_buf);
+    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_5); */
     handle_data (byte_buf);
-    advance_go (ADVANCE_FLAG_RW);
+    /* advance_go (ADVANCE_FLAG_RW); */
+    write_byte (REG_CONTROL_2, 0x00);
     break;
-  case mode_main_wakeup:
-    write_byte (REG_CONTROL_2, 0x01);
-    break;
-  case mode_main_wakeup_ack:
-    mode = mode_wakeup_wait;
-    advance_go (ADVANCE_FLAG_RW);
+  case mode_loop_finish:
+    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_4); */
+    /* mode = mode_loop_start; */
+    advance_flag (ADVANCE_FLAG_INT);
+    /* advance_go (ADVANCE_FLAG_RW); */
     break;
   default:
+    debug_0 (DEBUG_KEY_BOARD, DEBUG_3);
     advance_go (ADVANCE_FLAG_RW);
     encode_msg_1 (MSG_ID_BOARD_HANDLE_ERROR,
                   SERIAL_ID_TO_IGNORE, mode_old);
     mode = mode_error;
     break;
   }
+  /* debug_1 (DEBUG_KEY_BOARD, DEBUG_20, mode); */
 }
 
 void key_board_enable ()
@@ -529,8 +456,11 @@ ISR (INT2_vect)
   /* if (mode != mode_enable_read) */
   /*   advance = 1; */
 
-  advance_go (ADVANCE_FLAG_INT);
+  /* advance_go (ADVANCE_FLAG_INT); */
 
-  encode_msg_2 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 55, mode);
-  /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 55); */
+  /* ??? fixme */
+  if (advance & ADVANCE_FLAG_INT)
+    advance |= ADVANCE_GO_INT;
+
+  /* debug_1 (DEBUG_KEY_BOARD, DEBUG_15, mode); */
 }
