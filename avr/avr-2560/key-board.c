@@ -85,8 +85,6 @@ enum {
   mode_wakeup_wait,             /* wait the interrupt 21*/
   /* main loop */
   mode_loop_start,              /* main loop start */
-  /* mode_read_channel_error,      /\* error per channel *\/ */
-  /* mode_check_channel_error,     /\* print channel error *\/ */
   mode_read_error,              /* read error */
   mode_check_error,             /* check error */
   mode_read_data,               /* read buttons states */
@@ -298,7 +296,7 @@ void key_board_try ()
     /* hang here forever */
     break;
   case mode_reset:
-    /* wait 2 micro-seconds after reset */
+    /* wait 1 micro-second after reset */
     _delay_ms (1);
     advance_go (ADVANCE_FLAG_RW);
     break;
@@ -306,7 +304,7 @@ void key_board_try ()
     write_byte (REG_CONTROL_1, 0x88);
     break;
   case mode_enable_read: 
-    _delay_ms (10);
+    _delay_ms (1);
     read_byte (REG_CONTROL_1);
     break;
   case mode_enable_check:

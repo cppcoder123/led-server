@@ -60,8 +60,9 @@ void twi_init ()
   /* TWBR = 0x08; */
   /* TWBR = 0xFF; */
   /* TWBR = 0x08; */
-  TWBR = 0x02;
-  TWSR |= (1 << TWPS0) | (1 << TWPS1); /* min clock freq fixme: remove*/
+  /* TWBR = 0x02; */
+  TWBR = 0x04;
+  /* TWSR |= (1 << TWPS0) | (1 << TWPS1);  min clock freq fixme: remove */
 
   /* enable twi interrupt */
   TWCR |= (1 << TWEN) | (1 << TWIE);
@@ -127,6 +128,8 @@ static uint8_t twi_read (uint8_t reg, twi_read_callback cb)
 uint8_t twi_read_byte (uint8_t reg, twi_read_callback cb)
 {
   transfer_limit = TRANSFER_BYTE;
+
+  data_buf[0] = 111;
 
   return twi_read (reg, cb);
 }
@@ -219,7 +222,7 @@ ISR (TWI_vect)
     } else {
       TWDR = slave (0);         /* slave addr, writing */
       /* TWCR |= (1 << TWEN); */
-      TWCR &= ~(1 << TWSTA);
+      /* TWCR &= ~(1 << TWSTA); */
     }
     break;
   case mode_write_slave:
@@ -230,6 +233,7 @@ ISR (TWI_vect)
       stop ();
     } else {
       /* encode_msg_1 (MSG_ID_DEBUG_G, SERIAL_ID_TO_IGNORE, buf[0]); */
+      TWCR &= ~(1 << TWSTA);
       TWDR = reg_buf;
     }
     break;
