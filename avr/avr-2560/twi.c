@@ -62,7 +62,7 @@ void twi_init ()
   /* TWBR = 0x08; */
   /* TWBR = 0x02; */
   TWBR = 0x04;
-  TWSR |= (1 << TWPS0) | (1 << TWPS1);  /* min clock freq fixme: remove */
+  /* TWSR |= (1 << TWPS0) | (1 << TWPS1);  */ /* min clock freq fixme: remove */
 
   /* enable twi interrupt */
   TWCR |= (1 << TWEN) | (1 << TWIE);
