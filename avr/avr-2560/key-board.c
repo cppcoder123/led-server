@@ -63,7 +63,7 @@ enum {
   mode_error,                   /* smth bad happened */
   /* setup parameters */
   mode_reset,                   /* reset */
-  mode_enable_start,            /* start calibration */
+  /* mode_enable_start, */            /* start calibration */
   mode_enable_read,             /* read 'start' status */
   mode_enable_check,            /* check 'start' status */
   mode_use_channel,             /* param */
@@ -121,7 +121,7 @@ static void board_reset ()
 {
   /* set portc 0th bit to 0, then to 1 */
   PORTC &= ~(1 << PORT_RESET);
-  _delay_ms (1);
+  _delay_ms (5);
   PORTC |= (1 << PORT_RESET);
 
   mode = mode_reset;
@@ -140,8 +140,8 @@ void key_board_init ()
     word_buf[i] = 0;
 
   /* don't do it here to prevent enable before 'key_board_enable' call */
-  EICRA |= (1 << ISC20) | (1 << ISC21); /* rising edge */
-  EIMSK |= (1 << INT2);                 /* enable int2 interrupt */
+  /* EICRA |= (1 << ISC20) | (1 << ISC21); /\* rising edge *\/ */
+  /* EIMSK |= (1 << INT2);                 /\* enable int2 interrupt *\/ */
 
   /* PORT_RESET drives reset line, configure it as output, write 1 */
   DDRC |= (1 << PORT_RESET);
@@ -150,6 +150,10 @@ void key_board_init ()
 
 static void advance_go (uint8_t way)
 {
+  if (advance & ADVANCE_GO_MASK)
+    // prev state is not handled
+    return;
+
   if (way & ADVANCE_FLAG_RW)
     advance |= ADVANCE_GO_RW;
   if (way & ADVANCE_FLAG_INT)
@@ -275,44 +279,36 @@ void key_board_try ()
       || (advance_check () == 0))
     return;
 
-  advance = 0;
-  /* in most cases we are waiting for rw */
-  advance_flag (ADVANCE_FLAG_RW);
-
-  uint8_t mode_old = mode;
-
-  if (mode != mode_error) {
-    if (mode < mode_loop_finish) {
-      ++mode;
-    } else {
-      mode = mode_loop_start;
-    }
-  }
+  int jump = 0;
 
   debug_1 (DEBUG_KEY_BOARD, DEBUG_15, mode);
   
-  switch (mode_old) {
+  switch (mode) {
   case mode_error:
     /* hang here forever */
     break;
   case mode_reset:
     /* wait 1 micro-second after reset */
-    _delay_ms (1);
-    advance_go (ADVANCE_FLAG_RW);
-    break;
-  case mode_enable_start:
+    /* _delay_ms (1); */
     write_byte (REG_CONTROL_1, 0x88);
+    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_9);     */
+    /* advance_go (ADVANCE_FLAG_RW); */
     break;
-  case mode_enable_read: 
-    _delay_ms (1);
+  /* case mode_enable_start: */
+  /*   debug_0 (DEBUG_KEY_BOARD, DEBUG_10);     */
+  /*   break; */
+  case mode_enable_read:
+    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_11); */
+    /* byte_buf = 222; */
     read_byte (REG_CONTROL_1);
     break;
   case mode_enable_check:
     if (is_ready () == 0) {
+      _delay_ms (5);
       debug_1 (DEBUG_KEY_BOARD, DEBUG_0, byte_buf);
       mode -= 2;                /* read control-1 again */
     }
-    advance_go (ADVANCE_FLAG_RW);
+    jump = 1;
     break;
   case mode_use_channel:
     /* all of them FF */
@@ -384,7 +380,9 @@ void key_board_try ()
   case mode_loop_start:
     /* debug_0 (DEBUG_KEY_BOARD, DEBUG_2); */
     /* write_byte (REG_CONTROL_2, 0x00); */
-    advance_go (ADVANCE_FLAG_RW);
+    /* advance_flag (ADVANCE_FLAG_RW); */
+    /* advance_go (ADVANCE_FLAG_RW); */
+    jump = 1;
     break;
   case mode_read_error:
     /* debug_0 (DEBUG_KEY_BOARD, DEBUG_8); */
@@ -398,7 +396,9 @@ void key_board_try ()
       /* either syserr or calerr */
       mode = mode_error;
     }
-    advance_go (ADVANCE_FLAG_RW);
+    /* advance_flag (ADVANCE_FLAG_RW); */
+    /* advance_go (ADVANCE_FLAG_RW); */
+    jump = 1;
     break;
   case mode_read_data:
     /* debug_0 (DEBUG_KEY_BOARD, DEBUG_6); */
@@ -419,19 +419,36 @@ void key_board_try ()
     break;
   default:
     debug_0 (DEBUG_KEY_BOARD, DEBUG_3);
-    advance_go (ADVANCE_FLAG_RW);
+    /* advance_flag (ADVANCE_FLAG_RW); */
+    /* advance_go (ADVANCE_FLAG_RW); */
+    jump = 1;
     encode_msg_1 (MSG_ID_BOARD_HANDLE_ERROR,
-                  SERIAL_ID_TO_IGNORE, mode_old);
+                  SERIAL_ID_TO_IGNORE, mode);
     mode = mode_error;
     break;
   }
   /* debug_1 (DEBUG_KEY_BOARD, DEBUG_20, mode); */
+
+  /* in most cases we are waiting for rw */
+  advance_flag (ADVANCE_FLAG_RW);
+
+  if (mode != mode_error) {
+    if (mode < mode_loop_finish) {
+      ++mode;
+    } else {
+      mode = mode_loop_start;
+    }
+  }
+
+  if (jump != 0)
+    advance_go (ADVANCE_FLAG_RW);
+
 }
 
 void key_board_enable ()
 {
-  /* EICRA |= (1 << ISC20) | (1 << ISC21); */ /* rising edge */
-  /* EIMSK |= (1 << INT2);  */                /* enable int2 interrupt */
+  EICRA |= (1 << ISC20) | (1 << ISC21); /* rising edge */
+  EIMSK |= (1 << INT2);                 /* enable int2 interrupt */
 
   twi_init ();
 
@@ -442,6 +459,9 @@ void key_board_enable ()
 
 void key_board_disable ()
 {
+  EICRA &= ~((1 << ISC20) | (1 << ISC21)); /* rising edge */
+  EIMSK &= ~((1 << INT2));                 /* enable int2 interrupt */
+
   mode = mode_error;
 }
 
@@ -460,5 +480,5 @@ ISR (INT2_vect)
   if (advance & ADVANCE_FLAG_INT)
     advance |= ADVANCE_GO_INT;
 
-  /* debug_1 (DEBUG_KEY_BOARD, DEBUG_15, mode); */
+  debug_1 (DEBUG_KEY_BOARD, DEBUG_16, mode);
 }
