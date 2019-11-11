@@ -15,13 +15,13 @@ export COMMON_CPPFLAGS = -DASIO_STANDALONE -std=c++17 -Wall -pedantic -g
 
 SERVER = $(ROOT)/server
 #INFO_GATEWAY = $(ROOT)/info-gateway
-GATEWAY = $(ROOT)/gateway
+#GATEWAY = $(ROOT)/gateway
 #TEST_CLIENT = $(ROOT)/test-client
 
 LIB_DAEMON_OBJECT = $(LIB_DAEMON)/src/libdaemon.a
 
 LIB_PATH_LIST = $(LIB_DAEMON)
-TARGET_PATH_LIST = $(GATEWAY) $(SERVER)
+TARGET_PATH_LIST = $(SERVER)
 
 ALL: $(TARGET_PATH_LIST)
 

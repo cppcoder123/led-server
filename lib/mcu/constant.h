@@ -65,32 +65,6 @@ enum {
 
   /* avr=>pi: debug */
   MSG_ID_DEBUG,
-  MSG_ID_DEBUG_A,               /* 14 */
-  MSG_ID_DEBUG_B,
-  MSG_ID_DEBUG_C,
-  MSG_ID_DEBUG_D,               /* 17 */
-  MSG_ID_DEBUG_E,
-  MSG_ID_DEBUG_F,
-  MSG_ID_DEBUG_G,               /* 20 */
-  MSG_ID_DEBUG_H,               /* 21 */
-  MSG_ID_DEBUG_I,               /* 22 */
-  MSG_ID_DEBUG_J,
-  MSG_ID_DEBUG_K,
-  MSG_ID_DEBUG_L,               /* 25 */
-  MSG_ID_DEBUG_M,
-  MSG_ID_DEBUG_N,               /* 27 */
-  MSG_ID_DEBUG_O,
-  MSG_ID_DEBUG_P,
-  MSG_ID_DEBUG_Q,
-  MSG_ID_DEBUG_R,               /* 31 */
-  MSG_ID_DEBUG_S,
-  MSG_ID_DEBUG_T,
-  MSG_ID_DEBUG_U,
-  MSG_ID_DEBUG_V,
-  MSG_ID_DEBUG_W,
-  MSG_ID_DEBUG_X,               /* 37 */
-  MSG_ID_DEBUG_Y,
-  MSG_ID_DEBUG_Z,
 };
 
 enum {

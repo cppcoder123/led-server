@@ -10,6 +10,7 @@
 /* debug domain */
 enum {
   DEBUG_KEY_BOARD,
+  DEBUG_TWI,
 };
 
 /* debug key */

@@ -5,7 +5,7 @@
 
 #include "mcu/constant.h"
 
-#include "encode.h"
+#include "debug.h"
 #include "twi.h"
 
 #ifndef NULL
@@ -177,11 +177,11 @@ uint8_t twi_write_word (uint8_t reg, uint8_t value, twi_write_callback cb)
 void twi_debug_cb ()
 {
   if (write_cb != NULL)
-    encode_msg_1 (MSG_ID_DEBUG_R, SERIAL_ID_TO_IGNORE, 100);
+    debug_0 (DEBUG_TWI, DEBUG_0);
   if (read_cb != NULL)
-    encode_msg_1 (MSG_ID_DEBUG_R, SERIAL_ID_TO_IGNORE, 200);
+    debug_0 (DEBUG_TWI, DEBUG_1);
   if ((write_cb == NULL) && (read_cb == NULL))
-    encode_msg_1 (MSG_ID_DEBUG_R, SERIAL_ID_TO_IGNORE, 0);
+    debug_0 (DEBUG_TWI, DEBUG_2);
 }
 
 static uint8_t reading ()
@@ -216,7 +216,7 @@ ISR (TWI_vect)
   case mode_write_start:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 70); */
     if (check_status_register (TW_START) == 0) {
-      encode_msg_1 (MSG_ID_DEBUG_J, SERIAL_ID_TO_IGNORE, STATUS_MASK);
+      debug_1 (DEBUG_TWI, DEBUG_3, STATUS_MASK);
       status = TWI_WRITE_START_ERROR;
       stop ();
     } else {
@@ -228,7 +228,7 @@ ISR (TWI_vect)
   case mode_write_slave:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 80); */
     if (check_status_register (TW_MT_SLA_ACK) == 0) {
-      encode_msg_1 (MSG_ID_DEBUG_D, SERIAL_ID_TO_IGNORE, STATUS_MASK);
+      debug_1 (DEBUG_TWI, DEBUG_4, STATUS_MASK);
       status = TWI_WRITE_SLAVE_ERROR;
       stop ();
     } else {
@@ -241,7 +241,7 @@ ISR (TWI_vect)
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90); */
     if (check_status_register (TW_MT_DATA_ACK) == 0) {
       /* encode_msg_2 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90, 1); */
-      encode_msg_1 (MSG_ID_DEBUG_E, SERIAL_ID_TO_IGNORE, STATUS_MASK);
+      debug_1 (DEBUG_TWI, DEBUG_5, STATUS_MASK);
       /* either reg error or value error */
       status = TWI_WRITE_REG_ERROR;
       stop ();
@@ -287,7 +287,7 @@ ISR (TWI_vect)
   case mode_read_slave:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 110); */
     if (check_status_register (TW_MR_SLA_ACK) == 0) {
-      encode_msg_1 (MSG_ID_DEBUG_K, SERIAL_ID_TO_IGNORE, STATUS_MASK);
+      debug_1 (DEBUG_TWI, DEBUG_6, STATUS_MASK);
       status = TWI_READ_SLAVE_ERROR;
       stop ();
     } else {
@@ -299,7 +299,7 @@ ISR (TWI_vect)
   case mode_read_value:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 120); */
     if (check_status_register (TW_MR_DATA_ACK) == 0) {
-      encode_msg_1 (MSG_ID_DEBUG_Q, SERIAL_ID_TO_IGNORE, STATUS_MASK);
+      debug_1 (DEBUG_TWI, DEBUG_7, STATUS_MASK);
       status = TWI_READ_VALUE_ERROR;
       stop ();
     } else {
@@ -317,7 +317,7 @@ ISR (TWI_vect)
     break;
   case mode_read_done:
     if (check_status_register (TW_MR_DATA_NACK) == 0) {
-      encode_msg_1 (MSG_ID_DEBUG_P, SERIAL_ID_TO_IGNORE, STATUS_MASK);
+      debug_1 (DEBUG_TWI, DEBUG_8, STATUS_MASK);
       status = TWI_READ_DONE_ERROR;
     }
     stop ();
