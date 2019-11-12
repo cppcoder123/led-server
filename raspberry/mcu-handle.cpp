@@ -5,8 +5,8 @@
 #include <functional>
 #include <thread>
 
+#include "unix/constant.h"
 #include "unix/log.hpp"
-#include "mcu/constant.h"
 
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"

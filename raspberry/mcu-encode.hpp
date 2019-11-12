@@ -4,7 +4,7 @@
 #ifndef MCU_ENCODE_HPP
 #define MCU_ENCODE_HPP
 
-#include "mcu/constant.h"
+#include "unix/constant.h"
 
 #include "mcu-msg.hpp"
 
