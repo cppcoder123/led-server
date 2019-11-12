@@ -82,7 +82,7 @@ enum {
   mode_cdac_base,               /* param */
   mode_measurument_mode,        /* param */
   mode_param_apply,             /* apply new params */
-  mode_wakeup_wait,             /* wait the interrupt 21*/
+  mode_wakeup_wait,             /* wait the interrupt 20*/
   /* main loop */
   mode_loop_start,              /* main loop start */
   mode_read_error,              /* read error */
@@ -115,6 +115,11 @@ static void advance_flag (uint8_t way)
     return;
 
   advance = way;
+}
+
+static uint8_t advance_flag_empty ()
+{
+  return ((advance | ADVANCE_FLAG_MASK) == 0) ? 1 : 0;
 }
 
 static void board_reset ()
@@ -279,6 +284,7 @@ void key_board_try ()
       || (advance_check () == 0))
     return;
 
+  advance_flag (ADVANCE_FLAG_RW);
   int jump = 0;
 
   debug_1 (DEBUG_KEY_BOARD, DEBUG_15, mode);
@@ -429,8 +435,9 @@ void key_board_try ()
   }
   /* debug_1 (DEBUG_KEY_BOARD, DEBUG_20, mode); */
 
-  /* in most cases we are waiting for rw */
-  advance_flag (ADVANCE_FLAG_RW);
+  /* if (advance_flag_empty () != 0) */
+    /* in most cases we are waiting for rw */
+    /* advance_flag (ADVANCE_FLAG_RW); */
 
   if (mode != mode_error) {
     if (mode < mode_loop_finish) {
@@ -468,17 +475,7 @@ void key_board_disable ()
 /* handle external interrupt from board */
 ISR (INT2_vect)
 {
-  /* undocumented reset in mode_enable_read ? */
-  /*   after writing 0x80 to REG_CONTROL_1 */
-
-  /* if (mode != mode_enable_read) */
-  /*   advance = 1; */
-
-  /* advance_go (ADVANCE_FLAG_INT); */
-
-  /* ??? fixme */
-  if (advance & ADVANCE_FLAG_INT)
-    advance |= ADVANCE_GO_INT;
+  advance_go (ADVANCE_FLAG_INT);
 
   debug_1 (DEBUG_KEY_BOARD, DEBUG_16, mode);
 }
