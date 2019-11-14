@@ -4,7 +4,7 @@
 
 #include <util/atomic.h>
 
-#include "mcu/constant.h"
+#include "unix/constant.h"
 
 #include "queue.h"
 

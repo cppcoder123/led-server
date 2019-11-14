@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 
-#include "mcu/constant.h"
+#include "unix/constant.h"
 
 #include "debug.h"
 #include "decode.h"

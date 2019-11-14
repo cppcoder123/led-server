@@ -9,7 +9,7 @@
 /* #include <util/atomic.h> */
 #include <util/delay.h>
 
-#include "mcu/constant.h"
+#include "unix/constant.h"
 
 #include "debug.h"
 #include "encode.h"
@@ -412,13 +412,13 @@ void key_board_try ()
     read_byte (REG_DATA);
     break;
   case mode_handle_data:
-    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_5); */
+    debug_0 (DEBUG_KEY_BOARD, DEBUG_5);
     handle_data (byte_buf);
     /* advance_go (ADVANCE_FLAG_RW); */
     write_byte (REG_CONTROL_2, 0x00);
     break;
   case mode_loop_finish:
-    /* debug_0 (DEBUG_KEY_BOARD, DEBUG_4); */
+    debug_0 (DEBUG_KEY_BOARD, DEBUG_4);
     /* mode = mode_loop_start; */
     advance_flag (ADVANCE_FLAG_INT);
     /* advance_go (ADVANCE_FLAG_RW); */

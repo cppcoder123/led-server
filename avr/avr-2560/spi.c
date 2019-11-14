@@ -5,7 +5,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#include "mcu/constant.h"
+#include "unix/constant.h"
 
 #include "debug.h"
 #include "queue.h"
