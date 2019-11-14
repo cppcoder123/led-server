@@ -13,7 +13,7 @@ export LIB_TCLAP = $(LIB_ROOT)/tclap
 export COMMON_CFLAGS = -DVARRUN=\"/var/run/led\"
 export COMMON_CPPFLAGS = -DASIO_STANDALONE -std=c++17 -Wall -pedantic -g
 
-SERVER = $(ROOT)/raspberry
+SERVER = $(ROOT)/src/cpp
 #INFO_GATEWAY = $(ROOT)/info-gateway
 #GATEWAY = $(ROOT)/gateway
 #TEST_CLIENT = $(ROOT)/test-client
