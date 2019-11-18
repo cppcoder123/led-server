@@ -14,13 +14,13 @@
 #include "encode.h"
 
 /* Achtung: Update also direction setup !*/
-#define CS PORTL1
-#define CLK PORTL2
-#define DATA PORTL3
+#define CS PORTK5
+#define CLK PORTK1
+#define DATA PORTK3
 
 #define MASK(x) (1 << x)
-#define RAISE(x) (PORTL |= MASK(x))
-#define FALL(x) (PORTL &= ~MASK(x))
+#define RAISE(x) (PORTK |= MASK(x))
+#define FALL(x) (PORTK &= ~MASK(x))
 
 /*fixme: it looks that delay is so small, can we avoid it?*/
 #define DELAY _delay_us (1)
@@ -93,7 +93,7 @@ static void flush_bit (uint8_t bit)
 void display_init ()
 {
   /*fixme*/
-  DDRL |= (1 << DDL3) | (1 << DDL2) | (1 << DDL1);
+  DDRK |= MASK (CS) | MASK (CLK) | MASK (DATA);
 
   /*debug: it should be called outside: fixme */
   display_start ();
