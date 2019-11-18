@@ -287,7 +287,7 @@ void key_board_try ()
   advance_flag (ADVANCE_FLAG_RW);
   int jump = 0;
 
-  debug_1 (DEBUG_KEY_BOARD, DEBUG_15, mode);
+  /* debug_1 (DEBUG_KEY_BOARD, DEBUG_15, mode); */
   
   switch (mode) {
   case mode_error:
@@ -385,10 +385,10 @@ void key_board_try ()
     break;
   case mode_loop_start:
     /* debug_0 (DEBUG_KEY_BOARD, DEBUG_2); */
-    /* write_byte (REG_CONTROL_2, 0x00); */
+    write_byte (REG_CONTROL_2, 0x00);
     /* advance_flag (ADVANCE_FLAG_RW); */
     /* advance_go (ADVANCE_FLAG_RW); */
-    jump = 1;
+    /* jump = 1; */
     break;
   case mode_read_error:
     /* debug_0 (DEBUG_KEY_BOARD, DEBUG_8); */
@@ -412,13 +412,14 @@ void key_board_try ()
     read_byte (REG_DATA);
     break;
   case mode_handle_data:
-    debug_0 (DEBUG_KEY_BOARD, DEBUG_5);
+    /* debug_1 (DEBUG_KEY_BOARD, DEBUG_5, mode); */
     handle_data (byte_buf);
     /* advance_go (ADVANCE_FLAG_RW); */
-    write_byte (REG_CONTROL_2, 0x00);
+    /* write_byte (REG_CONTROL_2, 0x00); */
+    jump = 1;
     break;
   case mode_loop_finish:
-    debug_0 (DEBUG_KEY_BOARD, DEBUG_4);
+    /* debug_1 (DEBUG_KEY_BOARD, DEBUG_14, mode); */
     /* mode = mode_loop_start; */
     advance_flag (ADVANCE_FLAG_INT);
     /* advance_go (ADVANCE_FLAG_RW); */
@@ -477,5 +478,5 @@ ISR (INT2_vect)
 {
   advance_go (ADVANCE_FLAG_INT);
 
-  debug_1 (DEBUG_KEY_BOARD, DEBUG_16, mode);
+  /* debug_1 (DEBUG_KEY_BOARD, DEBUG_16, mode); */
 }
