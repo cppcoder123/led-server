@@ -51,7 +51,7 @@ static void decode ()
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
-    key_board_enable ();
+    /* key_board_enable (); */
     flush_enable ();
     break;
   case MSG_ID_QUERY:

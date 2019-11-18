@@ -15,14 +15,12 @@ OBJECT_LIST = \
   display.o \
   encode.o \
   flush.o \
-  key-board.o \
   postpone.o \
   power.o \
   queue.o \
   render.o \
   spi.o \
-  timer.o \
-  twi.o
+  timer.o
 
 MCU = atmega2560
 
