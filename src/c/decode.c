@@ -10,7 +10,6 @@
 #include "decode.h"
 #include "encode.h"
 #include "flush.h"
-#include "key-board.h"
 #include "spi.h"
 
 #define IN_SIZE (LED_ARRAY_SIZE + MSG_OVERHEAD)
