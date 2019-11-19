@@ -14,10 +14,10 @@ void display_start ();
 void display_stop ();
 
 /*transfer data to led matrix*/
-void display_mono_start ();
-/*call 'hw_mono' 32 times, for each column*/
-void display_mono (uint8_t data);
-void display_mono_stop ();
+void display_data_start ();
+/*call 'display_column' 32 times, for each column*/
+void display_data_column (uint8_t data);
+void display_data_stop ();
 
 /*tweak brightness*/
 void display_brightness (uint8_t value/*0-15*/);

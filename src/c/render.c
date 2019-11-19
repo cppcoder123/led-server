@@ -62,11 +62,11 @@ uint8_t render_id (uint8_t digit)
 void render (uint8_t id)
 {
   for (uint8_t j = 0; j < LETTER_SIZE; ++j)
-    flush_push_mono (slim_font[id * LETTER_SIZE + j]);
+    flush_push (slim_font[id * LETTER_SIZE + j]);
 }
 
 void render_direct (uint8_t symbol, uint8_t times)
 {
   for (uint8_t i = 0; i < times; ++i)
-    flush_push_mono (symbol);
+    flush_push (symbol);
 }

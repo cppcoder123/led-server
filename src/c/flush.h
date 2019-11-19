@@ -12,8 +12,8 @@ void flush_init ();
 void flush_enable ();
 void flush_disable ();
 
-uint8_t flush_push_mono (uint8_t symbol);
-uint8_t flush_push_mono_array (uint8_t *arr, uint8_t arr_size);
+uint8_t flush_push (uint8_t symbol);
+uint8_t flush_push_array (uint8_t *arr, uint8_t arr_size);
 
 void flush_enable_shift ();
 void flush_enable_clear ();

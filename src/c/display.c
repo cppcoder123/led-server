@@ -111,10 +111,10 @@ void display_start ()
   FLUSH_CMD (CMD_BRIGHTNESS_MASK | 0xF);
   CS_DEACTIVATE;
 
-  display_mono_start ();
+  display_data_start ();
   for (uint8_t i = 0; i < 32; ++i)
-    display_mono (0xAA);
-  display_mono_stop ();
+    display_data_column (0xAA);
+  display_data_stop ();
 }
 
 void display_stop ()
@@ -126,7 +126,7 @@ void display_stop ()
   CS_DEACTIVATE;
 }
 
-void display_mono_start ()
+void display_data_start ()
 {
   /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 177); */
   /*fixme*/
@@ -135,7 +135,7 @@ void display_mono_start ()
   FLUSH_ZERO_ADDRESS;
 }
 
-void display_mono (uint8_t data)
+void display_data_column (uint8_t data)
 {
   /* encode_msg_1 (MSG_ID_DEBUG_A, SERIAL_ID_TO_IGNORE, 199); */
   /*fixme*/
@@ -145,7 +145,7 @@ void display_mono (uint8_t data)
   FLUSH_HALF_BYTE (high);
 }
 
-void display_mono_stop ()
+void display_data_stop ()
 {
   /*fixme*/
   CS_DEACTIVATE;

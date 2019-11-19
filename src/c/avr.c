@@ -9,11 +9,8 @@
 #include "debug.h"
 #include "display.h"
 #include "flush.h"
-/* #include "key-board.h" */
 #include "postpone.h"
-//#include "power.h"
 #include "spi.h"
-/* #include "twi.h" */
 
 static void init ()
 {
@@ -25,10 +22,8 @@ static void init ()
   decode_init ();
   display_init ();
   flush_init ();
-  /* key_board_init (); */
   postpone_init ();
   /* power_init (); */
-  /* twi_init (); */
 
   /* enable r-pi */
   /* power_up (); */
@@ -44,9 +39,7 @@ int main ()
     /* buzz_try (); */
     decode_try ();
     /* flush_try (); */
-    /* key_board_try (); */
     postpone_try ();
-    /* twi_try (); */
   }
 
   return 0;

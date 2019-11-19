@@ -38,12 +38,12 @@ static void decode ()
   uint8_t status = STATUS_FAIL;
 
   switch (msg_id) {
-  case MSG_ID_MONO_LED:         /* monochrome */
-    status = (flush_push_mono (in_buf[0]) == 1) ? STATUS_SUCCESS : STATUS_FAIL;
+  case MSG_ID_LED:
+    status = (flush_push (in_buf[0]) == 1) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
     break;
-  case MSG_ID_MONO_LED_ARRAY:
-    status = (flush_push_mono_array (in_buf, LED_ARRAY_SIZE) == 1)
+  case MSG_ID_LED_ARRAY:
+    status = (flush_push_array (in_buf, LED_ARRAY_SIZE) == 1)
       ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
     break;

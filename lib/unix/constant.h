@@ -29,8 +29,8 @@ enum {
 
   /*pi=>avr: one column as payload,*/
   /*avr=>pi: STATUS*/
-  MSG_ID_MONO_LED,
-  MSG_ID_MONO_LED_ARRAY,
+  MSG_ID_LED,
+  MSG_ID_LED_ARRAY,
 
   /*pi=>avr: No response from avr is expected, SERIAL_ID_TO_IGNORE should be used*/
   /*aux message to enable spi slave (avr) to master (pi) transfer*/
