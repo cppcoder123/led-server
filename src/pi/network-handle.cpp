@@ -181,14 +181,14 @@ namespace led_d
       std::advance (finish, LED_ARRAY_SIZE);
       mcu_msg_t tmp (start, finish);
       m_to_mcu_queue->push
-        (mcu::encode::join (mcu_id::get (), MSG_ID_MONO_LED_ARRAY, tmp));
+        (mcu::encode::join (mcu_id::get (), MSG_ID_LED_ARRAY, tmp));
       start = finish;
     }
 
     len = matrix.size () % LED_ARRAY_SIZE;
     for (std::size_t i = matrix.size ()- len; i < matrix.size (); ++i)
       m_to_mcu_queue->push
-        (mcu::encode::join (mcu_id::get (), MSG_ID_MONO_LED, matrix[i]));
+        (mcu::encode::join (mcu_id::get (), MSG_ID_LED, matrix[i]));
     
     // {
     //   // fixme: debug
