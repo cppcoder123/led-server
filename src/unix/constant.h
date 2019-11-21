@@ -20,21 +20,31 @@
 #define LED_ARRAY_SIZE 20
 
 enum {
+  /* avr=>pi: debug */
+  MSG_ID_DEBUG,
+
   /*should not be sent in either direction, initialization*/
   MSG_ID_EMPTY,
-
-  /*avr=>pi: button(s) is(are) pressed*/
-  /*payload-1: button state, payload-2: prev button state*/
-  MSG_ID_BUTTON,
 
   /*pi=>avr: one column as payload,*/
   /*avr=>pi: STATUS*/
   MSG_ID_LED,
   MSG_ID_LED_ARRAY,
 
+  /* avr=>pi: request data to display, 0 as payload */
+  MSG_ID_POLL,
+
   /*pi=>avr: No response from avr is expected, SERIAL_ID_TO_IGNORE should be used*/
   /*aux message to enable spi slave (avr) to master (pi) transfer*/
   MSG_ID_QUERY,
+
+  /* avr=>pi: rotary encoder related messages */
+  MSG_ID_ROTOR_A_PLUS,
+  MSG_ID_ROTOR_A_MINUS,
+  MSG_ID_ROTOR_A_PUSH,
+  MSG_ID_ROTOR_B_PLUS,
+  MSG_ID_ROTOR_B_MINUS,
+  MSG_ID_ROTOR_B_PUSH,
 
   /*avr=>pi: see status below*/
   MSG_ID_STATUS,
@@ -42,29 +52,6 @@ enum {
   /*pi=>avr: PROTOCOL_VERSION as payload, */
   /*avr=>pi: VERSION: STATUS_SUCCESS(or STATUS_FAIL) as payload*/
   MSG_ID_VERSION,
-
-  /* avr=>pi: request data to display, 0 as payload */
-  MSG_ID_POLL,
-
-  /* avr => pi: board is ready to operate, 0 as payload*/
-  MSG_ID_BOARD_ENABLED,
-
-  /* notify twi read error */
-  /* avr => pi: error value as payload */
-  MSG_ID_BOARD_READ_ERROR,
-
-  /* notify twi write error */
-  /* avr => pi: error value as payload */
-  MSG_ID_BOARD_WRITE_ERROR,
-
-  /* avr => pi: error during finger detection, error as payload */
-  MSG_ID_BOARD_DETECT_ERROR,
-
-  /* avr => pi: error during finger detection handling, mode as payload */
-  MSG_ID_BOARD_HANDLE_ERROR,
-
-  /* avr=>pi: debug */
-  MSG_ID_DEBUG,
 };
 
 enum {
@@ -72,6 +59,36 @@ enum {
   STATUS_HOLD_ON,
   STATUS_FAIL,
   STATUS_UNKNOWN_MSG
+};
+
+/* debug domain */
+enum {
+  DEBUG_ROTOR,
+};
+
+/* debug key */
+enum {
+  DEBUG_0,
+  DEBUG_1,
+  DEBUG_2,
+  DEBUG_3,
+  DEBUG_4,
+  DEBUG_5,
+  DEBUG_6,
+  DEBUG_7,
+  DEBUG_8,
+  DEBUG_9,
+  DEBUG_10,
+  DEBUG_11,
+  DEBUG_12,
+  DEBUG_13,
+  DEBUG_14,
+  DEBUG_15,
+  DEBUG_16,
+  DEBUG_17,
+  DEBUG_18,
+  DEBUG_19,
+  DEBUG_20,
 };
 
 #endif

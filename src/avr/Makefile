@@ -24,7 +24,7 @@ OBJECT_LIST = \
 
 MCU = atmega2560
 
-CFLAGS_OPT = -I ../../lib -mmcu=$(MCU) -Os -std=gnu99 -Wall 
+CFLAGS_OPT = -I .. -mmcu=$(MCU) -Os -std=gnu99 -Wall 
 LDFLAGS_OPT = -mmcu=$(MCU)
 
 CFLAGS_DEBUG = $(CFLAGS) -g
