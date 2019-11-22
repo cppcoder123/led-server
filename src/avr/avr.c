@@ -10,6 +10,7 @@
 #include "display.h"
 #include "flush.h"
 #include "postpone.h"
+#include "rotor.h"
 #include "spi.h"
 
 static void init ()
@@ -23,6 +24,7 @@ static void init ()
   display_init ();
   flush_init ();
   postpone_init ();
+  rotor_init ();
   /* power_init (); */
 
   /* enable r-pi */
@@ -39,6 +41,7 @@ int main ()
     /* buzz_try (); */
     decode_try ();
     /* flush_try (); */
+    rotor_try ();
     postpone_try ();
   }
 

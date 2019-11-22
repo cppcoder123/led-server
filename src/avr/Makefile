@@ -19,6 +19,7 @@ OBJECT_LIST = \
   power.o \
   queue.o \
   render.o \
+  rotor.o \
   spi.o \
   timer.o
 
