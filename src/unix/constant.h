@@ -39,12 +39,7 @@ enum {
   MSG_ID_QUERY,
 
   /* avr=>pi: rotary encoder related messages */
-  MSG_ID_ROTOR_A_PLUS,
-  MSG_ID_ROTOR_A_MINUS,
-  MSG_ID_ROTOR_A_PUSH,
-  MSG_ID_ROTOR_B_PLUS,
-  MSG_ID_ROTOR_B_MINUS,
-  MSG_ID_ROTOR_B_PUSH,
+  MSG_ID_ROTOR,
 
   /*avr=>pi: see status below*/
   MSG_ID_STATUS,
@@ -89,6 +84,17 @@ enum {
   DEBUG_18,
   DEBUG_19,
   DEBUG_20,
+};
+
+enum {
+  ROTOR_A,
+  ROTOR_B,
+};
+
+enum {
+  ROTOR_PLUS,
+  ROTOR_MINUS,
+  ROTOR_PUSH,
 };
 
 #endif
