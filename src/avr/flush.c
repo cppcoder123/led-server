@@ -11,10 +11,7 @@
 
 #define MATRIX_SIZE 32
 
-/* fixme: should we make less than max ?*/
-/* #define LED_SIZE 255 */
-
-volatile struct buffer_t led_data;
+static volatile struct buffer_t led_data;
 
 enum {
   FLUSH_SHIFT,

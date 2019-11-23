@@ -9,23 +9,18 @@
 
 #include "buffer.h"
 #include "debug.h"
-/* #include "queue.h" */
 #include "spi.h"
 
 #define SPI_MISO PORTB3
 /* irq pin is connected to pi's gpio-27 */
 #define SPI_IRQ PORTB6
 
-/* #define READ_SIZE 255 */
-/* #define WRITE_SIZE 255 */
-
 #define FLAG_WRITE_INTERRUPT (1 << 0)
 
-/* volatile uint8_t read_buf[READ_SIZE]; */
-volatile struct buffer_t read_buf;
-volatile struct buffer_t write_buf;
+static volatile struct buffer_t read_buf;
+static volatile struct buffer_t write_buf;
 
-volatile uint8_t flag;
+static uint8_t flag;
 
 static void write_interrupt_start ()
 {
@@ -73,19 +68,16 @@ uint8_t spi_read_symbol (uint8_t *symbol)
 
 uint8_t spi_read_array (uint8_t *arr, uint8_t arr_size)
 {
-  /* return queue_array_drain (read_buf, arr, arr_size); */
   return buffer_array_drain (&read_buf, arr, arr_size);
 }
 
 uint8_t spi_read_space ()
 {
-  /* return queue_space (read_buf); */
   return buffer_space (&read_buf);
 }
 
 uint8_t spi_read_size ()
 {
-  /* return queue_size (read_buf); */
   return buffer_size (&read_buf);
 }
 
@@ -103,14 +95,10 @@ ISR (SPI_STC_vect)
    * 2. try to drain write buf and send it to master
    */
 
-  /* if (queue_symbol_fill (read_buf, SPDR) == 0) { */
   if (buffer_byte_fill (&read_buf, SPDR) == 0) {
     SPDR = SPI_READ_OVERFLOW;
     return;
   }
-
-  /*long interrupt handling?*/
-  /* SPDR = SPI_WRITE_UNDERFLOW; */
 
   uint8_t to_send;
   if (buffer_byte_drain (&write_buf, &to_send) != 0) {

@@ -12,16 +12,15 @@
 #include "encode.h"
 #include "rotor.h"
 
-/* #define BUF_SIZE 128 */
-#define SIG_DEFAULT 0xFF
+#define STATE_DEFAULT 0xFF
 
-volatile struct buf_t rotor_buf;
-static uint8_t state = SIG_DEFAULT;
+static volatile struct buf_t rotor_buf;
+static uint8_t state = STATE_DEFAULT;
 
 void rotor_init ()
 {
   buf_init (&rotor_buf);
-  state = SIG_DEFAULT;
+  state = STATE_DEFAULT;
 
   /* enable 3-rd series of pin change interrupts */
   PCICR |= (1 << PCIE2);
