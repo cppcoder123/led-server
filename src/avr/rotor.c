@@ -8,19 +8,19 @@
 
 #include "unix/constant.h"
 
+#include "buf.h"
 #include "encode.h"
-#include "queue.h"
 #include "rotor.h"
 
-#define BUF_SIZE 128
+/* #define BUF_SIZE 128 */
 #define SIG_DEFAULT 0xFF
 
-volatile uint8_t rotor_buf[BUF_SIZE];
+volatile struct buf_t rotor_buf;
 static uint8_t state = SIG_DEFAULT;
 
 void rotor_init ()
 {
-  queue_init (rotor_buf, BUF_SIZE);
+  buf_init (&rotor_buf);
   state = SIG_DEFAULT;
 
   /* enable 3-rd series of pin change interrupts */
@@ -39,7 +39,7 @@ void rotor_init ()
 void rotor_try ()
 {
   uint8_t new_state = 0;
-  if (queue_symbol_drain (rotor_buf, &new_state) == 0)
+  if (buf_byte_drain (&rotor_buf, &new_state) == 0)
     return;
 
   /* fixme: deeper analysis is required here, */
@@ -61,5 +61,5 @@ void rotor_try ()
 
 ISR (PCINT2_vect)
 {
-  queue_symbol_fill (rotor_buf, PINK);
+  buf_byte_fill (&rotor_buf, PINK);
 }
