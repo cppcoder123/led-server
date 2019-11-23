@@ -4,6 +4,8 @@
 #ifndef MCU_DECODE_HPP
 #define MCU_DECODE_HPP
 
+#include <cstdint>
+
 #include "unix/constant.h"
 
 #include "mcu-msg.hpp"
@@ -23,24 +25,24 @@ namespace led_d
       static bool unwrap (mcu_msg_t &msg);
 
       template <typename ...payload_t>
-      static bool split (const mcu_msg_t &msg, unix::char_t &serial,
-                         unix::char_t &msg_id, payload_t& ...payload);
+      static bool split (const mcu_msg_t &msg, uint8_t &serial,
+                         uint8_t &msg_id, payload_t& ...payload);
 
       template <typename ...payload_t>
       static bool split_payload (const mcu_msg_t &msg, payload_t& ...payload);
 
-      static unix::char_t get_serial (const mcu_msg_t &msg);
-      static unix::char_t get_msg_id (const mcu_msg_t &msg);
+      static uint8_t get_serial (const mcu_msg_t &msg);
+      static uint8_t get_msg_id (const mcu_msg_t &msg);
 
     private:
 
       using iterator_t = mcu_msg_t::const_iterator;
       static bool do_split (const mcu_msg_t &msg, iterator_t &iter,
-                            unix::char_t &serial, unix::char_t &msg_id);
+                            uint8_t &serial, uint8_t &msg_id);
 
       template <typename ...payload_t>
       static bool do_split (const mcu_msg_t &msg, iterator_t &iter,
-                            unix::char_t& load_1, payload_t& ...payload);
+                            uint8_t& load_1, payload_t& ...payload);
 
       static bool do_split (const mcu_msg_t&, iterator_t&) {return true;};
 
@@ -64,7 +66,7 @@ namespace led_d
 
       mcu_msg_t::const_iterator iter = msg.cbegin ();
       ++iter;
-      unix::char_t size = *iter;
+      uint8_t size = *iter;
 
       if (size > msg.size () - 2)
         return false;
@@ -76,7 +78,7 @@ namespace led_d
     }
 
     template <typename ...payload_t>
-    bool decode::split (const mcu_msg_t &msg, unix::char_t &serial, unix::char_t &msg_id,
+    bool decode::split (const mcu_msg_t &msg, uint8_t &serial, uint8_t &msg_id,
                         payload_t& ...payload)
     {
       iterator_t iter;
@@ -89,15 +91,15 @@ namespace led_d
     template <typename ...payload_t>
     bool decode::split_payload (const mcu_msg_t &msg, payload_t& ...payload)
     {
-      unix::char_t serial = 0;
-      unix::char_t msg_id = 0;
+      uint8_t serial = 0;
+      uint8_t msg_id = 0;
       return split (msg, serial, msg_id, payload...);
     }
 
-    inline unix::char_t decode::get_serial (const mcu_msg_t &msg)
+    inline uint8_t decode::get_serial (const mcu_msg_t &msg)
     {
-      unix::char_t serial = 0;
-      unix::char_t msg_id = 0;
+      uint8_t serial = 0;
+      uint8_t msg_id = 0;
 
       if (split (msg, serial, msg_id) == false)
         return SERIAL_ID_TO_IGNORE;
@@ -105,10 +107,10 @@ namespace led_d
       return serial;
     }
 
-    inline unix::char_t decode::get_msg_id (const mcu_msg_t &msg)
+    inline uint8_t decode::get_msg_id (const mcu_msg_t &msg)
     {
-      unix::char_t serial = 0;
-      unix::char_t msg_id = 0;
+      uint8_t serial = 0;
+      uint8_t msg_id = 0;
 
       if (split (msg, serial, msg_id) == false)
         return MSG_ID_EMPTY;
@@ -117,7 +119,7 @@ namespace led_d
     }
 
     inline bool decode::do_split (const mcu_msg_t &msg, iterator_t &iter,
-                                  unix::char_t &serial, unix::char_t &msg_id)
+                                  uint8_t &serial, uint8_t &msg_id)
     {
       iter = msg.cbegin ();
       if (iter == msg.cend ())
@@ -134,7 +136,7 @@ namespace led_d
 
     template <typename ...payload_t>
     bool decode::do_split (const mcu_msg_t &msg, iterator_t &iter,
-                           unix::char_t& load_1, payload_t& ...payload)
+                           uint8_t& load_1, payload_t& ...payload)
     {
       ++iter;
       if (iter == msg.cend ())

@@ -2,6 +2,7 @@
  *
  */
 
+#include <cstdint>
 #include <functional>
 #include <thread>
 
@@ -77,7 +78,7 @@ namespace led_d
 
   void mcu_handle_t::write_msg (const mcu_msg_t &msg_src)
   {
-    unix::char_t serial_id = mcu::decode::get_serial (msg_src);
+    uint8_t serial_id = mcu::decode::get_serial (msg_src);
 
     //
     // eye-catch | size | serial | msg-id | xxx
@@ -112,8 +113,8 @@ namespace led_d
     msg.clear ();
     for (auto &number : in_msg)
       if (m_mcu_parse.push (number, msg) == true) {
-        unix::char_t serial = 0;
-        unix::char_t msg_id = MSG_ID_EMPTY;
+        uint8_t serial = 0;
+        uint8_t msg_id = MSG_ID_EMPTY;
         if (mcu::decode::split (msg, serial, msg_id) == true) {
           m_block.relax (serial);
           if ((m_show_msg == true)

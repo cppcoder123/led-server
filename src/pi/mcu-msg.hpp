@@ -4,11 +4,9 @@
 #ifndef MCU_MSG_HPP
 #define MCU_MSG_HPP
 
+#include <cstdint>
 #include <list>
 
-#include "unix/char-type.hpp"
-
-using mcu_msg_t = std::list<unix::char_t>;
-
+using mcu_msg_t = std::list<uint8_t>;
 
 #endif

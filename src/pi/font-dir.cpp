@@ -2,6 +2,8 @@
 //
 //
 
+#include <cstdint>
+
 #include "unix/font-name.hpp"
 #include "unix/log.hpp"
 
@@ -36,9 +38,9 @@ namespace led_d
 
       matrix_t dst (matrix_size, 0xFF);
 
-      unix::char_t src_mask = (1 << 0);
+      uint8_t src_mask = (1 << 0);
       for (std::size_t i = 0; i < matrix_size; ++i) {
-        unix::char_t transposed = 0;
+        uint8_t transposed = 0;
         for (std::size_t j = 0; j < matrix_size; ++j) {
           transposed <<= 1;
           if (src[matrix_size - j - 1] & src_mask)

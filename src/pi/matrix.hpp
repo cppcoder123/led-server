@@ -4,16 +4,15 @@
 #ifndef MATRIX_HPP
 #define MATRIX_HPP
 
+#include <cstdint>
 #include <vector>
 #include <utility>
-
-#include "unix/char-type.hpp"
 
 namespace led_d
 {
   static const auto matrix_column_size = 8;
-  using matrix_column_t = unix::char_t;
-  using matrix_t = std::vector<unix::char_t>;
+  using matrix_column_t = uint8_t;
+  using matrix_t = std::vector<uint8_t>;
 
   void matrix_invert (matrix_t &matrix);
 

@@ -2,6 +2,7 @@
  *
  */
 
+#include <cstdint>
 #include <functional>
 #include <iterator>
 
@@ -104,7 +105,7 @@ namespace led_d
 
   void bash_handle_t::handle_mcu (mcu_msg_t &msg)
   {
-    unix::char_t msg_id = mcu::decode::get_msg_id (msg);
+    uint8_t msg_id = mcu::decode::get_msg_id (msg);
 
     switch (msg_id) {
     case MSG_ID_VERSION:
@@ -128,7 +129,7 @@ namespace led_d
 
   void bash_handle_t::mcu_version (const mcu_msg_t &msg)
   {
-    unix::char_t status = 0;
+    uint8_t status = 0;
     if (mcu::decode::split_payload (msg, status) == false) {
       log_t::buffer_t buf;
       buf << "bash-handle: Failed to decode \"version\" message";

@@ -11,7 +11,7 @@
 namespace led_d
 {
 
-  bool mcu_parse_t::push (unix::char_t info, mcu_msg_t &msg)
+  bool mcu_parse_t::push (uint8_t info, mcu_msg_t &msg)
   {
     if (m_buf.empty () == true) {
       if (info == SPI_WRITE_UNDERFLOW)

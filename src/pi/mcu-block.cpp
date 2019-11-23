@@ -1,6 +1,7 @@
 //
 //
 //
+#include <cstdint>
 
 #include "unix/constant.h"
 #include "unix/log.hpp"
@@ -16,7 +17,7 @@ namespace led_d
     return m_pending;
   }
 
-  void mcu_block_t::engage (unix::char_t id)
+  void mcu_block_t::engage (uint8_t id)
   {
     if (id == SERIAL_ID_TO_IGNORE) //{
       // log_t::buffer_t buf;
@@ -38,7 +39,7 @@ namespace led_d
     m_pending_id = id;
   }
 
-  void mcu_block_t::relax (unix::char_t id)
+  void mcu_block_t::relax (uint8_t id)
   {
     if ((id == SERIAL_ID_TO_IGNORE)
         || (m_pending == false))

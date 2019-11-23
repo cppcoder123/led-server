@@ -8,7 +8,6 @@
 #include <list>
 #include <mutex>
 
-#include "unix/char-type.hpp"
 #include "unix/codec.hpp"
 #include "unix/condition-queue.hpp"
 #include "unix/refsymbol.hpp"

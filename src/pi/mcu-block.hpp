@@ -4,7 +4,7 @@
 #ifndef MCU_BLOCK_HPP
 #define MCU_BLOCK_HPP
 
-#include "unix/char-type.hpp"
+#include <cstdint>
 
 namespace led_d
 {
@@ -21,14 +21,14 @@ namespace led_d
 
     bool is_engaged () const;
 
-    void engage (unix::char_t id);   // error if already tightened with other id
-    void relax (unix::char_t id);     // error here if id mismatch
+    void engage (uint8_t id);   // error if already tightened with other id
+    void relax (uint8_t id);     // error here if id mismatch
 
   private:
     // std::mutex m_mutex;
 
     bool m_pending;
-    unix::char_t m_pending_id;
+    uint8_t m_pending_id;
   };
 
 } // namespace led_d
