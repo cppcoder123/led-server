@@ -7,7 +7,7 @@
 
 #include "unix/log.hpp"
 
-#include "network-handle.hpp"
+#include "bash-handle.hpp"
 #include "matrix.hpp"
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"
@@ -15,8 +15,8 @@
 
 namespace led_d
 {
-  network_handle_t::network_handle_t (const std::string &default_font)
-    : m_network_queue (std::ref (m_mutex), std::ref (m_condition)),
+  bash_handle_t::bash_handle_t (const std::string &default_font)
+    : m_bash_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_to_mcu_queue (nullptr),
       m_render (default_font),
@@ -24,11 +24,11 @@ namespace led_d
   {
   }
 
-  void network_handle_t::start ()
+  void bash_handle_t::start ()
   {
 
     while (m_go == true) {
-      auto unix_msg = m_network_queue.pop<false> ();
+      auto unix_msg = m_bash_queue.pop<false> ();
       if (unix_msg)
         handle_unix (**unix_msg);
 
@@ -38,26 +38,26 @@ namespace led_d
 
       {
         std::unique_lock lock (m_mutex);
-        if ((m_network_queue.empty<false> () == true)
+        if ((m_bash_queue.empty<false> () == true)
             && (m_from_mcu_queue.empty<false> () == true))
           m_condition.wait (lock);
       }
     }
   }
 
-  void network_handle_t::stop ()
+  void bash_handle_t::stop ()
   {
     m_go = false;
     //
     notify ();
   }
 
-  void network_handle_t::notify ()
+  void bash_handle_t::notify ()
   {
     m_condition.notify_one ();
   }
 
-  void network_handle_t::handle_unix (network_msg_t &msg)
+  void bash_handle_t::handle_unix (bash_msg_t &msg)
   {
     request_t request;
     response_t response;
@@ -102,7 +102,7 @@ namespace led_d
       log_t::error ("Failed to encode \"response\" message");
   }
 
-  void network_handle_t::handle_mcu (mcu_msg_t &msg)
+  void bash_handle_t::handle_mcu (mcu_msg_t &msg)
   {
     unix::char_t msg_id = mcu::decode::get_msg_id (msg);
 
@@ -116,7 +116,7 @@ namespace led_d
     default:
       {
         log_t::buffer_t buf;
-        buf << "network-handle: Unknown message from mcu is arrived: "
+        buf << "bash-handle: Unknown message from mcu is arrived: "
             << (int) msg_id << " - ";
         for (auto i : msg) 
           buf << (int) i << " ";
@@ -126,26 +126,26 @@ namespace led_d
     }
   }
 
-  void network_handle_t::mcu_version (const mcu_msg_t &msg)
+  void bash_handle_t::mcu_version (const mcu_msg_t &msg)
   {
     unix::char_t status = 0;
     if (mcu::decode::split_payload (msg, status) == false) {
       log_t::buffer_t buf;
-      buf << "network-handle: Failed to decode \"version\" message";
+      buf << "bash-handle: Failed to decode \"version\" message";
       log_t::error (buf);
       return;
     }
 
     if (status != STATUS_SUCCESS)
       throw std::runtime_error
-        ("network-handle: Pi & Mcu protocol version mismatch, can't continue...");
+        ("bash-handle: Pi & Mcu protocol version mismatch, can't continue...");
 
     log_t::buffer_t buf;
-    buf << "network-handle: Protocol version is confirmed!";
+    buf << "bash-handle: Protocol version is confirmed!";
     log_t::info (buf);
   }
 
-  void network_handle_t::mcu_poll ()
+  void bash_handle_t::mcu_poll ()
   {
     if (!m_client)
       return;
@@ -158,12 +158,12 @@ namespace led_d
       m_client->write (buf);
     else {
       log_t::buffer_t buf;
-      buf << "network-handle: Failed to encode \"poll\" response";
+      buf << "bash-handle: Failed to encode \"poll\" response";
       log_t::error (buf);
     }
   }
 
-  bool network_handle_t::unix_insert (const request_t &request)
+  bool bash_handle_t::unix_insert (const request_t &request)
   {
     matrix_t matrix;
     if (m_render.pixelize (matrix, request.info, request.format) == false) {

@@ -1,26 +1,26 @@
 //
 //
 //
-#ifndef LED_D_NETWORK_HPP
-#define LED_D_NETWORK_HPP
+#ifndef BASH_HPP
+#define BASH_HPP
 
 #include "unix/port.hpp"
 
 #include "asio/asio.hpp"
 
-#include "network-queue.hpp"
+#include "bash-queue.hpp"
 
 namespace led_d
 {
-  class network_t
+  class bash_t
   {
 
   public:
 
-    network_t (unix::port_t::value_t port,
+    bash_t (unix::port_t::value_t port,
                asio::io_context &io_context,
-               network_queue_t &queue);
-    ~network_t () {};
+               bash_queue_t &queue);
+    ~bash_t () {};
 
     void start ();
     void stop ();
@@ -33,7 +33,7 @@ namespace led_d
     asio::ip::tcp::acceptor m_acceptor;
     asio::ip::tcp::socket m_socket;
 
-    network_queue_t &m_queue;
+    bash_queue_t &m_queue;
 
     std::shared_ptr<session_t> m_session;
   };

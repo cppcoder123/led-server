@@ -3,15 +3,15 @@
 //
 #include "unix/log.hpp"
 
-#include "network.hpp"
+#include "bash.hpp"
 #include "session.hpp"
 
 namespace led_d
 {
 
-  network_t::network_t (unix::port_t::value_t port,
-                        asio::io_context &io_context,
-                        network_queue_t &queue)
+  bash_t::bash_t (unix::port_t::value_t port,
+                  asio::io_context &io_context,
+                  bash_queue_t &queue)
     : m_context (io_context),
       m_acceptor (m_context, asio::ip::tcp::endpoint (asio::ip::tcp::v4 (), port)),
       m_socket (io_context),
@@ -20,29 +20,29 @@ namespace led_d
     do_accept ();
   }
 
-  void network_t::start ()
+  void bash_t::start ()
   {
     log_t::buffer_t buf;
-    buf << "network: Starting service...";
+    buf << "bash: Starting service...";
     log_t::info (buf);
   }
 
-  void network_t::stop ()
+  void bash_t::stop ()
   {
     log_t::buffer_t buf;
-    buf << "network: Stopping the service...";
+    buf << "bash: Stopping the service...";
     log_t::info (buf);
 
     m_context.stop ();
 
     log_t::clear (buf);
-    buf << "network: Service is stopped";
+    buf << "bash: Service is stopped";
     log_t::info (buf);
 
     // fixme: Do we need to do smth else here?
   }
 
-  void network_t::do_accept ()
+  void bash_t::do_accept ()
   {
     m_acceptor.async_accept
       (m_socket,

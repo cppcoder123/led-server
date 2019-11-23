@@ -1,8 +1,8 @@
 /*
  *
  */
-#ifndef NETWORK_HANDLE_HPP
-#define NETWORK_HANDLE_HPP
+#ifndef BASH_HANDLE_HPP
+#define BASH_HANDLE_HPP
 
 #include <condition_variable>
 #include <list>
@@ -15,27 +15,27 @@
 #include "unix/request.hpp"
 #include "unix/response.hpp"
 
+#include "bash-queue.hpp"
 #include "mcu-queue.hpp"
 #include "mcu-msg.hpp"
-#include "network-queue.hpp"
 #include "render.hpp"
 #include "session.hpp"
 
 namespace led_d
 {
 
-  class network_handle_t
+  class bash_handle_t
   {
   public:
 
-    network_handle_t (const std::string &default_font);
-    network_handle_t (const network_handle_t&) = delete;
-    ~network_handle_t () {};
+    bash_handle_t (const std::string &default_font);
+    bash_handle_t (const bash_handle_t&) = delete;
+    ~bash_handle_t () {};
 
     void start ();
     void stop ();
 
-    network_queue_t& network_queue () {return m_network_queue;}
+    bash_queue_t& bash_queue () {return m_bash_queue;}
     mcu_queue_t& from_mcu_queue () {return m_from_mcu_queue;}
     void to_mcu_queue (mcu_queue_t &to_mcu_queue) {m_to_mcu_queue = &to_mcu_queue;}
 
@@ -48,7 +48,7 @@ namespace led_d
 
     void notify ();
 
-    void handle_unix (network_msg_t &msg);
+    void handle_unix (bash_msg_t &msg);
     void handle_mcu (mcu_msg_t &msg);
 
     // handle mcu messages
@@ -60,7 +60,7 @@ namespace led_d
 
     std::mutex m_mutex;
     std::condition_variable m_condition;
-    network_queue_t m_network_queue;
+    bash_queue_t m_bash_queue;
 
     mcu_queue_t m_from_mcu_queue;
     mcu_queue_t *m_to_mcu_queue;

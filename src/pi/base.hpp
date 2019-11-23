@@ -9,9 +9,9 @@
 #include "asio.hpp"
 
 #include "arg.hpp"
+#include "bash-handle.hpp"
+#include "bash.hpp"
 #include "mcu-handle.hpp"
-#include "network-handle.hpp"
-#include "network.hpp"
 #include "spi-irq.hpp"
 #include "spi-open.hpp"
 
@@ -36,13 +36,13 @@ namespace led_d
 
     asio::io_context m_io_context;
 
-    network_handle_t m_network_handle;
-    network_t m_network;
+    bash_handle_t m_bash_handle;
+    bash_t m_bash;
     mcu_handle_t m_mcu_handle;
     spi_open_t m_spi_open;
     spi_irq_t m_irq;
 
-    std::thread m_network_thread;
+    std::thread m_bash_thread;
     std::thread m_mcu_thread;
   };
 

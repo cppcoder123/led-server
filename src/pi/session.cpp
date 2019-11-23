@@ -7,13 +7,13 @@
 #include "unix/refsymbol.hpp"
 #include "unix/request.hpp"
 
+#include "bash-queue.hpp"
 #include "session.hpp"
-#include "network-queue.hpp"
 
 namespace led_d
 {
 
-  session_t::session_t (asio::ip::tcp::socket socket, network_queue_t &queue)
+  session_t::session_t (asio::ip::tcp::socket socket, bash_queue_t &queue)
     : m_socket (std::move (socket)),
       m_queue (queue),
       m_rw (m_socket,
@@ -69,7 +69,7 @@ namespace led_d
       std::string text = info.substr (0, text_len);
       info = info.substr(text_len);
       m_queue.push
-        (std::make_unique<network_msg_t>(text, shared_from_this ()));
+        (std::make_unique<bash_msg_t>(text, shared_from_this ()));
     }
   }
 
