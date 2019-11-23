@@ -8,6 +8,8 @@ TARGET_ELF = $(TARGET).elf
 #  buzz.o
 OBJECT_LIST = \
   avr.o \
+  buffer.o \
+  buf.o \
   clock.o \
   counter.o \
   debug.o \
@@ -19,6 +21,7 @@ OBJECT_LIST = \
   power.o \
   queue.o \
   render.o \
+  ring.o \
   rotor.o \
   spi.o \
   timer.o

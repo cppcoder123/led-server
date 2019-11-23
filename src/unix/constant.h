@@ -15,6 +15,7 @@
 #define SPI_SPEED_ERROR 235
 
 #define QUEUE_INIT_PATTERN 230
+#define BUFFER_INIT_PATTERN QUEUE_INIT_PATTERN
 
 #define MSG_OVERHEAD 6 /* it is less actually */
 #define LED_ARRAY_SIZE 20
