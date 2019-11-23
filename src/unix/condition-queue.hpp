@@ -8,7 +8,6 @@
 #include <mutex>
 #include <optional>
 
-// #include "condition-queue-detail.hpp"
 #include "move-queue.hpp"
 
 namespace unix
@@ -82,11 +81,6 @@ namespace unix
     if constexpr (really_wait)
       condition.wait (lock);
     
-    //   }
-    // a;
-    // if (m_queue.empty () == true)
-    //   condition_queue_detail::wait<really_wait>(lock, condition);
-
     if (m_queue.empty ())
       return {};
 
@@ -97,10 +91,8 @@ namespace unix
   template <bool really_lock>
   bool condition_queue_t<record_t, mutex_t, condition_t>::empty ()
   {
-    // std::mutex &mutex (m_mutex);
     if constexpr (really_lock)
       std::lock_guard lock (m_mutex);
-    // typename condition_queue_detail::guard<really_lock>::lock lock (mutex);
 
     return m_queue.empty ();
   }
@@ -109,13 +101,9 @@ namespace unix
   template <bool really_lock>
   void condition_queue_t<record_t, mutex_t, condition_t>::notify_one ()
   {
-    // std::mutex &mutex (m_mutex);
-    // typename condition_queue_detail::unique<really_lock>::lock lock (mutex);
-
     if constexpr (really_lock)
       std::lock_guard lock (m_mutex);
 
-    // std::condition_variable &condition (m_condition);
     m_condition.notify_one ();
   }
 
