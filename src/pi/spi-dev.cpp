@@ -101,8 +101,9 @@ namespace led_d
 
     if (out.size () > buf_size) {
       // it is ok to call delete with null pointer
-      realloc (write_buf, out.size ());
-      realloc (read_buf, out.size ());
+      buf_size = out.size ();
+      realloc (write_buf, buf_size);
+      realloc (read_buf, buf_size);
     }
 
     std::size_t i = 0;
