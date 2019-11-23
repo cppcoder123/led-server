@@ -85,9 +85,9 @@ namespace led_d
     mcu_msg_t msg = msg_src;
     mcu::encode::wrap (msg);
 
-    if (serial_id != SERIAL_ID_TO_IGNORE)
-      m_block.engage (serial_id);
-
+    // if (serial_id != SERIAL_ID_TO_IGNORE)
+    m_block.engage (serial_id);
+      
     mcu_msg_t in_msg;
     m_device.transfer (msg, in_msg);
 

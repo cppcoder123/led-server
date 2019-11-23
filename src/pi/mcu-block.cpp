@@ -18,12 +18,12 @@ namespace led_d
 
   void mcu_block_t::engage (unix::char_t id)
   {
-    if (id == SERIAL_ID_TO_IGNORE) {
-      log_t::buffer_t buf;
-      buf << "mcu-block: Found avr serial id";
-      log_t::error (buf);
+    if (id == SERIAL_ID_TO_IGNORE) //{
+      // log_t::buffer_t buf;
+      // buf << "mcu-block: Found avr serial id";
+      // log_t::error (buf);
       return;
-    }
+    // }
 
     if ((m_pending == true)
         && (m_pending_id != id)) {
