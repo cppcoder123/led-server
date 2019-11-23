@@ -19,7 +19,6 @@ OBJECT_LIST = \
   flush.o \
   postpone.o \
   power.o \
-  queue.o \
   render.o \
   ring.o \
   rotor.o \
