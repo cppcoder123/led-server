@@ -87,8 +87,12 @@ namespace led_d
 
     // the only purpose of this object is to free memory
     // allocated for the r/w buffers at the end of app execution
-    static unix::final_action_t<std::function<void ()>>
-      remove_buf ([&] () {delete [] write_buf; delete [] read_buf;});
+    static auto remove_buf = unix::make_final_action
+      ([&] ()
+       {
+         delete [] write_buf;
+         delete [] read_buf;
+       });
 
     auto realloc = [] (uint8_t *&space, std::size_t new_size) {
       delete [] space;
