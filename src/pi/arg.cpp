@@ -13,8 +13,7 @@ namespace led_d
 {
 
   arg_t::arg_t ()
-    : port (),
-      foreground (false),
+    : foreground (false),
       kill (false)
   {
   }
@@ -24,9 +23,6 @@ namespace led_d
     try {
       TCLAP::CmdLine parser ("xxx", ' ', "0.0.1");
 
-      TCLAP::ValueArg<port_t::value_t>
-        port ("p", "port", "Port to listen",
-                  false, unix::port_t::default_port (), "integer", parser);
       TCLAP::SwitchArg
         foreground
         ("f", "foreground", "Run daemon in foreground", parser, false);
@@ -46,7 +42,6 @@ namespace led_d
 
       parser.parse (argc, argv);
 
-      arg.port = port.getValue ();
       arg.foreground = foreground.getValue ();
       arg.kill = kill.getValue ();
       arg.spi_msg = spi.getValue ();

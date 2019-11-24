@@ -24,7 +24,7 @@ LIB_PATH_LIST = $(LIB_DAEMON)
 #
 #
 OBJECT_LIST = led-d.o arg.o base.o bash-handle.o bash.o font-dir.o font.o \
-  mcu-block.o mcu-handle.o mcu-parse.o render.o session.o spi-dev.o \
+  mcu-block.o mcu-handle.o mcu-parse.o render.o spi-dev.o \
   spi-irq.o spi-open.o
 
 #
@@ -44,7 +44,7 @@ $(TARGET): $(LIB_DAEMON_OBJECT) $(OBJECT_LIST) $(LIB_UNIX)/*
 	$(CXX) -o $@ $(OBJECT_LIST) $(LDFLAGS)
 
 $(LIB_DAEMON_OBJECT):
-	cd $(LIB_DAEMON) && make
+	+cd $(LIB_DAEMON) && make
 
 #$(TARGET): $(OBJECT_LIST) $(LIB_UNIX)/*
 

@@ -60,6 +60,11 @@ namespace led_d
 
   void bash_handle_t::handle_unix (bash_msg_t &msg)
   {
+    // fixme
+  }
+#if 0
+  void bash_handle_t::handle_unix (bash_msg_t &msg)
+  {
     request_t request;
     response_t response;
 
@@ -102,6 +107,7 @@ namespace led_d
     else
       log_t::error ("Failed to encode \"response\" message");
   }
+#endif
 
   void bash_handle_t::handle_mcu (mcu_msg_t &msg)
   {
@@ -148,6 +154,11 @@ namespace led_d
 
   void bash_handle_t::mcu_poll ()
   {
+    // fixme
+  }
+#if 0
+  void bash_handle_t::mcu_poll ()
+  {
     if (!m_client)
       return;
 
@@ -163,6 +174,7 @@ namespace led_d
       log_t::error (buf);
     }
   }
+#endif
 
   bool bash_handle_t::unix_insert (const request_t &request)
   {

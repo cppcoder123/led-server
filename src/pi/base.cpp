@@ -12,7 +12,7 @@ namespace led_d
 
   base_t::base_t (const arg_t &arg)
     : m_bash_handle (arg.default_font),
-      m_bash (arg.port, m_io_context, m_bash_handle.bash_queue ()),
+      m_bash (m_io_context, m_bash_handle.bash_queue ()),
       m_mcu_handle (arg.device, m_bash_handle.from_mcu_queue (), arg.spi_msg),
       m_irq (m_spi_open, m_mcu_handle.irq_queue (), m_io_context)
   {

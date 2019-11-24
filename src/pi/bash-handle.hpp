@@ -18,7 +18,6 @@
 #include "mcu-queue.hpp"
 #include "mcu-msg.hpp"
 #include "render.hpp"
-#include "session.hpp"
 
 namespace led_d
 {
@@ -72,7 +71,7 @@ namespace led_d
     // special client, that consumes mcu messages like
     // button presses.
     // !!! Can be zero
-    session_ptr_t m_client;
+    // session_ptr_t m_client;
   };
 
 } // namespace led_d

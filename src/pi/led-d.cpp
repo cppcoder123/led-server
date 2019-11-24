@@ -37,8 +37,7 @@ int main (int argc, char **argv)
   }
 
   msg << "Launching process in "
-      << ((arg.foreground) ? "foreground" : "background")
-      << " with port " << arg.port;
+      << ((arg.foreground) ? "foreground" : "background");
   log_t::info (msg);
   log_t::clear (msg);
 
