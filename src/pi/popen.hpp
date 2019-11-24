@@ -21,6 +21,7 @@ namespace led_d
     // 'fileno (FILE*)' call
     int descriptor ();
 
+    // man -S 2 kill
     bool kill (int signal);
   };
 
