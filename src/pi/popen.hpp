@@ -4,6 +4,8 @@
 #ifndef POPEN_HPP
 #define POPEN_HPP
 
+#include <cstdio>
+
 namespace led_d
 {
 
@@ -16,7 +18,8 @@ namespace led_d
     popen_t (const popen_t&) = delete;
     ~popen_t ();
 
-    FILE* descriptor ();
+    // 'fileno (FILE*)' call
+    int descriptor ();
 
     bool kill (int signal);
   };

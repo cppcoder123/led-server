@@ -4,9 +4,13 @@
 #ifndef BASH_HPP
 #define BASH_HPP
 
+#include <list>
+#include <memory>
+
 #include "asio/asio.hpp"
 
 #include "bash-queue.hpp"
+#include "popen.hpp"
 
 namespace led_d
 {
@@ -30,6 +34,9 @@ namespace led_d
     bash_queue_t &m_queue;
 
     // std::shared_ptr<session_t> m_session;
+    using popen_ptr_t = std::shared_ptr<popen_t>;
+    using ptr_list_t = std::list<popen_ptr_t>;
+    ptr_list_t m_list;
   };
 } // namespace led_d
 
