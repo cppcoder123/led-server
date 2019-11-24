@@ -28,7 +28,7 @@ namespace led_d
   void bash_handle_t::start ()
   {
 
-    while (m_go == true) {
+    while (m_go.load () == true) {
       auto unix_msg = m_bash_queue.pop<false> ();
       if (unix_msg)
         handle_unix (**unix_msg);
@@ -48,7 +48,7 @@ namespace led_d
 
   void bash_handle_t::stop ()
   {
-    m_go = false;
+    m_go.store (false);
     //
     notify ();
   }

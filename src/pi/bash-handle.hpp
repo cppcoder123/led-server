@@ -4,6 +4,7 @@
 #ifndef BASH_HANDLE_HPP
 #define BASH_HANDLE_HPP
 
+#include <atomic>
 #include <condition_variable>
 #include <list>
 #include <mutex>
@@ -66,7 +67,7 @@ namespace led_d
     //content_t &m_content;
     render_t m_render;
 
-    bool m_go;
+    std::atomic_bool m_go;
 
     // special client, that consumes mcu messages like
     // button presses.
