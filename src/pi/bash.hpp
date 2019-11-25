@@ -27,16 +27,16 @@ namespace led_d
 
   private:
 
-    // void do_accept ();
+    using popen_ptr_t = std::shared_ptr<popen_t>;
+
+    void handle_mpd (popen_ptr_t mpd, const asio::error_code &errc);
 
     asio::io_context &m_context;
 
     bash_queue_t &m_queue;
 
-    // std::shared_ptr<session_t> m_session;
-    using popen_ptr_t = std::shared_ptr<popen_t>;
     using ptr_list_t = std::list<popen_ptr_t>;
-    ptr_list_t m_list;
+    ptr_list_t m_popen_list;
   };
 } // namespace led_d
 

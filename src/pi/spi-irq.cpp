@@ -17,7 +17,8 @@ namespace
 
 namespace led_d
 {
-  spi_irq_t::spi_irq_t (spi_open_t &spi_open, queue_t &irq_queue, asio::io_context &context)
+  spi_irq_t::spi_irq_t (spi_open_t &spi_open,
+                        queue_t &irq_queue, asio::io_context &context)
     : m_spi_open (spi_open),
       m_irq (NULL),
       m_queue (irq_queue),

@@ -47,7 +47,7 @@ namespace led_d
 
     void notify ();
 
-    void handle_unix (bash_msg_t &msg);
+    void handle_bash (std::string msg);
     void handle_mcu (mcu_msg_t &msg);
 
     // handle mcu messages

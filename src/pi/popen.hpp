@@ -5,6 +5,9 @@
 #define POPEN_HPP
 
 #include <cstdio>
+#include <string>
+
+#include "asio.hpp"
 
 namespace led_d
 {
@@ -13,18 +16,25 @@ namespace led_d
   {
   public:
     // Achtung: it throws
-    popen_t (const std::string &command, bool read);
+    popen_t (const std::string &command, bool read, asio::io_context &context);
     popen_t () = delete;
     popen_t (const popen_t&) = delete;
     ~popen_t ();
 
     // 'fileno (FILE*)' call
-    int descriptor ();
+    asio::posix::stream_descriptor descriptor ();
+
+    // Try to read smth
+    // Note: ignore if it is empty
+    std::string read ();
 
     // man -S 2 kill
     bool kill (int signal);
   };
 
 } // led_d
+
+// list of all tracks
+// mpc -f "%file%" playlist
 
 #endif

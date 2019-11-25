@@ -29,9 +29,9 @@ namespace led_d
   {
 
     while (m_go.load () == true) {
-      auto unix_msg = m_bash_queue.pop<false> ();
-      if (unix_msg)
-        handle_unix (**unix_msg);
+      auto bash_msg = m_bash_queue.pop<false> ();
+      if (bash_msg)
+        handle_bash (*bash_msg);
 
       auto mcu_msg = m_from_mcu_queue.pop<false> ();
       if (mcu_msg)
@@ -58,7 +58,7 @@ namespace led_d
     m_condition.notify_one ();
   }
 
-  void bash_handle_t::handle_unix (bash_msg_t &msg)
+  void bash_handle_t::handle_bash (std::string msg)
   {
     // fixme
   }
