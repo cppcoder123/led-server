@@ -43,6 +43,7 @@ namespace led_d
     log_t::info (buf);
 
     // fixme: Do we need to do smth else here?
+    // delete popens
   }
 
   void bash_in_t::handle_popen (popen_ptr_t popen, const asio::error_code &errc)
@@ -51,6 +52,7 @@ namespace led_d
       log_t::buffer_t buf;
       buf << "bash-in: Failed to handle popen event";
       log_t::error (buf);
+      return;
     }
 
     std::string info;

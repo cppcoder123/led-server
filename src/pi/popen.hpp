@@ -8,6 +8,7 @@
 
 #include <cstdio>
 #include <csignal>
+#include <regex>
 #include <string>
 
 #include "asio.hpp"
@@ -36,12 +37,21 @@ namespace led_d
     // man -S 2 kill
     bool kill (int signal);
 
+    static bool split (const std::string &src,
+                       std::string &prefix, std::string &suffix);
+
   private:
+
+    void filter (std::string &info);
 
     FILE *m_file_ptr;
     descriptor_t m_descriptor;
 
     pid_t m_pid;
+
+    std::string m_buffer;
+
+    static const std::regex m_regex;
   };
 
 } // led_d
