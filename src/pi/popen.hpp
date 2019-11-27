@@ -30,8 +30,8 @@ namespace led_d
     descriptor_t& descriptor () {return m_descriptor;}
 
     // Try to read smth
-    // Note: ignore if it is empty
-    std::string read ();
+    // Note: ignore if 'info' is empty
+    bool read (std::string &info);
 
     // man -S 2 kill
     bool kill (int signal);

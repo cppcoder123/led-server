@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef BASH_HPP
-#define BASH_HPP
+#ifndef BASH_IN_HPP
+#define BASH_IN_HPP
 
 #include <list>
 #include <memory>
@@ -14,13 +14,13 @@
 
 namespace led_d
 {
-  class bash_t
+  class bash_in_t
   {
 
   public:
 
-    bash_t (asio::io_context &io_context, bash_queue_t &queue);
-    ~bash_t () {};
+    bash_in_t (asio::io_context &io_context, bash_queue_t &queue);
+    ~bash_in_t () {};
 
     void start ();
     void stop ();
