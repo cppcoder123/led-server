@@ -16,8 +16,8 @@ namespace led_d
   const std::regex popen_t::m_regex ("\\s*(\\w+)\\s*:\\s*(\\w+)\\s*");
 
   popen_t::popen_t (const std::string &command,
-                    bool read, asio::io_context &context)
-    : m_file_ptr (popen (command.c_str (), (read == true) ? "r" : "w")),
+                    bool read_only, asio::io_context &context)
+    : m_file_ptr (popen (command.c_str (), (read_only == true) ? "r" : "w")),
       m_descriptor (context, ((m_file_ptr != 0) ? fileno (m_file_ptr) : -1)),
       m_pid (0)
   {
@@ -42,6 +42,8 @@ namespace led_d
     info = "";
     bool status = true;
 
+    // fixme: should be rewritten without FILE* but using descriptor
+    // with asio
     do {
       char ch = fgetc (m_file_ptr);
       if (ch == EOF) {
@@ -58,7 +60,8 @@ namespace led_d
     if (info.empty () == true)
       return status;
 
-    filter (info);
+    if (m_pid == 0)
+      filter (info);
 
     // info wasn't empty, so status can't be false
     return true;
@@ -74,10 +77,6 @@ namespace led_d
 
   void popen_t::filter (std::string &info)
   {
-    if (m_pid != 0)
-      // Set pid only once
-      return;
-
     std::string prefix, suffix;
     if (split (info, prefix, suffix) == false)
       return;

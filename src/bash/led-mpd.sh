@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "pid: " $$
+echo "pid: "$$
 
-echo "mpd: abc "
+echo "mpd: abc"
