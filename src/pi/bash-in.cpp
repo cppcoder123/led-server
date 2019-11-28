@@ -42,8 +42,9 @@ namespace led_d
     buf << "bash-in: Service is stopped";
     log_t::info (buf);
 
+    m_popen_list.clear ();
+
     // fixme: Do we need to do smth else here?
-    // delete popens
   }
 
   void bash_in_t::handle_popen (popen_ptr_t popen, const asio::error_code &errc)

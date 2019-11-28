@@ -38,9 +38,17 @@ namespace led_d
     bool kill (int signal);
 
     static bool split (const std::string &src,
-                       std::string &prefix, std::string &suffix);
+                       std::string &prefix, std::string &suffix,
+                       const std::string &pattern);
 
   private:
+
+    static bool split (const std::string &src,
+                       std::string &prefix, std::string &suffix);
+
+    static bool split (const std::string &src,
+                       std::string &prefix, std::string &suffix,
+                       const std::regex &regex);
 
     void filter (std::string &info);
 

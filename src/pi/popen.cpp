@@ -93,11 +93,27 @@ namespace led_d
   }
 
   bool popen_t::split (const std::string &src,
+                       std::string &prefix, std::string &suffix,
+                       const std::string &pattern)
+  {
+    std::regex regex (pattern);
+
+    return split (src, prefix, suffix, regex);
+  }
+
+  bool popen_t::split (const std::string &src,
                        std::string &prefix, std::string &suffix)
+  {
+    return split (src, prefix, suffix, m_regex);
+  }
+
+  bool popen_t::split (const std::string &src,
+                       std::string &prefix, std::string &suffix,
+                       const std::regex &regex)
   {
     std::smatch result;
 
-    if (std::regex_match (src, result, m_regex) == false)
+    if (std::regex_match (src, result, regex) == false)
       return false;
 
     if (result.size () < 3)
