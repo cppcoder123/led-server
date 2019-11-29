@@ -8,31 +8,33 @@
 
 #include <cstdio>
 #include <csignal>
+#include <memory>
 #include <regex>
 #include <string>
 
 #include "asio.hpp"
 
+#include "bash-queue.hpp"
+
 namespace led_d
 {
 
-  class popen_t
+  class popen_t : public std::enable_shared_from_this<popen_t>
   {
   public:
-    using descriptor_t = asio::posix::stream_descriptor;
-
     // Achtung: it throws
-    popen_t (const std::string &command, bool read, asio::io_context &context);
+    popen_t (const std::string &command,
+             asio::io_context &context, bash_queue_t &queue);
     popen_t () = delete;
     popen_t (const popen_t&) = delete;
     ~popen_t ();
 
     // 'fileno (FILE*)' call
-    descriptor_t& descriptor () {return m_descriptor;}
+    // descriptor_t& descriptor () {return m_descriptor;}
 
     // Try to read smth
     // Note: ignore if 'info' is empty
-    bool read (std::string &info);
+    // bool read (std::string &info);
 
     // man -S 2 kill
     bool kill (int signal);
@@ -42,6 +44,7 @@ namespace led_d
                        const std::string &pattern);
 
   private:
+    using descriptor_t = asio::posix::stream_descriptor;
 
     static bool split (const std::string &src,
                        std::string &prefix, std::string &suffix);
@@ -52,12 +55,18 @@ namespace led_d
 
     void filter (std::string &info);
 
+    void handle_read (const asio::error_code &error, std::size_t len);
+
     FILE *m_file_ptr;
     descriptor_t m_descriptor;
+    bash_queue_t &m_queue;
 
     pid_t m_pid;
 
     std::string m_buffer;
+
+    static constexpr auto asio_buf_size = 128;
+    std::array<char, asio_buf_size> m_asio_buf;
 
     static const std::regex m_regex;
   };

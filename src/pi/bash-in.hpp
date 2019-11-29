@@ -29,7 +29,7 @@ namespace led_d
 
     using popen_ptr_t = std::shared_ptr<popen_t>;
 
-    void handle_popen (popen_ptr_t mpd, const asio::error_code &errc);
+    // void handle_popen (popen_ptr_t mpd, const asio::error_code &errc);
 
     asio::io_context &m_context;
 
