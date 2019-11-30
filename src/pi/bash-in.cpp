@@ -8,11 +8,12 @@
 namespace led_d
 {
 
-  constexpr auto mpd_query_name = "led-mpd.sh";
+  constexpr auto mpd_name = "led-mpd.sh";
 
   bash_in_t::bash_in_t (asio::io_context &io_context, bash_queue_t &queue)
     : m_context (io_context),
-      m_queue (queue)
+      m_queue (queue),
+      m_source_vector (SOURCE_SIZE, nullptr)
   {
   }
 
@@ -22,9 +23,8 @@ namespace led_d
     buf << "bash-in: Starting service...";
     log_t::info (buf);
 
-    auto popen = std::make_shared<popen_t>
-      (mpd_query_name, m_context, m_queue);
-    m_popen_list.push_back (popen);
+    auto source = std::make_shared<popen_t> (mpd_name, m_context, m_queue);
+    m_source_vector[MPD] = source;
   }
 
   void bash_in_t::stop ()
@@ -39,9 +39,17 @@ namespace led_d
     buf << "bash-in: Service is stopped";
     log_t::info (buf);
 
-    m_popen_list.clear ();
+    m_source_vector.clear ();
 
     // fixme: Do we need to do smth else here?
   }
 
+  bool bash_in_t::kick (source_t source)
+  {
+    if ((source < 0)
+        || (source >= SOURCE_SIZE))
+      return false;
+
+    return m_source_vector[source]->kill (SIGUSR1);
+  }
 } // namespace led_d

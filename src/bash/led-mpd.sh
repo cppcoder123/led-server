@@ -2,6 +2,19 @@
 
 echo "pid: "$$
 
+trap 'echo "Caught SIGUSR1"' SIGUSR1
+
+echo "sleeping ..."
+
+
+
+while :
+do
+    sleep infinity &
+    wait $!
+    echo "sleep over"
+done
+
 echo "mpd: abc"
 echo "mpd: def"
 echo "mpd: ghi"
