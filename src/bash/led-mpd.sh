@@ -2,23 +2,21 @@
 
 echo "pid: "$$
 
-trap 'echo "Caught SIGUSR1"' SIGUSR1
+TRACK_NAME="Empty track"
+echo_track () {
+    echo "mpd: "$TRACK_NAME
+}
 
-echo "sleeping ..."
+trap echo_track SIGUSR1
 
+GO_AHEAD=1
+trap "GO_AHEAD=0" SIGUSR2
 
-
-while :
+while [ $GO_AHEAD -eq 1 ]
 do
-    sleep infinity &
+    TRACK_NAME=`mpc current`
+    #echo $TRACK_NAME
+    mpc idle &
     wait $!
-    echo "sleep over"
 done
 
-echo "mpd: abc"
-echo "mpd: def"
-echo "mpd: ghi"
-echo "mpd: jkl"
-echo "mpd: mno"
-echo "mpd: pqr"
-echo "mpd: stu"
