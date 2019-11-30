@@ -16,7 +16,7 @@ while [ $GO_AHEAD -eq 1 ]
 do
     TRACK_NAME=`mpc current`
     #echo $TRACK_NAME
-    mpc idle &
+    mpc idle >& /dev/null &
     wait $!
 done
 

@@ -37,7 +37,7 @@ do
     STATUS=$?
     if [ $STATUS -ne 0 ]
     then
-        sudo mpd
+        sudo mpd >& /dev/null
     fi
     if [ $STATUS -ne 0 ]
     then
@@ -58,11 +58,11 @@ do
     STATUS=$?
     if [ $STATUS -ne 0 ]
     then
-        led-bluetooth.sh connect
+        led-bluetooth.sh connect >& /dev/null
     fi
     if [ $STATUS -ne 0 ]
     then
-        led-bluetooth.sh disconnect
+        led-bluetooth.sh disconnect >& /dev/null
         sleep 5
     fi
 done
