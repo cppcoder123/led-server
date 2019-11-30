@@ -3,6 +3,7 @@
  */
 
 #include <csignal>
+#include <iterator>
 #include <sstream>
 #include <stdexcept>
 
@@ -32,7 +33,7 @@ namespace led_d
     }
     m_descriptor.async_read_some
       (asio::buffer (m_asio_buf, m_asio_buf.size ()),
-       std::bind (&popen_t::handle_read, shared_from_this (),
+       std::bind (&popen_t::handle_read, this,
                   std::placeholders::_1, std::placeholders::_2));
   }
 
@@ -41,42 +42,12 @@ namespace led_d
     if (m_file_ptr == 0)
       return;
 
+    m_descriptor.cancel ();
+
     kill (SIGKILL);
 
     pclose (m_file_ptr);
   }
-
-  // bool popen_t::read (std::string &info)
-  // {
-  //   info = "";
-  //   bool status = true;
-
-  //   // fixme: should be rewritten without FILE* but using descriptor
-  //   // with asio
-  //   // 1. call descriptor.non_blocking(true, xxx)
-  //   // 2. call descriptor.read_some
-  //   do {
-  //     char ch = fgetc (m_file_ptr);
-  //     if (ch == EOF) {
-  //       status = false;
-  //       break;
-  //     } else if (ch == '\n') {
-  //       info.swap (m_buffer);
-  //       break;
-  //     } else {
-  //       m_buffer += ch;
-  //     }
-  //   } while (1);
-
-  //   if (info.empty () == true)
-  //     return status;
-
-  //   if (m_pid == 0)
-  //     filter (info);
-
-  //   // info wasn't empty, so status can't be false
-  //   return true;
-  // }
 
   bool popen_t::kill (int signal)
   {
@@ -145,13 +116,22 @@ namespace led_d
       return;
     }
 
-    std::string asio_tmp (std::begin (m_asio_buf), std::end (m_asio_buf));
-    std::string tmp = m_buffer + asio_tmp;
+    auto begin = std::begin (m_asio_buf);
+    std::string asio_tmp (begin, begin + len);
     std::string line;
-    std::stringstream stream (tmp);
-    while (std::getline (stream, line, '\n'))
-      m_queue.push (line);
-    // keep the rest
-    m_buffer = stream.str ();
+    std::stringstream stream (asio_tmp);
+    while (std::getline (stream, line, '\n')) {
+      // log_t::buffer_t buf;
+      // buf << "popen: called: " << line;
+      // log_t::info (buf);
+      filter (line);
+      if (line.empty () == false)
+        m_queue.push (line);
+    }
+
+    m_descriptor.async_read_some
+      (asio::buffer (m_asio_buf, m_asio_buf.size ()),
+       std::bind (&popen_t::handle_read, this,
+                  std::placeholders::_1, std::placeholders::_2));
   }
 } // led_d

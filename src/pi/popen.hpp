@@ -8,7 +8,6 @@
 
 #include <cstdio>
 #include <csignal>
-#include <memory>
 #include <regex>
 #include <string>
 
@@ -19,7 +18,7 @@
 namespace led_d
 {
 
-  class popen_t : public std::enable_shared_from_this<popen_t>
+  class popen_t// : public std::enable_shared_from_this<popen_t>
   {
   public:
     // Achtung: it throws
@@ -62,8 +61,6 @@ namespace led_d
     bash_queue_t &m_queue;
 
     pid_t m_pid;
-
-    std::string m_buffer;
 
     static constexpr auto asio_buf_size = 128;
     std::array<char, asio_buf_size> m_asio_buf;
