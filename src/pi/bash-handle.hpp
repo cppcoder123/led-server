@@ -11,7 +11,7 @@
 
 // #include "unix/codec.hpp"
 #include "unix/condition-queue.hpp"
-#include "unix/refsymbol.hpp"
+// #include "unix/refsymbol.hpp"
 #include "unix/request.hpp"
 #include "unix/response.hpp"
 
@@ -40,7 +40,7 @@ namespace led_d
 
   private:
 
-    using refsymbol_t = unix::refsymbol_t;
+    // using refsymbol_t = unix::refsymbol_t;
     using request_t = unix::request_t;
     using response_t = unix::response_t;
     // using codec_t = unix::codec_t<refsymbol_t>;
