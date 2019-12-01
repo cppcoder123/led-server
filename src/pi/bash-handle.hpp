@@ -12,6 +12,7 @@
 #include "unix/condition-queue.hpp"
 
 #include "bash-queue.hpp"
+#include "content.hpp"
 #include "mcu-queue.hpp"
 #include "mcu-msg.hpp"
 #include "render.hpp"
@@ -38,15 +39,11 @@ namespace led_d
 
     void notify ();
 
-    void handle_bash (std::string msg);
     void handle_mcu (mcu_msg_t &msg);
 
     // handle mcu messages
     void mcu_version (const mcu_msg_t &msg);
     void mcu_poll ();
-
-    // handle unix messages
-    // bool unix_insert (const request_t &request);
 
     std::mutex m_mutex;
     std::condition_variable m_condition;
@@ -55,15 +52,10 @@ namespace led_d
     mcu_queue_t m_from_mcu_queue;
     mcu_queue_t *m_to_mcu_queue;
 
-    //content_t &m_content;
+    content_t m_content;
     render_t m_render;
 
     std::atomic_bool m_go;
-
-    // special client, that consumes mcu messages like
-    // button presses.
-    // !!! Can be zero
-    // session_ptr_t m_client;
   };
 
 } // namespace led_d

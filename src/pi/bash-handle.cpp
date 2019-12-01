@@ -31,7 +31,7 @@ namespace led_d
     while (m_go.load () == true) {
       auto bash_msg = m_bash_queue.pop<false> ();
       if (bash_msg)
-        handle_bash (*bash_msg);
+        m_content.input (*bash_msg);
 
       auto mcu_msg = m_from_mcu_queue.pop<false> ();
       if (mcu_msg)
@@ -57,57 +57,6 @@ namespace led_d
   {
     m_condition.notify_one ();
   }
-
-  void bash_handle_t::handle_bash (std::string msg)
-  {
-    // fixme
-  }
-#if 0
-  void bash_handle_t::handle_unix (bash_msg_t &msg)
-  {
-    request_t request;
-    response_t response;
-
-    std::string buffer;
-    //
-    if (codec_t::decode (msg.info, request) == false) {
-      response.status = 1;
-      response.string_data = "Failed to decode request message";
-      log_t::error (response.string_data);
-      if (codec_t::encode (response, buffer) == true)
-        msg.sender->write (buffer);
-      return;
-    }
-
-    response.status = 0;
-    switch (request.action) {
-    case request_t::subscribe:
-      m_client = msg.sender;
-      m_client->set_disconnect ([this](){m_client.reset ();});
-      break;
-    case request_t::insert:
-      if (unix_insert (request) == false) {
-        response.status = 1;
-        response.string_data = "Failed to handle \"insert\" request";
-        log_t::error (response.string_data);
-      }
-      break;
-    default:
-      {
-        response.status = 1;
-        response.string_data = "Unknown request has arrived";
-        log_t::error (response.string_data);
-      }
-      break;
-    }
-
-    // Note: sender can be destroyed during async writing! (or not)
-    if (codec_t::encode (response, buffer) == true)
-      msg.sender->write (buffer);
-    else
-      log_t::error ("Failed to encode \"response\" message");
-  }
-#endif
 
   void bash_handle_t::handle_mcu (mcu_msg_t &msg)
   {
@@ -154,31 +103,20 @@ namespace led_d
 
   void bash_handle_t::mcu_poll ()
   {
-    // fixme
+    // fixme: call info_push here
+
+    // {
+    //   log_t::buffer_t buf;
+    //   buf << "bash-handle: Failed to encode \"poll\" response";
+    //   log_t::error (buf);
+    // }
   }
+
 #if 0
-  void bash_handle_t::mcu_poll ()
-  {
-    if (!m_client)
-      return;
-
-    response_t response;
-    response.status = response_t::poll;
-
-    std::string buf;
-    if (codec_t::encode (response, buf) == true)
-      m_client->write (buf);
-    else {
-      log_t::buffer_t buf;
-      buf << "bash-handle: Failed to encode \"poll\" response";
-      log_t::error (buf);
-    }
-  }
-
-  bool bash_handle_t::unix_insert (const request_t &request)
+  bool bash_handle_t::info_push (std::string info)
   {
     matrix_t matrix;
-    if (m_render.pixelize (matrix, request.info, request.format) == false) {
+    if (m_render.pixelize (matrix, info, request.format) == false) {
       log_t::buffer_t buf;
       buf << "Failed to pixelize info related to \"" << request.tag << "\"";
       log_t::error (buf);

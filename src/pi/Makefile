@@ -23,9 +23,9 @@ LIB_PATH_LIST = $(LIB_DAEMON)
 #
 #
 #
-OBJECT_LIST = led-d.o arg.o base.o bash-handle.o bash-in.o font-dir.o font.o \
-  mcu-block.o mcu-handle.o mcu-parse.o popen.o render.o spi-dev.o \
-  spi-irq.o spi-open.o
+OBJECT_LIST = led-d.o arg.o base.o bash-handle.o bash-in.o content.o \
+  font-dir.o font.o mcu-block.o mcu-handle.o mcu-parse.o popen.o render.o \
+  spi-dev.o spi-irq.o spi-open.o
 
 #
 #
