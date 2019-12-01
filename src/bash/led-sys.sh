@@ -80,7 +80,7 @@ do
     STATUS=$?
     if [ $STATUS -ne 0 ]
     then
-        mpc enable 1
+        mpc enable 1 >& /dev/null
     fi
     if [ $STATUS -ne 0 ]
     then
