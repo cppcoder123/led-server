@@ -8,7 +8,7 @@
 
 #include "unix/log.hpp"
 
-#include "bash-handle.hpp"
+#include "handle.hpp"
 #include "matrix.hpp"
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"
@@ -16,7 +16,7 @@
 
 namespace led_d
 {
-  bash_handle_t::bash_handle_t (const std::string &default_font)
+  handle_t::handle_t (const std::string &default_font)
     : m_bash_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_to_mcu_queue (nullptr),
@@ -25,7 +25,7 @@ namespace led_d
   {
   }
 
-  void bash_handle_t::start ()
+  void handle_t::start ()
   {
 
     while (m_go.load () == true) {
@@ -46,19 +46,19 @@ namespace led_d
     }
   }
 
-  void bash_handle_t::stop ()
+  void handle_t::stop ()
   {
     m_go.store (false);
     //
     notify ();
   }
 
-  void bash_handle_t::notify ()
+  void handle_t::notify ()
   {
     m_condition.notify_one ();
   }
 
-  void bash_handle_t::handle_mcu (mcu_msg_t &msg)
+  void handle_t::handle_mcu (mcu_msg_t &msg)
   {
     uint8_t msg_id = mcu::decode::get_msg_id (msg);
 
@@ -82,7 +82,7 @@ namespace led_d
     }
   }
 
-  void bash_handle_t::mcu_version (const mcu_msg_t &msg)
+  void handle_t::mcu_version (const mcu_msg_t &msg)
   {
     uint8_t status = 0;
     if (mcu::decode::split_payload (msg, status) == false) {
@@ -101,7 +101,7 @@ namespace led_d
     log_t::info (buf);
   }
 
-  void bash_handle_t::mcu_poll ()
+  void handle_t::mcu_poll ()
   {
     // fixme: call info_push here
 
@@ -113,7 +113,7 @@ namespace led_d
   }
 
 #if 0
-  bool bash_handle_t::info_push (std::string info)
+  bool handle_t::info_push (std::string info)
   {
     matrix_t matrix;
     if (m_render.pixelize (matrix, info, request.format) == false) {

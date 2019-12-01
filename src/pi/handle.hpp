@@ -1,8 +1,8 @@
 /*
  *
  */
-#ifndef BASH_HANDLE_HPP
-#define BASH_HANDLE_HPP
+#ifndef HANDLE_HPP
+#define HANDLE_HPP
 
 #include <atomic>
 #include <condition_variable>
@@ -20,13 +20,13 @@
 namespace led_d
 {
 
-  class bash_handle_t
+  class handle_t
   {
   public:
 
-    bash_handle_t (const std::string &default_font);
-    bash_handle_t (const bash_handle_t&) = delete;
-    ~bash_handle_t () {};
+    handle_t (const std::string &default_font);
+    handle_t (const handle_t&) = delete;
+    ~handle_t () {};
 
     void start ();
     void stop ();
