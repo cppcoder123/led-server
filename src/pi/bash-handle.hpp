@@ -9,11 +9,7 @@
 #include <list>
 #include <mutex>
 
-// #include "unix/codec.hpp"
 #include "unix/condition-queue.hpp"
-// #include "unix/refsymbol.hpp"
-// #include "unix/request.hpp"
-// #include "unix/response.hpp"
 
 #include "bash-queue.hpp"
 #include "mcu-queue.hpp"
@@ -39,11 +35,6 @@ namespace led_d
     void to_mcu_queue (mcu_queue_t &to_mcu_queue) {m_to_mcu_queue = &to_mcu_queue;}
 
   private:
-
-    // using refsymbol_t = unix::refsymbol_t;
-    // using request_t = unix::request_t;
-    // using response_t = unix::response_t;
-    // using codec_t = unix::codec_t<refsymbol_t>;
 
     void notify ();
 
