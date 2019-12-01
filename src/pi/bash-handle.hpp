@@ -12,7 +12,7 @@
 // #include "unix/codec.hpp"
 #include "unix/condition-queue.hpp"
 // #include "unix/refsymbol.hpp"
-#include "unix/request.hpp"
+// #include "unix/request.hpp"
 // #include "unix/response.hpp"
 
 #include "bash-queue.hpp"
@@ -41,7 +41,7 @@ namespace led_d
   private:
 
     // using refsymbol_t = unix::refsymbol_t;
-    using request_t = unix::request_t;
+    // using request_t = unix::request_t;
     // using response_t = unix::response_t;
     // using codec_t = unix::codec_t<refsymbol_t>;
 
@@ -55,7 +55,7 @@ namespace led_d
     void mcu_poll ();
 
     // handle unix messages
-    bool unix_insert (const request_t &request);
+    // bool unix_insert (const request_t &request);
 
     std::mutex m_mutex;
     std::condition_variable m_condition;

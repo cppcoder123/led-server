@@ -174,7 +174,6 @@ namespace led_d
       log_t::error (buf);
     }
   }
-#endif
 
   bool bash_handle_t::unix_insert (const request_t &request)
   {
@@ -212,5 +211,6 @@ namespace led_d
 
     return true;
   }
+#endif
 
 } // namespace led_d
