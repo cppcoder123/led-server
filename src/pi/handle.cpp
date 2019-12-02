@@ -16,6 +16,8 @@
 
 namespace led_d
 {
+  constexpr auto MCU_BUFFER_LIMIT = 128;
+
   handle_t::handle_t (const std::string &default_font)
     : m_bash_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
@@ -31,7 +33,7 @@ namespace led_d
     while (m_go.load () == true) {
       auto bash_msg = m_bash_queue.pop<false> ();
       if (bash_msg)
-        m_content.input (*bash_msg);
+        m_content.in (*bash_msg);
 
       auto mcu_msg = m_from_mcu_queue.pop<false> ();
       if (mcu_msg)
@@ -67,12 +69,23 @@ namespace led_d
       mcu_version (msg);
       break;
     case MSG_ID_POLL:
-      mcu_poll ();
+      {
+        uint8_t buf_space = 0;
+        if (mcu::decode::split_payload (msg, buf_space) == false) {
+          log_t::error ("handle: Failed to parse buffer size");
+          return;
+        }
+        if (buf_space <= MCU_BUFFER_LIMIT)
+          return;
+        auto info = m_content.out ();
+
+        info_push (info.first, info.second);
+      }
       break;
     default:
       {
         log_t::buffer_t buf;
-        buf << "bash-handle: Unknown message from mcu is arrived: "
+        buf << "handle: Unknown message from mcu is arrived: "
             << (int) msg_id << " - ";
         for (auto i : msg) 
           buf << (int) i << " ";
@@ -87,38 +100,26 @@ namespace led_d
     uint8_t status = 0;
     if (mcu::decode::split_payload (msg, status) == false) {
       log_t::buffer_t buf;
-      buf << "bash-handle: Failed to decode \"version\" message";
+      buf << "handle: Failed to decode \"version\" message";
       log_t::error (buf);
       return;
     }
 
     if (status != STATUS_SUCCESS)
       throw std::runtime_error
-        ("bash-handle: Pi & Mcu protocol version mismatch, can't continue...");
+        ("handle: Pi & Mcu protocol version mismatch, can't continue...");
 
     log_t::buffer_t buf;
-    buf << "bash-handle: Protocol version is confirmed!";
+    buf << "handle: Protocol version is confirmed!";
     log_t::info (buf);
   }
 
-  void handle_t::mcu_poll ()
-  {
-    // fixme: call info_push here
-
-    // {
-    //   log_t::buffer_t buf;
-    //   buf << "bash-handle: Failed to encode \"poll\" response";
-    //   log_t::error (buf);
-    // }
-  }
-
-#if 0
-  bool handle_t::info_push (std::string info)
+  bool handle_t::info_push (std::string info, std::string format)
   {
     matrix_t matrix;
-    if (m_render.pixelize (matrix, info, request.format) == false) {
+    if (m_render.pixelize (matrix, info, format) == false) {
       log_t::buffer_t buf;
-      buf << "Failed to pixelize info related to \"" << request.tag << "\"";
+      buf << "Failed to pixelize info \"" << info << "\"";
       log_t::error (buf);
       return false;
     }
@@ -149,6 +150,5 @@ namespace led_d
 
     return true;
   }
-#endif
 
 } // namespace led_d

@@ -6,6 +6,7 @@
 #define CONTENT_HPP
 
 #include <string>
+#include <utility>
 
 namespace led_d
 {
@@ -17,7 +18,10 @@ namespace led_d
     content_t ();
     ~content_t ();
 
-    void input (std::string info);
+    void in (std::string info);
+
+    using out_info_t = std::pair<std::string/*info*/, std::string/*format*/>;
+    out_info_t out ();
       
   };
   
