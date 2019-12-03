@@ -5,6 +5,7 @@
 #ifndef CONTENT_HPP
 #define CONTENT_HPP
 
+#include <list>
 #include <string>
 #include <utility>
 
@@ -22,7 +23,10 @@ namespace led_d
 
     using out_info_t = std::pair<std::string/*info*/, std::string/*format*/>;
     out_info_t out ();
-      
+
+  private:
+
+    std::list<std::string> m_info_list;
   };
   
 } // led_d

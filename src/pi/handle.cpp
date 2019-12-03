@@ -77,8 +77,8 @@ namespace led_d
         }
         if (buf_space <= MCU_BUFFER_LIMIT)
           return;
-        auto info = m_content.out ();
 
+        auto info = m_content.out ();
         info_push (info.first, info.second);
       }
       break;

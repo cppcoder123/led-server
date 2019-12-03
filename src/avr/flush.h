@@ -20,4 +20,6 @@ void flush_enable_clear ();
 
 void flush_try ();
 
+uint8_t flush_buffer_space ();
+
 #endif

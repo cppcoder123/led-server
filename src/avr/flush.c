@@ -82,7 +82,7 @@ void flush_try ()
     if (mode != FLUSH_SHIFT)
       return;
     if (global_mode == FLUSH_GLOBAL_ENABLED)
-      encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, 0);
+      encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ());
     for (uint8_t i = 0; i < MATRIX_SIZE; ++i)
       buffer_byte_fill (&led_data, 0);
   }
@@ -104,6 +104,11 @@ void flush_try ()
     buffer_clear (&led_data);
 
   mode = FLUSH_DISABLED;
+}
+
+uint8_t flush_buffer_space ()
+{
+  return buffer_space (&led_data);
 }
 
 /* void led_flush_mono (uint8_t *matrix) */

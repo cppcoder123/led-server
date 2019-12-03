@@ -46,6 +46,7 @@ static void decode ()
     status = (flush_push_array (in_buf, LED_ARRAY_SIZE) == 1)
       ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
+    encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ());
     break;
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;

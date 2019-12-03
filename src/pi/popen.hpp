@@ -42,11 +42,12 @@ namespace led_d
                        std::string &prefix, std::string &suffix,
                        const std::string &pattern);
 
+    static bool split (const std::string &src,
+                       std::string &prefix, std::string &suffix);
+
   private:
     using descriptor_t = asio::posix::stream_descriptor;
 
-    static bool split (const std::string &src,
-                       std::string &prefix, std::string &suffix);
 
     static bool split (const std::string &src,
                        std::string &prefix, std::string &suffix,
