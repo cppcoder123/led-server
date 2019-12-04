@@ -10,6 +10,8 @@
 
 namespace led_d
 {
+  constexpr auto MIN_INFO_SIZE = 3;
+
   content_t::content_t ()
   {
     // fixme
@@ -49,6 +51,7 @@ namespace led_d
 
     if (m_info_list.size () < MIN_INFO_SIZE)
       // fixme: call bash_in::kick
+      ;
 
     return std::make_pair (info, format);
   }
