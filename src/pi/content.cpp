@@ -47,6 +47,9 @@ namespace led_d
     auto info = m_info_list.front ();
     m_info_list.pop_front ();
 
+    if (m_info_list.size () < MIN_INFO_SIZE)
+      // fixme: call bash_in::kick
+
     return std::make_pair (info, format);
   }
 } // led_d
