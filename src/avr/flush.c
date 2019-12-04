@@ -78,6 +78,9 @@ void flush_try ()
     /*we are not ready*/
     return;
 
+  /* fixme */
+  /* encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ()); */
+
   if (buffer_size (&led_data) < MATRIX_SIZE) {
     if (mode != FLUSH_SHIFT)
       return;

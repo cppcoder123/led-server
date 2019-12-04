@@ -13,13 +13,13 @@
 void power_init ()
 {
   /*configure C7 as output */
-  DDRC |= (1 << DDC7);
+  /* DDRC |= (1 << DDC7); */
 }
 
 void power_up ()
 {
   /* assign 0 to switch on */
-  PORTC &= ~(1 << POWER_PIN);
+  /* PORTC &= ~(1 << POWER_PIN); */
 
   /* expect stream from r-pi */
   timer_enable (TIMER_TEN_PER_SECOND, &flush_enable_shift);
@@ -28,7 +28,7 @@ void power_up ()
 void power_down ()
 {
   /* see power_up */
-  PORTC |= (1 << POWER_PIN);
+  /* PORTC |= (1 << POWER_PIN); */
 
   /*expect internal clock info, try to flush every second*/
   /*fixme: actually clock call should be passed here, but it is not implemented*/

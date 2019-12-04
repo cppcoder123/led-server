@@ -10,6 +10,7 @@
 #include "display.h"
 #include "flush.h"
 #include "postpone.h"
+#include "power.h"
 #include "rotor.h"
 #include "spi.h"
 
@@ -25,10 +26,10 @@ static void init ()
   flush_init ();
   postpone_init ();
   rotor_init ();
-  /* power_init (); */
+  power_init ();
 
   /* enable r-pi */
-  /* power_up (); */
+  power_up ();
 
   sei ();
 }

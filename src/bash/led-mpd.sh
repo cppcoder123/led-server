@@ -2,6 +2,9 @@
 
 echo "pid: "$$
 
+# fixme
+#exit 0
+
 TRACK_NAME="Empty track"
 echo_track () {
     echo "mpd: "$TRACK_NAME
