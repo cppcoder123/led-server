@@ -111,10 +111,10 @@ void display_start ()
   FLUSH_CMD (CMD_BRIGHTNESS_MASK | 0xF);
   CS_DEACTIVATE;
 
-  display_data_start ();
-  for (uint8_t i = 0; i < 32; ++i)
-    display_data_column (0xAA);
-  display_data_stop ();
+  /* display_data_start (); */
+  /* for (uint8_t i = 0; i < 32; ++i) */
+  /*   display_data_column (0xAA); */
+  /* display_data_stop (); */
 }
 
 void display_stop ()

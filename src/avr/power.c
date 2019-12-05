@@ -4,6 +4,10 @@
 
 #include <avr/io.h>
 
+/* #include "unix/constant.h" */
+
+/* #include "debug.h" */
+
 #include "flush.h"
 #include "power.h"
 #include "timer.h"
@@ -20,6 +24,8 @@ void power_up ()
 {
   /* assign 0 to switch on */
   /* PORTC &= ~(1 << POWER_PIN); */
+
+  /* debug_0 (DEBUG_FLUSH, DEBUG_11); */
 
   /* expect stream from r-pi */
   timer_enable (TIMER_TEN_PER_SECOND, &flush_enable_shift);

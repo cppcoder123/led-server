@@ -33,11 +33,11 @@ prefix_echo
 STATUS=1
 while [ $STATUS -ne 0 ]
 do
-    sudo ps -alef | grep mpd >& /dev/null
+    sudo systemctl status mpd | grep running >& /dev/null
     STATUS=$?
     if [ $STATUS -ne 0 ]
     then
-        sudo mpd >& /dev/null
+        sudo systemctl start mpd >& /dev/null
     fi
     if [ $STATUS -ne 0 ]
     then

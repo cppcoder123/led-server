@@ -59,6 +59,7 @@ enum {
 
 /* debug domain */
 enum {
+  DEBUG_FLUSH,
   DEBUG_ROTOR,
 };
 

@@ -5,6 +5,7 @@
 #include "unix/constant.h"
 
 #include "buffer.h"
+#include "debug.h"
 #include "display.h"
 #include "encode.h"
 #include "flush.h"
@@ -64,6 +65,8 @@ uint8_t flush_push_array (uint8_t *arr, uint8_t arr_size)
 
 void flush_enable_shift ()
 {
+  /* debug_0 (DEBUG_FLUSH, DEBUG_7); */
+
   mode_change (FLUSH_SHIFT);
 }
 
