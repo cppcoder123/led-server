@@ -105,14 +105,56 @@ void counter_prescaler (uint8_t id, uint8_t value)
   prescaler[id] = value & PRESCALER_MASK;
 }
 
-static void timsk_set (uint8_t id, uint8_t flag)
+static void timsk_set (uint8_t id, uint8_t value)
 {
-  // fixme
+  switch (id) {
+  case COUNTER_0:
+    TIMSK0 |= value;
+    break;
+  case COUNTER_1:
+    TIMSK1 |= value;
+    break;
+  case COUNTER_2:
+    TIMSK2 |= value;
+    break;
+  case COUNTER_3:
+    TIMSK3 |= value;
+    break;
+  case COUNTER_4:
+    TIMSK4 |= value;
+    break;
+  case COUNTER_5:
+    TIMSK5 |= value;
+    break;
+  default:
+    break;
+  }
 }
 
-static void timsk_clear (uint8_t id, uint8_t flag)
+static void timsk_clear (uint8_t id, uint8_t value)
 {
-  // fixme
+  switch (id) {
+  case COUNTER_0:
+    TIMSK0 &= ~value;
+    break;
+  case COUNTER_1:
+    TIMSK1 &= ~value;
+    break;
+  case COUNTER_2:
+    TIMSK2 &= ~value;
+    break;
+  case COUNTER_3:
+    TIMSK3 &= ~value;
+    break;
+  case COUNTER_4:
+    TIMSK4 &= ~value;
+    break;
+  case COUNTER_5:
+    TIMSK5 &= ~value;
+    break;
+  default:
+    break;
+  }
 }
 
 void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun)
@@ -279,18 +321,17 @@ ISR(TIMER0_COMPA_vect)
   handle();
 }
 
-/* fixme: remove, redefition */
-/* ISR(TIMER1_COMPA_vect) */
-/* { */
-/*   counter_handle handle = compare_a[COUNTER_1]; */
+ISR(TIMER1_COMPA_vect)
+{
+  counter_handle handle = compare_a[COUNTER_1];
 
-/*   if (handle == 0) { */
-/*     /\*send err msg*\/ */
-/*     return; */
-/*   } */
+  if (handle == 0) {
+    /*send err msg*/
+    return;
+  }
 
-/*   handle(); */
-/* } */
+  handle();
+}
 
 ISR(TIMER2_COMPA_vect)
 {

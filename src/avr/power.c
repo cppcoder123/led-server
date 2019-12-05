@@ -8,11 +8,11 @@
 
 /* #include "debug.h" */
 
+#include "counter.h"
 #include "flush.h"
 #include "power.h"
-#include "timer.h"
 
-#define POWER_PIN PORTC7
+/* #define POWER_PIN PORTC7 */
 
 void power_init ()
 {
@@ -28,7 +28,12 @@ void power_up ()
   /* debug_0 (DEBUG_FLUSH, DEBUG_11); */
 
   /* expect stream from r-pi */
-  timer_enable (TIMER_TEN_PER_SECOND, &flush_enable_shift);
+  /* timer_enable (TIMER_TEN_PER_SECOND, &flush_enable_shift); */
+
+  counter_prescaler (COUNTER_1, COUNTER_PRESCALER_1024);
+  counter_interrupt (COUNTER_1,
+                     COUNTER_INTERRUPT_COMPARE_A, &flush_enable_shift);
+  counter_enable (COUNTER_1);
 }
 
 void power_down ()
@@ -39,5 +44,5 @@ void power_down ()
   /*expect internal clock info, try to flush every second*/
   /*fixme: actually clock call should be passed here, but it is not implemented*/
   /*Note: clock function should call 'flush_enable_clear' at the end*/
-  timer_enable (TIMER_ONE_PER_SECOND, &flush_enable_clear);
+  /* timer_enable (TIMER_ONE_PER_SECOND, &flush_enable_clear); */
 }

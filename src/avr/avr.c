@@ -4,9 +4,10 @@
 
 #include <avr/interrupt.h>
 
-//#include "buzz.h"
+/* #include "buzz.h" */
+#include "counter.h"
 #include "decode.h"
-#include "debug.h"
+/* #include "debug.h" */
 #include "display.h"
 #include "flush.h"
 #include "postpone.h"
@@ -21,6 +22,7 @@ static void init ()
 
   /* buzz_init (); */
   /* debug_init (); */
+  counter_init ();
   decode_init ();
   display_init ();
   flush_init ();

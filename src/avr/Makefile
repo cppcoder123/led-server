@@ -6,11 +6,12 @@ TARGET_HEX = $(TARGET).hex
 TARGET_ELF = $(TARGET).elf
 
 #  clock.o 
-#  counter.o 
+#  timer.o 
 #  buzz.o
 OBJECT_LIST = \
   avr.o \
   buffer.o \
+  counter.o \
   buf.o \
   debug.o \
   decode.o \
@@ -22,8 +23,7 @@ OBJECT_LIST = \
   render.o \
   ring.o \
   rotor.o \
-  spi.o \
-  timer.o
+  spi.o
 
 MCU = atmega2560
 
