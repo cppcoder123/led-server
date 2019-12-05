@@ -46,6 +46,8 @@ void counter_prescaler (uint8_t id, uint8_t prescaler);
 
 void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun);
 
+void counter_set_compare_a (uint8_t id, uint8_t low, uint8_t high);
+
 /* only low is valid for counter 0, 2*/
 void counter_set (uint8_t id, uint8_t low, uint8_t high);
 void counter_get (uint8_t id, uint8_t *low, uint8_t *high);

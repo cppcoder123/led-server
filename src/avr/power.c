@@ -14,6 +14,11 @@
 
 /* #define POWER_PIN PORTC7 */
 
+#define TEN_PER_SECOND_LOW 77
+#define TEN_PER_SECOND_HIGH 0
+#define PER_SECOND_LOW 0
+#define PER_SECOND_HIGH 61
+
 void power_init ()
 {
   /*configure C7 as output */
@@ -33,6 +38,10 @@ void power_up ()
   counter_prescaler (COUNTER_1, COUNTER_PRESCALER_1024);
   counter_interrupt (COUNTER_1,
                      COUNTER_INTERRUPT_COMPARE_A, &flush_enable_shift);
+  /* counter_set_compare_a (COUNTER_1, */
+  /*                        TEN_PER_SECOND_LOW, TEN_PER_SECOND_HIGH); */
+  counter_set_compare_a (COUNTER_1,
+                         TEN_PER_SECOND_LOW, TEN_PER_SECOND_HIGH);
   counter_enable (COUNTER_1);
 }
 

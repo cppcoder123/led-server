@@ -167,27 +167,62 @@ void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun)
   counter_handle *array = (int_type == COUNTER_INTERRUPT_OVERFLOW)
     ? overflow : compare_a;
 
-  if (fun != 0)
+  uint8_t ctc_flag = (int_type == COUNTER_INTERRUPT_COMPARE_A)
+    ? (1 << 3) : 0;
+
+  if (fun != 0) {
     timsk_set (id, int_type);
-  else
+    tccrb_set (id, ctc_flag);
+  } else {
     timsk_clear (id, int_type);
+    tccrb_clear (id, ctc_flag);
+  }
 
   *(array + id) = fun;
 }
 
+void counter_set_compare_a (uint8_t id, uint8_t low, uint8_t high)
+{
+  switch (id) {
+  case COUNTER_0:
+    OCR0A = low;
+    break;
+  case COUNTER_1:
+    OCR1AL = low;
+    OCR1AH = high;
+    break;
+  case COUNTER_2:
+    OCR2A = low;
+    break;
+  case COUNTER_3:
+    OCR3AL = low;
+    OCR3AH = high;
+    break;
+  case COUNTER_4:
+    OCR4AL = low;
+    OCR4AH = high;
+    break;
+  case COUNTER_5:
+    OCR5AL = low;
+    OCR5AH = high;
+    break;
+  default:
+    break;
+  }
+}
+
 void counter_set (uint8_t id, uint8_t low, uint8_t high)
 {
-  if ((id == COUNTER_0) || (id == COUNTER_2)) {
-    if (id == COUNTER_0)
-      TCNT0 = low;
-    else
-      TCNT2 = low;
-    return;
-  }
   switch (id) {
+  case COUNTER_0:
+    TCNT0 = low;
+    break;
   case COUNTER_1:
     TCNT1L = low;
     TCNT1H = high;
+    break;
+  case COUNTER_2:
+    TCNT2 = low;
     break;
   case COUNTER_3:
     TCNT3L = low;
@@ -208,17 +243,16 @@ void counter_set (uint8_t id, uint8_t low, uint8_t high)
 
 void counter_get (uint8_t id, uint8_t *low, uint8_t *high)
 {
-  if ((id == COUNTER_0) || (id == COUNTER_2)) {
-    if (id == COUNTER_0)
-      *low = TCNT0;
-    else
-      *low = TCNT2;
-    return;
-  }
   switch (id) {
+  case COUNTER_0:
+    *low = TCNT0;
+    break;
   case COUNTER_1:
     *low = TCNT1L;
     *high = TCNT1H;
+    break;
+  case COUNTER_2:
+    *low = TCNT2;
     break;
   case COUNTER_3:
     *low = TCNT3L;
