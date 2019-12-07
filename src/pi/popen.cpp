@@ -18,7 +18,7 @@ namespace led_d
 
   constexpr auto asio_buf_size = 128;
 
-  const std::regex popen_t::m_regex ("\\s*([^:]+)\\s*:\\s*(\\S+)\\s*");
+  const std::regex popen_t::m_regex ("\\s*([^: ]+)\\s*:\\s*(\\d+)\\s*");
 
   popen_t::popen_t (const std::string &command,
                     asio::io_context &context, bash_queue_t &queue)

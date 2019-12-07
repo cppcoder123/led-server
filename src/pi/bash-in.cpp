@@ -9,6 +9,7 @@ namespace led_d
 {
 
   constexpr auto mpd_name = "led-mpd.sh";
+  constexpr auto sys_name = "led-sys.sh";
 
   bash_in_t::bash_in_t (asio::io_context &io_context, bash_queue_t &queue)
     : m_context (io_context),
@@ -25,6 +26,9 @@ namespace led_d
 
     auto source = std::make_shared<popen_t> (mpd_name, m_context, m_queue);
     m_source_vector[MPD] = source;
+
+    source = std::make_shared<popen_t>(sys_name, m_context, m_queue);
+    m_source_vector[SYS] = source;
   }
 
   void bash_in_t::stop ()

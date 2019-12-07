@@ -12,6 +12,8 @@ namespace led_d
 {
   constexpr auto MIN_INFO_SIZE = 3;
 
+  const std::regex content_t::m_regex ("\\s*([^: ]+)\\s*:(.*)");
+
   content_t::content_t ()
   {
     // fixme
@@ -25,7 +27,7 @@ namespace led_d
   void content_t::in (std::string info)
   {
     std::string prefix, suffix;
-    if (popen_t::split (info, prefix, suffix) == false) {
+    if (popen_t::split (info, prefix, suffix, m_regex) == false) {
       log_t::buffer_t buf;
       buf << "content: Failed to split info \"" << info << "\"";
       log_t::error (buf);

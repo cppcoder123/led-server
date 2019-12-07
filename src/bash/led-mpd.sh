@@ -3,7 +3,7 @@
 echo "pid: "$$
 
 # fixme
-#exit 0
+exit 0
 
 TRACK_NAME="Empty track"
 echo_track () {

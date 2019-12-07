@@ -6,6 +6,7 @@
 #define CONTENT_HPP
 
 #include <list>
+#include <regex>
 #include <string>
 #include <utility>
 
@@ -27,6 +28,8 @@ namespace led_d
   private:
 
     std::list<std::string> m_info_list;
+
+    static const std::regex m_regex;
   };
   
 } // led_d

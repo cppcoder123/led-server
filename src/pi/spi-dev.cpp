@@ -134,7 +134,7 @@ namespace led_d
 
   void spi_dev_t::drain ()
   {
-    static const std::size_t max_attempt = 6;
+    static const std::size_t max_attempt = 100;
     static const std::size_t msg_size = 50;
 
     for (std::size_t i = 0; i < max_attempt; ++i) {
