@@ -28,13 +28,6 @@ namespace led_d
     popen_t (const popen_t&) = delete;
     ~popen_t ();
 
-    // 'fileno (FILE*)' call
-    // descriptor_t& descriptor () {return m_descriptor;}
-
-    // Try to read smth
-    // Note: ignore if 'info' is empty
-    // bool read (std::string &info);
-
     // man -S 2 kill
     bool kill (int signal);
 
@@ -43,16 +36,14 @@ namespace led_d
                        const std::string &pattern);
 
     static bool split (const std::string &src,
-                       std::string &prefix, std::string &suffix);
-
-    static bool split (const std::string &src,
                        std::string &prefix, std::string &suffix,
                        const std::regex &regex);
 
   private:
     using descriptor_t = asio::posix::stream_descriptor;
 
-
+    static bool split (const std::string &src,
+                       std::string &prefix, std::string &suffix);
 
     void filter (std::string &info);
 
