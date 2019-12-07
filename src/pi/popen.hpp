@@ -45,13 +45,14 @@ namespace led_d
     static bool split (const std::string &src,
                        std::string &prefix, std::string &suffix);
 
+    static bool split (const std::string &src,
+                       std::string &prefix, std::string &suffix,
+                       const std::regex &regex);
+
   private:
     using descriptor_t = asio::posix::stream_descriptor;
 
 
-    static bool split (const std::string &src,
-                       std::string &prefix, std::string &suffix,
-                       const std::regex &regex);
 
     void filter (std::string &info);
 
