@@ -78,7 +78,7 @@ void flush_try ()
 {
   if ((global_mode == FLUSH_GLOBAL_DISABLED)
       || (mode == FLUSH_DISABLED)
-      || (buffer_size (&led_data) == 0))
+      || (buffer_size (&led_data) < MATRIX_SIZE))
     return;
 
   display_data_start ();

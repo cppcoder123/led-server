@@ -14,7 +14,7 @@
 
 /* #define POWER_PIN PORTC7 */
 
-#define TEN_PER_SECOND_LOW 77
+#define TEN_PER_SECOND_LOW 100
 #define TEN_PER_SECOND_HIGH 0
 #define PER_SECOND_LOW 0
 #define PER_SECOND_HIGH 61
