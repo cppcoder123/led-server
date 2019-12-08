@@ -47,16 +47,18 @@ uint8_t ring_space (uint8_t size, uint8_t start, uint8_t finish)
 }
 
 uint8_t ring_byte_fill (uint8_t size, volatile uint8_t *data,
-                        uint8_t start, volatile uint8_t *finish, uint8_t byte)
+                        uint8_t start, volatile uint8_t *finish,
+                        uint8_t byte)
 {
   uint8_t result = 0;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
     if (ring_is_fillable (size, start, *finish, 1) != 0) {
-      if (*finish < size - 1) {
+      if (*finish < size) {
         *(data + *finish) = byte;
         ++(*finish);
       } else {
-        /* fill data at 0 position */
+        /* start should be more than zero here */
+        /* so, fill data at 0 position */
         *data = byte;
         *finish = 1;
       }
@@ -69,18 +71,24 @@ uint8_t ring_byte_fill (uint8_t size, volatile uint8_t *data,
 }
 
 uint8_t ring_byte_drain (uint8_t size, volatile uint8_t *data,
-                         volatile uint8_t *start, uint8_t finish, uint8_t *byte)
+                         volatile uint8_t *start, volatile uint8_t *finish,
+                         uint8_t *byte)
 {
   uint8_t result = 0;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
-    if (ring_is_drainable (size, *start, finish, 1) != 0) {
+    if (ring_is_drainable (size, *start, *finish, 1) != 0) {
 
       *byte = *(data + *start);
 
-      if (*start < finish)
-        ++(*start);
-      else
-        *start = finish;
+      ++(*start);
+
+      if (*start == *finish)
+        // empty
+        *start = *finish = 0;
+
+      if (*start == size)
+        /* wrap */
+        *start = 0;
 
       result = 1;
     }
@@ -135,12 +143,12 @@ uint8_t ring_array_fill (uint8_t size, volatile uint8_t *data,
 }
 
 uint8_t ring_array_drain (uint8_t size, volatile uint8_t *data,
-                          volatile uint8_t *start, uint8_t finish,
+                          volatile uint8_t *start, volatile uint8_t *finish,
                           uint8_t *array, uint8_t array_size)
 {
   uint8_t result = 0;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
-    if (ring_is_drainable (size, *start, finish, array_size) != 0) {
+    if (ring_is_drainable (size, *start, *finish, array_size) != 0) {
       for (uint8_t i = 0; i < array_size; ++i) {
         uint8_t byte = 0;
         if (ring_byte_drain (size, data, start, finish, &byte) != 0)

@@ -34,7 +34,7 @@ uint8_t buffer_byte_fill (volatile struct buffer_t *buffer, uint8_t byte)
 uint8_t buffer_byte_drain (volatile struct buffer_t *buffer, uint8_t *byte)
 {
   return ring_byte_drain (BUFFER_SIZE, buffer->data,
-                          &buffer->start, buffer->finish, byte);
+                          &buffer->start, &buffer->finish, byte);
 }
 
 uint8_t buffer_byte_get (volatile struct buffer_t *buffer,
@@ -55,7 +55,7 @@ uint8_t buffer_array_drain (volatile struct buffer_t *buffer,
                             uint8_t *array, uint8_t array_size)
 {
   return ring_array_drain (BUFFER_SIZE, buffer->data,
-                           &buffer->start, buffer->finish, array, array_size);
+                           &buffer->start, &buffer->finish, array, array_size);
 }
 
 uint8_t buffer_is_fillable (volatile struct buffer_t *buffer, uint8_t fill_size)
