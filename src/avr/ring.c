@@ -77,10 +77,10 @@ uint8_t ring_byte_drain (uint8_t size, volatile uint8_t *data,
 
       *byte = *(data + *start);
 
-      if (*start < size - 1)
+      if (*start < finish)
         ++(*start);
       else
-        *start = 0;
+        *start = finish;
 
       result = 1;
     }
@@ -166,7 +166,7 @@ uint8_t ring_is_drainable (uint8_t size,
 {
   uint8_t result = 0;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
-    result = (drain_size < ring_size (size, start, finish)) ? 1 : 0;
+    result = (drain_size <= ring_size (size, start, finish)) ? 1 : 0;
   }
   return result;
 }

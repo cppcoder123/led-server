@@ -114,6 +114,8 @@ void decode_try ()
     return;                     /* wait */
   }
 
+  debug_0 (DEBUG_DECODE, DEBUG_1);
+
   if (spi_read_array (in_buf, msg_size - 2) == 0)
     return;                     /* wait */
 

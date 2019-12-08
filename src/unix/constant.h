@@ -59,8 +59,10 @@ enum {
 
 /* debug domain */
 enum {
+  DEBUG_DECODE,
   DEBUG_FLUSH,
   DEBUG_ROTOR,
+  DEBUG_SPI,
 };
 
 /* debug key */
