@@ -94,8 +94,12 @@ uint8_t ring_byte_get (uint8_t size, volatile uint8_t *data,
                        uint8_t index, uint8_t *byte)
 {
   uint8_t result = 0;
+
+  if (index >= size)
+    return result;
+
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
-    if (ring_is_drainable (size, start, finish, index) != 0) {
+    if (ring_is_drainable (size, start, finish, index + 1) != 0) {
 
       uint16_t long_index = (uint16_t)start + (uint16_t)index;
   
