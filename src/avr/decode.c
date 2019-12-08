@@ -47,13 +47,13 @@ static void decode ()
       ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
     encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ());
-    {
-      /* NOTE: debug  */
-      uint8_t byte_num = msg_size - 2;
-      if (byte_num < LED_ARRAY_SIZE)
-        for (uint8_t j = 0; j < byte_num; ++j)
-          debug_1 (DEBUG_DECODE, DEBUG_0, in_buf[j]);
-    }
+    /* { */
+    /*   /\* NOTE: debug  *\/ */
+    /*   uint8_t byte_num = msg_size - 2; */
+    /*   if (byte_num < LED_ARRAY_SIZE) */
+    /*     for (uint8_t j = 0; j < byte_num; ++j) */
+    /*       debug_1 (DEBUG_DECODE, DEBUG_0, in_buf[j]); */
+    /* } */
     break;
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;

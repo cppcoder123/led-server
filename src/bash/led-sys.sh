@@ -10,7 +10,7 @@ prefix_echo () {
     echo "sys: "$MSG
 }
 
-MSG="Checking network"
+MSG="Checking Network..."
 prefix_echo
 #
 STATUS=1
@@ -27,7 +27,7 @@ done
 MSG="Network is OK"
 prefix_echo
 
-MSG="Checking Mpd"
+MSG="Checking Mpd..."
 prefix_echo
 #
 STATUS=1
@@ -48,7 +48,7 @@ done
 MSG="Mpd is OK"
 prefix_echo
 
-MSG="Connecting bluetooth speaker"
+MSG="Connecting Bluetooth speaker..."
 prefix_echo
 #
 STATUS=1
@@ -70,7 +70,7 @@ done
 MSG="Bluetooth speaker is connected"
 prefix_echo
 
-MSG="Enabling mpd output"
+MSG="Enabling Mpd Output"
 prefix_echo
 #
 STATUS=1
@@ -88,7 +88,7 @@ do
     fi
 done
 #
-MSG="Mpd output is enabled"
+MSG="Mpd Output is enabled"
 prefix_echo
 
 #
