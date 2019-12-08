@@ -45,7 +45,7 @@ namespace led_d
     if (m_info_list.empty () == true) {
       log_t::buffer_t buf;
       log_t::error ("Empty info list");
-      return std::make_pair ("no-info", format);
+      return std::make_pair ("No-info ", format);
     }
 
     auto info = m_info_list.front ();

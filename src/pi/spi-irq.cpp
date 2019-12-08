@@ -82,14 +82,14 @@ namespace led_d
       return;
     }
 
-    {
-      constexpr auto rise = "spi-irq: Rising edge";
-      constexpr auto fall = "spi-irq: Falling edge";
-      if (event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
-        log_t::info (rise);
-      else if (event.event_type == GPIOD_LINE_EVENT_FALLING_EDGE)
-        log_t::info (fall);
-    }
+    // {
+    //   constexpr auto rise = "spi-irq: Rising edge";
+    //   constexpr auto fall = "spi-irq: Falling edge";
+    //   if (event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
+    //     log_t::info (rise);
+    //   else if (event.event_type == GPIOD_LINE_EVENT_FALLING_EDGE)
+    //     log_t::info (fall);
+    // }
 
     m_queue.push ((event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
                   ? interrupt_rised : interrupt_cleared);

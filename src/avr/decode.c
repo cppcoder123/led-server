@@ -38,12 +38,12 @@ static void decode ()
   uint8_t status = STATUS_FAIL;
 
   switch (msg_id) {
-  case MSG_ID_LED:
-    status = (flush_push (in_buf[0]) == 1) ? STATUS_SUCCESS : STATUS_FAIL;
-    encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
-    break;
+  /* case MSG_ID_LED: */
+  /*   status = (flush_push (in_buf[0]) == 1) ? STATUS_SUCCESS : STATUS_FAIL; */
+  /*   encode_msg_1 (MSG_ID_STATUS, msg_serial, status); */
+  /*   break; */
   case MSG_ID_LED_ARRAY:
-    status = (flush_push_array (in_buf, LED_ARRAY_SIZE) == 1)
+    status = (flush_push_array (in_buf, msg_size - 2) == 1)
       ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
     encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ());
@@ -114,7 +114,7 @@ void decode_try ()
     return;                     /* wait */
   }
 
-  debug_0 (DEBUG_DECODE, DEBUG_1);
+  /* debug_0 (DEBUG_DECODE, DEBUG_1); */
 
   if (spi_read_array (in_buf, msg_size - 2) == 0)
     return;                     /* wait */

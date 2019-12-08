@@ -27,7 +27,7 @@ done
 MSG="Network is OK"
 prefix_echo
 
-MSG="Checking mpd"
+MSG="Checking Mpd"
 prefix_echo
 #
 STATUS=1

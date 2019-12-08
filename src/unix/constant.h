@@ -29,7 +29,7 @@ enum {
 
   /*pi=>avr: one column as payload,*/
   /*avr=>pi: STATUS*/
-  MSG_ID_LED,
+  /* MSG_ID_LED, */
   MSG_ID_LED_ARRAY,
 
   /* avr=>pi: request data to display, 0 as payload */

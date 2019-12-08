@@ -126,21 +126,32 @@ namespace led_d
 
     std::size_t len = matrix.size () / LED_ARRAY_SIZE;
     auto start = matrix.begin ();
+    matrix_t::iterator finish = start;
     
     for (std::size_t i = 0; i < len; ++i) {
-      matrix_t::iterator finish = start;
       std::advance (finish, LED_ARRAY_SIZE);
       mcu_msg_t tmp (start, finish);
       m_to_mcu_queue->push
-        (mcu::encode::join (mcu_id::get (), MSG_ID_LED_ARRAY, tmp));
+        (mcu::encode::join
+         (mcu_id::get (), MSG_ID_LED_ARRAY, tmp));
       start = finish;
     }
 
     len = matrix.size () % LED_ARRAY_SIZE;
-    for (std::size_t i = matrix.size ()- len; i < matrix.size (); ++i)
+    if (len > 0) {
+      std::advance (finish, matrix.size () % LED_ARRAY_SIZE);
+      mcu_msg_t tmp (start, finish);
       m_to_mcu_queue->push
-        (mcu::encode::join (mcu_id::get (), MSG_ID_LED, matrix[i]));
-    
+        (mcu::encode::join
+         (mcu_id::get (), MSG_ID_LED_ARRAY, tmp));
+    }
+        
+
+    // len = matrix.size () % LED_ARRAY_SIZE;
+    // mcu_msg_t tmp ();
+    // for (std::size_t i = matrix.size ()- len; i < matrix.size (); ++i)
+    //   m_to_mcu_queue->push
+    //     (mcu::encode::join (mcu_id::get (), MSG_ID_LED, matrix[i]));
     // {
     //   // fixme: debug
     //   log_t::buffer_t buf;
