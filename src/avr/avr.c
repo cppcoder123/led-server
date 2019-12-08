@@ -8,7 +8,7 @@
 #include "counter.h"
 #include "decode.h"
 /* #include "debug.h" */
-#include "display.h"
+/* #include "display.h" */
 #include "flush.h"
 #include "postpone.h"
 #include "power.h"
@@ -24,7 +24,6 @@ static void init ()
   /* debug_init (); */
   counter_init ();
   decode_init ();
-  display_init ();
   flush_init ();
   postpone_init ();
   rotor_init ();

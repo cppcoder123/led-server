@@ -2,6 +2,8 @@
  *
  */
 
+#include <avr/io.h>
+
 #include "unix/constant.h"
 
 #include "buffer.h"
@@ -13,6 +15,8 @@
 #define MATRIX_SIZE 32
 
 static volatile struct buffer_t led_data;
+
+static struct display_t display_1;
 
 enum {
   FLUSH_SHIFT,
@@ -41,6 +45,8 @@ void flush_init ()
   buffer_init (&led_data);
   mode = FLUSH_DISABLED;
   global_mode = FLUSH_GLOBAL_DISABLED;
+
+  display_init (&display_1, PORTA2, PORTA6, PORTA4);
 }
 
 void flush_enable ()
@@ -81,16 +87,16 @@ void flush_try ()
       || (buffer_size (&led_data) < MATRIX_SIZE))
     return;
 
-  display_data_start ();
+  display_data_start (&display_1);
 
   uint8_t symbol;
   for (uint8_t i = 0; i < MATRIX_SIZE; ++i)
     if (buffer_byte_get (&led_data, i, &symbol) != 0)
-      display_data_column (symbol);
+      display_data_column (&display_1, symbol);
     else
-      display_data_column (0);
+      display_data_column (&display_1, 0);
 
-  display_data_stop ();
+  display_data_stop (&display_1);
 
   if (mode == FLUSH_SHIFT) {
     /* uint8_t before = buffer_size (&led_data); */
