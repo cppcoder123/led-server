@@ -85,7 +85,6 @@ uint8_t spi_write_array (uint8_t *array, uint8_t array_size)
 {
   uint8_t status = buffer_array_fill (&write_buf, array, array_size);
   write_interrupt_start ();
-  debug_0 (DEBUG_SPI, DEBUG_1);
   return status;
 }
 

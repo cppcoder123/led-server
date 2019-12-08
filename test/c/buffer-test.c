@@ -43,7 +43,28 @@ int main (int argc, char **argv)
   for (int i = 0; i < arr_size; ++i)
     std::cout << "dst array value: "
               << (int) i << " - " << (int) dst[i] << "\n";
-  
+
+  for (int i = 0; i < 5; ++i)
+    std::cout << "fill status: " << (int) buffer_byte_fill (&buff, i) << "\n";
+
+  for (int i = 0; i < 3; ++i) {
+    uint8_t byte = 0;
+    std::cout << "drain status: "
+              << (int) buffer_byte_drain (&buff, &byte) << "\n";
+    std::cout << "drain value: " << (int) byte << "\n";
+  }
+
+  for (int i = 0; i < 3; ++i)
+    std::cout << "fill status: "
+              << (int) buffer_byte_fill (&buff, i + 10) << "\n";
+
+  for (int i = 0; i < 10; ++i) {
+    uint8_t byte = 0;
+    std::cout << "drain status: "
+              << (int) buffer_byte_drain (&buff, &byte) << "\n";
+    std::cout << "drain value: " << (int) byte << "\n";
+  }
+
   std::cout << "aaa\n";
   return 0;
 }
