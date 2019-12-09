@@ -3,27 +3,41 @@
 echo "pid: "$$
 
 # fixme
-exit 0
+# exit 0
 
-TRACK_NAME="Empty track"
+TRACK_NAME="No-track-name"
 echo_track () {
-    echo "mpd: "$TRACK_NAME
+    echo "mpd: "${TRACK_NAME}
 }
 
 GO_AHEAD=1
-trap echo_track SIGUSR1
-trap "GO_AHEAD=0" SIGUSR2
 
-while [ $GO_AHEAD -eq 1 ]
+#trap echo_track SIGUSR1
+#trap "echo ZZZ" SIGUSR1
+trap "GO_AHEAD=0" SIGUSR1
+
+NAME=`mpc current` >& /dev/null
+STATUS=$?
+if [ "${STATUS}" == 0 ] && [ "${NAME}" != "" ]
+then
+    TRACK_NAME=${NAME}
+fi
+
+echo_track
+
+while [ "${GO_AHEAD}" == 1 ]
 do
-    TRACK_NAME=`mpc current`
+    NAME=`mpc current` >& /dev/null
     STATUS=$?
-    if [ $STATUS -ne 0 ]
+    if [ "${STATUS}" == 0 ]
     then
-        sleep 3
+        mpc idle
+    else
+        sleep 5
     fi
+    echo_track
     #echo $TRACK_NAME
-    mpc idle >& /dev/null >& /dev/null &
-    wait $!
+    #mpc idle >& /dev/null >& /dev/null &
+    #wait $!
 done
 
