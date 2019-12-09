@@ -113,6 +113,9 @@ namespace led_d
       log_t::buffer_t buf;
       buf << "popen: Failed to handle read";
       log_t::error (buf);
+
+      m_pid = 0;
+
       return;
     }
 
