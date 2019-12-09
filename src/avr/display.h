@@ -24,7 +24,7 @@ void display_stop (struct display_t *display);
 /*transfer data to led matrix*/
 void display_data_start (struct display_t *display);
 /*call 'display_column' 32 times, for each column*/
-void display_data_column (struct display_t *display, uint8_t data);
+void display_data_column (struct display_t *display, uint8_t column);
 void display_data_stop (struct display_t *display);
 
 /*tweak brightness*/
