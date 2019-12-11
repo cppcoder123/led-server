@@ -13,8 +13,8 @@ namespace led_d
 
   bash_in_t::bash_in_t (asio::io_context &io_context, bash_queue_t &queue)
     : m_context (io_context),
-      m_queue (queue),
-      m_source_vector (SOURCE_SIZE, nullptr)
+      m_queue (queue)
+      // m_source_vector (SOURCE_SIZE, nullptr)
   {
   }
 
@@ -24,11 +24,11 @@ namespace led_d
     buf << "bash-in: Starting service...";
     log_t::info (buf);
 
-    auto source = std::make_shared<popen_t> (mpd_name, m_context, m_queue);
-    m_source_vector[MPD] = source;
+    auto in = std::make_shared<popen_t> (mpd_name, m_context, m_queue);
+    m_in_list.push_back (in);
 
-    source = std::make_shared<popen_t>(sys_name, m_context, m_queue);
-    m_source_vector[SYS] = source;
+    in = std::make_shared<popen_t>(sys_name, m_context, m_queue);
+    m_in_list.push_back (in);
   }
 
   void bash_in_t::stop ()
@@ -43,17 +43,17 @@ namespace led_d
     buf << "bash-in: Service is stopped";
     log_t::info (buf);
 
-    m_source_vector.clear ();
+    m_in_list.clear ();
 
     // fixme: Do we need to do smth else here?
   }
 
-  bool bash_in_t::kick (source_t source)
-  {
-    if ((source < 0)
-        || (source >= SOURCE_SIZE))
-      return false;
+  // bool bash_in_t::kick (source_t source)
+  // {
+  //   if ((source < 0)
+  //       || (source >= SOURCE_SIZE))
+  //     return false;
 
-    return m_source_vector[source]->kill (SIGUSR1);
-  }
+  //   return m_source_vector[source]->kill (SIGUSR1);
+  // }
 } // namespace led_d
