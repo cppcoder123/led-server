@@ -116,6 +116,12 @@ namespace led_d
 
   bool handle_t::info_push (std::string info, std::string format)
   {
+    {
+      log_t::buffer_t buf;
+      buf << "request info: " << info;
+      log_t::info (buf);
+    }
+    
     matrix_t matrix;
     if (m_render.pixelize (matrix, info, format) == false) {
       log_t::buffer_t buf;
@@ -146,19 +152,6 @@ namespace led_d
          (mcu_id::get (), MSG_ID_LED_ARRAY, tmp));
     }
         
-
-    // len = matrix.size () % LED_ARRAY_SIZE;
-    // mcu_msg_t tmp ();
-    // for (std::size_t i = matrix.size ()- len; i < matrix.size (); ++i)
-    //   m_to_mcu_queue->push
-    //     (mcu::encode::join (mcu_id::get (), MSG_ID_LED, matrix[i]));
-    // {
-    //   // fixme: debug
-    //   log_t::buffer_t buf;
-    //   buf << "request info: " << request.info;
-    //   log_t::info (buf);
-    // }
-
     return true;
   }
 

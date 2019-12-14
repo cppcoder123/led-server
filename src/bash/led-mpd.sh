@@ -31,11 +31,16 @@ do
     STATUS=$?
     if [ "${STATUS}" == 0 ]
     then
-        mpc idle
+        if [ "${NAME}" != "${TRACK_NAME}" ]
+        then
+            TRACK_NAME=${NAME}
+            echo_track
+        fi
+        mpc idle >& /dev/null
     else
         sleep 5
     fi
-    echo_track
+    #echo_track
     #echo $TRACK_NAME
     #mpc idle >& /dev/null >& /dev/null &
     #wait $!

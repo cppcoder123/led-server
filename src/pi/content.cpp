@@ -43,6 +43,7 @@ namespace led_d
     }
 
     m_info[prefix] = (prefix == mpd) ? replace (suffix) : suffix;
+    m_iterator = m_info.find (prefix);
   }
 
   content_t::out_info_t content_t::out ()
@@ -58,10 +59,9 @@ namespace led_d
     if (m_info.empty () == false) {
       if (m_iterator == m_info.end ())
         m_iterator = m_info.begin ();
-      else
-        ++m_iterator;
-
-      return std::make_pair (m_iterator->second, format);
+      auto result = std::make_pair (m_iterator->second, format);
+      ++m_iterator;
+      return result;
     }
 
     //log_t::buffer_t buf;
