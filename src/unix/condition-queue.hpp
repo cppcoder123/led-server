@@ -27,14 +27,13 @@ namespace unix
 
     void push (record_t record);
 
-    template <bool wait>
-    std::optional<record_t> pop ();
+    template <bool wait> std::optional<record_t> pop ();
 
-    template <bool lock>
-    bool empty ();
+    template <bool lock> bool empty ();
 
-    template <bool lock>
-    void notify_one ();
+    template <bool lock> std::size_t size ();
+
+    template <bool lock> void notify_one ();
 
   private:
 
@@ -91,10 +90,24 @@ namespace unix
   template <bool really_lock>
   bool condition_queue_t<record_t, mutex_t, condition_t>::empty ()
   {
+    std::mutex &mutex (m_mutex);
+
     if constexpr (really_lock)
-      std::lock_guard lock (m_mutex);
+      std::lock_guard lock (mutex);
 
     return m_queue.empty ();
+  }
+
+  template <typename record_t, typename mutex_t, typename condition_t>
+  template <bool really_lock>
+  std::size_t condition_queue_t<record_t, mutex_t, condition_t>::size ()
+  {
+    std::mutex &mutex (m_mutex);
+
+    if constexpr (really_lock)
+      std::lock_guard lock (mutex);
+
+    return m_queue.size ();
   }
 
   template <typename record_t, typename mutex_t, typename condition_t>

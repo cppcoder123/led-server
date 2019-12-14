@@ -13,6 +13,7 @@
 #include "flush.h"
 
 #define MATRIX_SIZE 32
+#define POLL_LIMIT 64 /* ? */
 
 static volatile struct buffer_t led_data;
 
@@ -87,6 +88,9 @@ void flush_try ()
       || (buffer_size (&led_data) < MATRIX_SIZE))
     return;
 
+  /* if (buffer_size (&led_data) < POLL_LIMIT) */
+  /*   encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ()); */
+
   display_data_start (&display_1);
 
   uint8_t symbol;
@@ -99,12 +103,7 @@ void flush_try ()
   display_data_stop (&display_1);
 
   if (mode == FLUSH_SHIFT) {
-    /* uint8_t before = buffer_size (&led_data); */
     buffer_byte_drain (&led_data, &symbol);
-    /* uint8_t after =  buffer_size (&led_data); */
-    /* if ((before == 1) */
-    /*     && (after == 0)) */
-    /*   encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ()); */
   } else if (mode == FLUSH_CLEAR)
     buffer_clear (&led_data);
 
@@ -115,8 +114,3 @@ uint8_t flush_buffer_space ()
 {
   return buffer_space (&led_data);
 }
-
-/* void led_flush_mono (uint8_t *matrix) */
-/* { */
-/*   /\*fixme*\/ */
-/* } */

@@ -17,6 +17,7 @@
 namespace led_d
 {
   constexpr auto MCU_BUFFER_LIMIT = 128;
+  constexpr auto PI_QUEUE_LIMIT = 3;
 
   handle_t::handle_t (const std::string &default_font,
                       const std::list<std::string> &regexp_list)
@@ -77,8 +78,14 @@ namespace led_d
           log_t::error ("handle: Failed to parse buffer size");
           return;
         }
-        if (buf_space <= MCU_BUFFER_LIMIT)
+        if (m_to_mcu_queue->size<true>() >= PI_QUEUE_LIMIT)
           return;
+
+        {
+          log_t::buffer_t buf;
+          buf << "handle: poll space: " << (int) buf_space;
+          log_t::info (buf);
+        }
 
         auto info = m_content.out ();
         info_push (info.first, info.second);
@@ -120,7 +127,7 @@ namespace led_d
   {
     {
       log_t::buffer_t buf;
-      buf << "request info: " << info;
+      buf << "info: " << info;
       log_t::info (buf);
     }
     
@@ -152,6 +159,13 @@ namespace led_d
       m_to_mcu_queue->push
         (mcu::encode::join
          (mcu_id::get (), MSG_ID_LED_ARRAY, tmp));
+    }
+
+    {
+      // debug
+      log_t::buffer_t buf;
+      buf << "handle: To-mcu-queue size is: " << m_to_mcu_queue->size<true> ();
+      log_t::info (buf);
     }
         
     return true;

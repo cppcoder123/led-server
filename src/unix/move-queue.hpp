@@ -26,6 +26,8 @@ namespace unix
 
     bool empty () const;
 
+    std::size_t size () const;
+
   private:
 
     std::list<record_t> m_holder;
@@ -53,6 +55,12 @@ namespace unix
   bool move_queue_t<record_t>::empty () const
   {
     return m_holder.empty ();
+  }
+
+  template <typename record_t>
+  std::size_t move_queue_t<record_t>::size () const
+  {
+    return m_holder.size ();
   }
 
 } // unix

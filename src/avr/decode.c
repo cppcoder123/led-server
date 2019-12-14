@@ -43,10 +43,15 @@ static void decode ()
   /*   encode_msg_1 (MSG_ID_STATUS, msg_serial, status); */
   /*   break; */
   case MSG_ID_LED_ARRAY:
-    status = (flush_push_array (in_buf, msg_size - 2) == 1)
-      ? STATUS_SUCCESS : STATUS_FAIL;
-    encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
-    encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ());
+    {
+      uint8_t before = flush_buffer_space ();
+      status = (flush_push_array (in_buf, msg_size - 2) == 1)
+        ? STATUS_SUCCESS : STATUS_FAIL;
+      encode_msg_1 (MSG_ID_STATUS, msg_serial, status);
+      uint8_t after = flush_buffer_space ();
+      encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ());
+      debug_3 (DEBUG_DECODE, DEBUG_10, msg_size - 2, before, after);
+    }
     /* { */
     /*   /\* NOTE: debug  *\/ */
     /*   uint8_t byte_num = msg_size - 2; */
