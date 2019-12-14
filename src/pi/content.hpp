@@ -7,6 +7,7 @@
 
 #include <list>
 #include <map>
+#include <memory>
 #include <regex>
 #include <string>
 #include <utility>
@@ -18,7 +19,8 @@ namespace led_d
   {
   public:
 
-    content_t ();
+    content_t () = delete;
+    content_t (const std::list<std::string> &regexp_list);
     ~content_t ();
 
     void in (std::string info);
@@ -35,6 +37,11 @@ namespace led_d
     using map_t = std::map<std::string/*info src*/, std::string/*info*/>;
     map_t m_info;
     map_t::iterator m_iterator;
+
+    using regex_ptr = std::shared_ptr<std::regex>;
+    using find_replace_t = std::pair<regex_ptr/*find*/, std::string/*replace*/>;
+    using regex_list_t = std::list<find_replace_t>;
+    regex_list_t m_regex_list;
 
     static const std::regex m_regex;
   };

@@ -8,6 +8,7 @@
 #include <condition_variable>
 #include <list>
 #include <mutex>
+#include <string>
 
 #include "unix/condition-queue.hpp"
 
@@ -24,7 +25,8 @@ namespace led_d
   {
   public:
 
-    handle_t (const std::string &default_font);
+    handle_t (const std::string &default_font,
+              const std::list<std::string> &regexp_list);
     handle_t (const handle_t&) = delete;
     ~handle_t () {};
 

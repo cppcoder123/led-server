@@ -18,10 +18,12 @@ namespace led_d
 {
   constexpr auto MCU_BUFFER_LIMIT = 128;
 
-  handle_t::handle_t (const std::string &default_font)
+  handle_t::handle_t (const std::string &default_font,
+                      const std::list<std::string> &regexp_list)
     : m_bash_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_to_mcu_queue (nullptr),
+      m_content (regexp_list),
       m_render (default_font),
       m_go (true)
   {

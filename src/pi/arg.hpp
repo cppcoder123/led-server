@@ -4,6 +4,7 @@
 #ifndef LED_D_ARG_HPP
 #define LED_D_ARG_HPP
 
+#include <list>
 #include <string>
 #include <utility>
 
@@ -24,7 +25,7 @@ namespace led_d
     bool spi_msg;               // print spi messages
 
     std::string default_font;
-    std::string device;
+    std::list<std::string> subject_regexp_list;
   };
 } // namespace led_d
 

@@ -16,10 +16,24 @@ namespace led_d
 
   const std::regex content_t::m_regex ("\\s*([^: ]+)\\s*:(.*)");
 
-  content_t::content_t ()
+  content_t::content_t (const std::list<std::string> &regex_list)
     : m_iterator (m_info.begin ())
   {
-    // fixme
+    for (auto &pattern_replace : regex_list) {
+      // 1. split
+      std::string pattern, replace;
+      if (popen_t::split (pattern_replace, pattern, replace, m_regex) == false) {
+        log_t::buffer_t buf;
+        buf << "content: Failed to split regex_pattern \""
+            << pattern_replace << "\"";
+        log_t::error (buf);
+        continue;
+      }
+      // 2. create regex
+      auto regex = std::make_shared<std::regex> (pattern);
+      // 3. put pair into list
+      m_regex_list.push_back (std::make_pair (regex, replace));
+    }
   }
 
   content_t::~content_t ()
@@ -71,7 +85,21 @@ namespace led_d
 
   std::string content_t::replace (const std::string &src)
   {
-    // fixme
+    for (auto &re_replace : m_regex_list) {
+      try {
+        auto dst = std::regex_replace
+          (src, *(re_replace.first), re_replace.second);
+        if (dst != src)
+          return dst;
+      }
+      catch (std::exception &e) {
+        log_t::buffer_t buf;
+        buf << "content: Failed to regex-replace into \""
+            << re_replace.second << "\"";
+        log_t::error (buf);
+      }
+    }
+
     return src;
   }
 } // led_d

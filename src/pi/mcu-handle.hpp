@@ -29,8 +29,7 @@ namespace led_d
 
     using irq_queue_t = spi_irq_t::queue_t;
 
-    mcu_handle_t (const std::string &path,
-           mcu_queue_t &from_queue, bool show_msg);
+    mcu_handle_t (mcu_queue_t &from_queue, bool show_msg);
     mcu_handle_t (const mcu_handle_t&) = delete;
     ~mcu_handle_t ();
 

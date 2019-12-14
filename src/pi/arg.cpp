@@ -4,6 +4,7 @@
 
 
 #include "tclap/CmdLine.h"
+#include "tclap/MultiArg.h"
 #include "tclap/SwitchArg.h"
 #include "tclap/ValueArg.h"
 
@@ -36,9 +37,11 @@ namespace led_d
       TCLAP::ValueArg<std::string>
         default_font ("d", "default-font", "Default font to use",
                       false, "", "font name", parser);
-      TCLAP::ValueArg<std::string>
-        device ("s", "device", "Render device, e.g \"/dev/ttyXXX\"",
-                    false, "", "dev-name", parser);
+
+      TCLAP::MultiArg<std::string>
+        subject_regexp_list
+        ("s", "subect-regexp", "Regexp and replacement for track name",
+         false, "regexp string", parser);
 
       parser.parse (argc, argv);
 
@@ -47,7 +50,10 @@ namespace led_d
       arg.spi_msg = spi.getValue ();
       //
       arg.default_font = default_font.getValue ();
-      arg.device = device.getValue ();
+
+      for (auto iter = subject_regexp_list.begin ();
+           iter != subject_regexp_list.end (); ++iter)
+        arg.subject_regexp_list.push_back (*iter);
     }
 
     catch (TCLAP::ArgException &e) {

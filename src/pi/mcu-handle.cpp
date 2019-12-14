@@ -17,10 +17,8 @@
 namespace led_d
 {
 
-  mcu_handle_t::mcu_handle_t (const std::string &/*path*/,
-                mcu_queue_t &from_queue, bool show_msg)
-    : //m_path (path),
-      m_go (true),
+  mcu_handle_t::mcu_handle_t (mcu_queue_t &from_queue, bool show_msg)
+    : m_go (true),
       m_to_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_queue (from_queue),
       m_irq_queue (std::ref (m_mutex), std::ref (m_condition)),
