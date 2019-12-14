@@ -89,7 +89,8 @@ namespace led_d
       try {
         auto dst = std::regex_replace
           (src, *(re_replace.first), re_replace.second);
-        if (dst != src)
+        if ((dst.empty () == false)
+            && (dst != src))
           return dst;
       }
       catch (std::exception &e) {
