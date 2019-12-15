@@ -4,6 +4,7 @@
 
 #include "unix/constant.h"
 
+#include "flush.h"
 #include "postpone.h"
 #include "spi.h"
 
@@ -16,7 +17,8 @@ static uint8_t postponed_size;
 
 static uint8_t is_enough_space ()
 {
-  return (spi_read_space () >= ENOUGH_SPACE) ? 1 : 0;
+  return ((spi_read_space () >= ENOUGH_SPACE)
+          && (flush_buffer_space () >= ENOUGH_SPACE)) ? 1 : 0;
 }
 
 static void flush (uint8_t *msg, uint8_t msg_size)

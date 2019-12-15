@@ -45,8 +45,9 @@ namespace led_d
 
     // handle mcu messages
     void mcu_version (const mcu_msg_t &msg);
+    void mcu_status (const mcu_msg_t &msg);
 
-    bool info_push (std::string info, std::string format);
+    void info_push ();
 
     std::mutex m_mutex;
     std::condition_variable m_condition;

@@ -76,7 +76,11 @@ namespace led_d
 
   void mcu_handle_t::write_msg (const mcu_msg_t &msg_src)
   {
-    uint8_t serial_id = mcu::decode::get_serial (msg_src);
+    uint8_t serial_id = 0;
+    if (mcu::decode::get_serial (msg_src, serial_id) == false) {
+      log_t::error ("mcu-handle: Failed to get serial id from outcoming msg");
+      return;
+    }
 
     //
     // eye-catch | size | serial | msg-id | xxx
@@ -109,27 +113,23 @@ namespace led_d
     }
 
     msg.clear ();
-    for (auto &number : in_msg)
-      if (m_mcu_parse.push (number, msg) == true) {
-        uint8_t serial = 0;
-        uint8_t msg_id = MSG_ID_EMPTY;
-        if (mcu::decode::split (msg, serial, msg_id) == true) {
-          m_block.relax (serial);
-          if ((m_show_msg == true)
-              && (serial != SERIAL_ID_TO_IGNORE)) {
-            log_t::buffer_t buf;
-            buf << "serial in: " << (int) serial;
-            log_t::info (buf);
-          }
-          if (msg_id != MSG_ID_STATUS)
-            // special handling is needed, otherwise just drop msg
-            m_from_queue.push (msg);
-        } else {
-          log_t::buffer_t buf;
-          buf << "mcu-handle: Failed to decode mcu message";
-          log_t::error (buf);
-        }
+    for (auto &number : in_msg) {
+      if (m_mcu_parse.push (number, msg) == false)
+        continue;
+      uint8_t serial = SERIAL_ID_TO_IGNORE;
+      if (mcu::decode::get_serial (msg, serial) == false) {
+        log_t::error ("mcu-handle: Failed to decode mcu message");
+        continue;
       }
+      m_block.relax (serial);
+      if ((m_show_msg == true)
+          && (serial != SERIAL_ID_TO_IGNORE)) {
+        log_t::buffer_t buf;
+        buf << "serial in: " << (int) serial;
+        log_t::info (buf);
+      }
+      m_from_queue.push (msg);
+    }
   }
 
 } // namespace led_d

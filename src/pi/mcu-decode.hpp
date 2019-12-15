@@ -31,8 +31,9 @@ namespace led_d
       template <typename ...payload_t>
       static bool split_payload (const mcu_msg_t &msg, payload_t& ...payload);
 
-      static uint8_t get_serial (const mcu_msg_t &msg);
-      static uint8_t get_msg_id (const mcu_msg_t &msg);
+      // return true if decode was OK
+      static bool get_serial (const mcu_msg_t &msg, uint8_t &serial);
+      static bool get_msg_id (const mcu_msg_t &msg, uint8_t &msg_id);
 
     private:
 
@@ -96,26 +97,24 @@ namespace led_d
       return split (msg, serial, msg_id, payload...);
     }
 
-    inline uint8_t decode::get_serial (const mcu_msg_t &msg)
+    inline bool decode::get_serial (const mcu_msg_t &msg, uint8_t &serial)
     {
-      uint8_t serial = 0;
       uint8_t msg_id = 0;
 
       if (split (msg, serial, msg_id) == false)
-        return SERIAL_ID_TO_IGNORE;
+        return false;
 
-      return serial;
+      return true;
     }
 
-    inline uint8_t decode::get_msg_id (const mcu_msg_t &msg)
+    inline bool decode::get_msg_id (const mcu_msg_t &msg, uint8_t &msg_id)
     {
       uint8_t serial = 0;
-      uint8_t msg_id = 0;
 
       if (split (msg, serial, msg_id) == false)
-        return MSG_ID_EMPTY;
+        return false;
 
-      return msg_id;
+      return true;
     }
 
     inline bool decode::do_split (const mcu_msg_t &msg, iterator_t &iter,
