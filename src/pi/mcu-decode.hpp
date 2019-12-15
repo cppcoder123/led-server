@@ -86,7 +86,8 @@ namespace led_d
       if (do_split (msg, iter, serial, msg_id) == false)
         return false;
 
-      return do_split (iter, msg.cend (), payload...);
+      auto end_iter = msg.cend ();
+      return do_split (iter, end_iter, payload...);
     }
 
     template <typename ...payload_t>
