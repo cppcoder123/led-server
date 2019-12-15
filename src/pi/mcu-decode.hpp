@@ -42,10 +42,10 @@ namespace led_d
                             uint8_t &serial, uint8_t &msg_id);
 
       template <typename ...payload_t>
-      static bool do_split (const mcu_msg_t &msg, iterator_t &iter,
+      static bool do_split (iterator_t &iter, iterator_t &end_iter,
                             uint8_t& load_1, payload_t& ...payload);
 
-      static bool do_split (const mcu_msg_t&, iterator_t&) {return true;};
+      static bool do_split (iterator_t&, iterator_t&) {return true;};
 
     };
 
@@ -86,7 +86,7 @@ namespace led_d
       if (do_split (msg, iter, serial, msg_id) == false)
         return false;
 
-      return do_split (msg, iter, payload...);
+      return do_split (iter, msg.cend (), payload...);
     }
 
     template <typename ...payload_t>
@@ -134,16 +134,16 @@ namespace led_d
     }
 
     template <typename ...payload_t>
-    bool decode::do_split (const mcu_msg_t &msg, iterator_t &iter,
+    bool decode::do_split (iterator_t &iter, iterator_t &end_iter,
                            uint8_t& load_1, payload_t& ...payload)
     {
       ++iter;
-      if (iter == msg.cend ())
+      if (iter == end_iter)
         return false;
 
       load_1 = *iter;
 
-      return do_split (msg, iter, payload...);
+      return do_split (iter, end_iter, payload...);
     }
 
   } // namespace mcu

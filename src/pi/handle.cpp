@@ -142,8 +142,8 @@ namespace led_d
     }
     if (status != STATUS_SUCCESS) {
       log_t::buffer_t buf;
-      buf << "handle: Bad status \"" << status
-          << "\" has arrived for src-msg-id \"" << src_msg_id << "\"";
+      buf << "handle: Bad status \"" << (int) status
+          << "\" has arrived for src-msg-id \"" << (int) src_msg_id << "\"";
       log_t::error (buf);
     }
     if (src_msg_id == MSG_ID_LED_ARRAY)
