@@ -13,10 +13,12 @@
 #include "unix/condition-queue.hpp"
 
 #include "bash-queue.hpp"
+#include "command-queue.hpp"
 #include "content.hpp"
 #include "mcu-queue.hpp"
 #include "mcu-msg.hpp"
 #include "render.hpp"
+#include "status-queue.hpp"
 
 namespace led_d
 {
@@ -34,8 +36,12 @@ namespace led_d
     void stop ();
 
     bash_queue_t& bash_queue () {return m_bash_queue;}
+
     mcu_queue_t& from_mcu_queue () {return m_from_mcu_queue;}
-    void to_mcu_queue (mcu_queue_t &to_mcu_queue) {m_to_mcu_queue = &to_mcu_queue;}
+    void to_mcu_queue (mcu_queue_t &queue) {m_to_mcu_queue = &queue;}
+
+    status_queue_t& status_queue () {return m_status_queue;}
+    void command_queue (command_queue_t &queue) {m_command_queue = &queue;}
 
   private:
 
@@ -51,10 +57,14 @@ namespace led_d
 
     std::mutex m_mutex;
     std::condition_variable m_condition;
+
     bash_queue_t m_bash_queue;
 
     mcu_queue_t m_from_mcu_queue;
     mcu_queue_t *m_to_mcu_queue;
+
+    command_queue_t *m_command_queue;
+    status_queue_t m_status_queue;
 
     content_t m_content;
     render_t m_render;

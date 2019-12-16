@@ -24,6 +24,8 @@ namespace led_d
     : m_bash_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_to_mcu_queue (nullptr),
+      m_command_queue (nullptr),
+      m_status_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_content (regexp_list),
       m_render (default_font),
       m_go (true)
