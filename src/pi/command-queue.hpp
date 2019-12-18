@@ -11,15 +11,10 @@
 
 #include "unix/condition-queue.hpp"
 
+#include "command.hpp"
+
 namespace led_d
 {
-
-  struct command_t
-  {
-    unsigned id;
-    std::string command;
-  };
-
   using command_queue_t =
     unix::condition_queue_t<command_t, std::mutex, std::condition_variable>;
   
