@@ -8,12 +8,11 @@
 
 #include <cstdio>
 #include <csignal>
+#include <functional>
 #include <regex>
 #include <string>
 
 #include "asio.hpp"
-
-#include "bash-queue.hpp"
 
 namespace led_d
 {
@@ -21,9 +20,12 @@ namespace led_d
   class popen_t// : public std::enable_shared_from_this<popen_t>
   {
   public:
-    // Achtung: it throws
-    popen_t (const std::string &command,
-             asio::io_context &context, bash_queue_t &queue);
+    using info_arrived_t = std::function<void (const std::string&)>;
+    using error_occurred_t = std::function<void ()>;
+
+    // Attention: it throws
+    popen_t (const std::string &cmd_body, asio::io_context &context,
+             info_arrived_t info_arrived, error_occurred_t error_occurred);
     popen_t () = delete;
     popen_t (const popen_t&) = delete;
     ~popen_t ();
@@ -51,7 +53,9 @@ namespace led_d
 
     FILE *m_file_ptr;
     descriptor_t m_descriptor;
-    bash_queue_t &m_queue;
+
+    info_arrived_t m_info_arrived;
+    error_occurred_t m_error_occured;
 
     pid_t m_pid;
 

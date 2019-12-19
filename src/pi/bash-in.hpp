@@ -35,6 +35,9 @@ namespace led_d
 
   private:
 
+    void info_arrived (const std::string &info);
+    void error_occurred (const char *where);
+
     // void handle_popen (popen_ptr_t mpd, const asio::error_code &errc);
 
     asio::io_context &m_context;

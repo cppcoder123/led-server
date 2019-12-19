@@ -9,6 +9,8 @@
 #include <condition_variable>
 #include <mutex>
 
+#include "asio/asio.hpp"
+
 #include "command-queue.hpp"
 #include "status-queue.hpp"
 
@@ -18,7 +20,7 @@ namespace led_d
   class bash_out_t
   {
   public:
-    bash_out_t (status_queue_t &status_queue);
+    bash_out_t (asio::io_context &io_context, status_queue_t &status_queue);
     ~bash_out_t () = default;
 
     void start ();
@@ -30,6 +32,7 @@ namespace led_d
 
     void invoke_command (command_t command);
 
+    asio::io_context &m_io_context;
     status_queue_t &m_status_queue;
 
     command_queue_t m_command_queue;

@@ -9,8 +9,10 @@
 namespace led_d
 {
 
-  bash_out_t::bash_out_t (status_queue_t &status_queue)
-    : m_status_queue (status_queue),
+  bash_out_t::bash_out_t (asio::io_context &io_context,
+                          status_queue_t &status_queue)
+    : m_io_context (io_context),
+      m_status_queue (status_queue),
       m_go (true)
   {
   }
@@ -28,7 +30,6 @@ namespace led_d
   void bash_out_t::stop ()
   {
     m_go.store (false);
-
     m_command_queue.notify_one<true> ();
   }
 

@@ -20,15 +20,16 @@ namespace led_d
 
   const std::regex popen_t::m_regex ("\\s*([^: ]+)\\s*:\\s*(\\d+)\\s*");
 
-  popen_t::popen_t (const std::string &command,
-                    asio::io_context &context, bash_queue_t &queue)
-    : m_file_ptr (popen (command.c_str (), "r")),
+  popen_t::popen_t (const std::string &cmd_body, asio::io_context &context,
+                    info_arrived_t info_arrived, error_occurred_t error_occured)
+    : m_file_ptr (popen (cmd_body.c_str (), "r")),
       m_descriptor (context, ((m_file_ptr != 0) ? fileno (m_file_ptr) : -1)),
-      m_queue (queue),
+      m_info_arrived (info_arrived),
+      m_error_occured (error_occured),
       m_pid (0)
   {
     if (m_file_ptr == 0) {
-      std::string text = "Failed to invoke command \"" + command + "\"";
+      std::string text = "Failed to invoke command \"" + cmd_body + "\"";
       throw std::runtime_error (text);
     }
     m_descriptor.async_read_some
@@ -110,11 +111,13 @@ namespace led_d
   void popen_t::handle_read (const asio::error_code &errc, std::size_t len)
   {
     if (errc) {
-      log_t::buffer_t buf;
-      buf << "popen: Failed to handle read";
-      log_t::error (buf);
+      // log_t::buffer_t buf;
+      // buf << "popen: Failed to handle read";
+      // log_t::error (buf);
 
       m_pid = 0;
+
+      m_error_occured ();
 
       return;
     }
@@ -129,7 +132,7 @@ namespace led_d
       // log_t::info (buf);
       filter (line);
       if (line.empty () == false)
-        m_queue.push (line);
+        m_info_arrived (line);
     }
 
     m_descriptor.async_read_some
