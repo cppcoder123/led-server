@@ -30,7 +30,17 @@ namespace led_d
 
   private:
 
-    void invoke_command (command_t command);
+    void invoke_command (command_ptr_t command);
+
+    std::string wrap (const std::string &src);
+
+    void stream_info (const std::string &info);
+    void clot_info (const std::string &info);
+
+    void stream_error (command_ptr_t command);
+    void clot_error (command_ptr_t command);
+
+    void insert (command_ptr_t command);
 
     asio::io_context &m_io_context;
     status_queue_t &m_status_queue;
