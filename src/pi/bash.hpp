@@ -2,8 +2,8 @@
  *
  */
 
-#ifndef BASH_OUT_HPP
-#define BASH_OUT_HPP
+#ifndef BASH_HPP
+#define BASH_HPP
 
 #include <atomic>
 #include <map>
@@ -17,11 +17,11 @@
 namespace led_d
 {
 
-  class bash_out_t
+  class bash_t
   {
   public:
-    bash_out_t (asio::io_context &io_context, status_queue_t &status_queue);
-    ~bash_out_t () = default;
+    bash_t (asio::io_context &io_context, status_queue_t &status_queue);
+    ~bash_t () = default;
 
     void start ();
     void stop ();

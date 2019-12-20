@@ -6,12 +6,12 @@ PAUSE_IF_OK=1
 trap 'PAUSE_IF_OK=0' SIGUSR1
 
 
-prefix_echo () {
-    echo "sys: "$MSG
-}
+#prefix_echo () {
+#    echo "sys: "$MSG
+#}
 
-MSG="Checking Network..."
-prefix_echo
+echo "Checking Network..."
+#prefix_echo
 #
 STATUS=1
 while [ $STATUS -ne 0 ]
@@ -24,11 +24,11 @@ do
     fi
 done
 #
-MSG="Network is OK"
-prefix_echo
+echo "Network is OK"
+#prefix_echo
 
-MSG="Checking Mpd..."
-prefix_echo
+echo "Checking Mpd..."
+#prefix_echo
 #
 STATUS=1
 while [ $STATUS -ne 0 ]
@@ -45,11 +45,11 @@ do
     fi
 done
 #
-MSG="Mpd is OK"
-prefix_echo
+echo "Mpd is OK"
+#prefix_echo
 
-MSG="Connecting Bluetooth speaker..."
-prefix_echo
+echo "Connecting Bluetooth speaker..."
+#prefix_echo
 #
 STATUS=1
 while [ $STATUS -ne 0 ]
@@ -67,11 +67,11 @@ do
     fi
 done
 #
-MSG="Bluetooth speaker is connected"
-prefix_echo
+echo "Bluetooth speaker is connected"
+#prefix_echo
 
-MSG="Enabling Mpd Output"
-prefix_echo
+echo "Enabling Mpd Output"
+#prefix_echo
 #
 STATUS=1
 while [ $STATUS -ne 0 ]
@@ -88,8 +88,10 @@ do
     fi
 done
 #
-MSG="Mpd Output is enabled"
-prefix_echo
+echo "Mpd Output is enabled"
+#prefix_echo
+
+echo "ready"
 
 #
 # Hang here
@@ -105,8 +107,8 @@ done
 #
 #
 
-MSG="Stopping the system"
-prefix_echo
+echo "Stopping the system"
+#prefix_echo
 
 #led-bluetooth.sh disconnect
 

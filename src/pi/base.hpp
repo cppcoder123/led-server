@@ -10,7 +10,7 @@
 
 #include "arg.hpp"
 // #include "bash-in.hpp"
-#include "bash-out.hpp"
+#include "bash.hpp"
 #include "handle.hpp"
 #include "mcu-handle.hpp"
 #include "spi-irq.hpp"
@@ -39,13 +39,13 @@ namespace led_d
 
     handle_t m_handle;
     // bash_in_t m_bash_in;
-    bash_out_t m_bash_out;
+    bash_t m_bash;
     mcu_handle_t m_mcu_handle;
     spi_open_t m_spi_open;
     spi_irq_t m_irq;
 
     std::thread m_handle_thread;
-    std::thread m_bash_out_thread;
+    std::thread m_bash_thread;
     std::thread m_mcu_thread;
   };
 

@@ -1,5 +1,5 @@
 /*
- *
+ * Linux shell interaction
  */
 
 #include <chrono>
@@ -7,13 +7,15 @@
 
 #include "unix/log.hpp"
 
-#include "bash-out.hpp"
+#include "bash.hpp"
 #include "popen.hpp"
 
 namespace led_d
 {
+  constexpr auto system_command = "led-system.sh";
+  constexpr auto track_name_command = "led-track-name.sh";
 
-  bash_out_t::bash_out_t (asio::io_context &io_context,
+  bash_t::bash_t (asio::io_context &io_context,
                           status_queue_t &status_queue)
     : m_io_context (io_context),
       m_timeout_timer (m_io_context),
@@ -22,8 +24,15 @@ namespace led_d
   {
   }
 
-  void bash_out_t::start ()
+  void bash_t::start ()
   {
+    auto command = std::make_shared<command_t>
+      (STREAM_SYSTEM, system_command, command_t::infinity_timeout ());
+    m_command_queue.push (command);
+
+    // fixme: add track name here
+
+
     while (m_go.load () == true) {
       auto command = m_command_queue.pop<true>();
       if (!command)
@@ -32,31 +41,31 @@ namespace led_d
     }
   }
 
-  void bash_out_t::stop ()
+  void bash_t::stop ()
   {
     m_go.store (false);
     m_command_queue.notify_one<true> ();
   }
 
-  void bash_out_t::invoke_command (command_ptr_t command)
+  void bash_t::invoke_command (command_ptr_t command)
   {
     auto body = (command->wrap ())
       ? wrap (command->body ()) : command->body ();
 
     auto info_cb = (command->stream ())
       ? std::bind
-      (&bash_out_t::stream_info, this, command, std::placeholders::_1)
+      (&bash_t::stream_info, this, command, std::placeholders::_1)
       : std::bind
-      (&bash_out_t::clot_info, this, command, std::placeholders::_1);
+      (&bash_t::clot_info, this, command, std::placeholders::_1);
 
     auto error_cb = (command->stream ())
-      ? std::bind (&bash_out_t::stream_error, this, command)
-      : std::bind (&bash_out_t::clot_error, this, command);
+      ? std::bind (&bash_t::stream_error, this, command)
+      : std::bind (&bash_t::clot_error, this, command);
 
     m_timeout_timer.expires_from_now
       (std::chrono::seconds (command->timeout ()));
     m_timeout_timer.async_wait
-      (std::bind (&bash_out_t::timeout, this, command));
+      (std::bind (&bash_t::timeout, this, command));
 
     // insert cmd before creating popen
     insert (command);
@@ -66,24 +75,24 @@ namespace led_d
     command->popen (popen);
   }
 
-  std::string bash_out_t::wrap (const std::string &src)
+  std::string bash_t::wrap (const std::string &src)
   {
     return "led-command.sh \"" + src + "\"";
   }
 
-  void bash_out_t::stream_info (command_ptr_t command, const std::string &info)
+  void bash_t::stream_info (command_ptr_t command, const std::string &info)
   {
     auto status = std::make_shared<status_t>
       (command->id (), status_t::good (), info);
     m_status_queue.push (status);
   }
 
-  void bash_out_t::clot_info (command_ptr_t command, const std::string &info)
+  void bash_t::clot_info (command_ptr_t command, const std::string &info)
   {
     command->result (info);
   }
 
-  void bash_out_t::stream_error (command_ptr_t command)
+  void bash_t::stream_error (command_ptr_t command)
   {
     log_t::buffer_t buf;
     buf << "bash: Error during stream command \"" << command->id ()
@@ -92,7 +101,7 @@ namespace led_d
     erase (command);
   }
 
-  void bash_out_t::clot_error (command_ptr_t command)
+  void bash_t::clot_error (command_ptr_t command)
   {
     auto popen = command->popen ();
     auto status_value = (popen && popen->status ())
@@ -105,7 +114,7 @@ namespace led_d
     erase (command);
   }
 
-  void bash_out_t::timeout (command_ptr_t command)
+  void bash_t::timeout (command_ptr_t command)
   {
     log_t::buffer_t buf;
     buf << "bash: Command \"" << command->id () << "\", execution timeout";
@@ -119,7 +128,7 @@ namespace led_d
     erase (command);
   }
 
-  void bash_out_t::insert (command_ptr_t command)
+  void bash_t::insert (command_ptr_t command)
   {
     std::lock_guard<std::mutex> guard (m_mutex);
 
@@ -134,7 +143,7 @@ namespace led_d
     }
   }
 
-  void bash_out_t::erase (command_ptr_t command)
+  void bash_t::erase (command_ptr_t command)
   {
     auto erased_num = m_command_map.erase (command.get ());
     if (erased_num != 1) {
