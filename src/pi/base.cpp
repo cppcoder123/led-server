@@ -14,7 +14,7 @@ namespace led_d
       //m_bash_in (m_io_context, m_handle.bash_queue ()),
       m_bash (m_io_context, m_handle.status_queue ()),
       m_mcu_handle (m_handle.from_mcu_queue (), arg.spi_msg),
-      m_irq (m_spi_open, m_mcu_handle.irq_queue (), m_io_context)
+      m_interrupt (m_spi_open, m_mcu_handle.interrupt_queue (), m_io_context)
   {
     m_handle.to_mcu_queue (m_mcu_handle.to_mcu_queue ());
     m_handle.command_queue (m_bash.command_queue ());
@@ -28,7 +28,7 @@ namespace led_d
   {
     try {
       m_spi_open.start ();
-      m_irq.start ();
+      m_interrupt.start ();
       //m_bash_in.start ();
       m_handle_thread = std::thread (&handle_t::start, &m_handle);
       m_bash_thread = std::thread (&bash_t::start, &m_bash);

@@ -13,7 +13,7 @@
 #include "bash.hpp"
 #include "handle.hpp"
 #include "mcu-handle.hpp"
-#include "spi-irq.hpp"
+#include "spi-interrupt.hpp"
 #include "spi-open.hpp"
 
 namespace led_d
@@ -42,7 +42,7 @@ namespace led_d
     bash_t m_bash;
     mcu_handle_t m_mcu_handle;
     spi_open_t m_spi_open;
-    spi_irq_t m_irq;
+    spi_interrupt_t m_interrupt;
 
     std::thread m_handle_thread;
     std::thread m_bash_thread;

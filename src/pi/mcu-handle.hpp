@@ -17,7 +17,7 @@
 // #include "bash-handle.hpp"
 // #include "bash-queue.hpp"
 #include "spi-dev.hpp"
-#include "spi-irq.hpp"
+#include "spi-interrupt.hpp"
 
 namespace led_d
 {
@@ -27,7 +27,7 @@ namespace led_d
 
   public:
 
-    using irq_queue_t = spi_irq_t::queue_t;
+    using interrupt_queue_t = spi_interrupt_t::queue_t;
 
     mcu_handle_t (mcu_queue_t &from_queue, bool show_msg);
     mcu_handle_t (const mcu_handle_t&) = delete;
@@ -37,7 +37,7 @@ namespace led_d
     void stop ();
 
     mcu_queue_t& to_mcu_queue () {return m_to_queue;}
-    irq_queue_t& irq_queue () {return m_irq_queue;}
+    interrupt_queue_t& interrupt_queue () {return m_interrupt_queue;}
 
   private:
 
@@ -50,7 +50,7 @@ namespace led_d
     mcu_queue_t m_to_queue;     // to spi
     mcu_queue_t &m_from_queue;  // from spi
 
-    irq_queue_t m_irq_queue;    // from spi-irq
+    interrupt_queue_t m_interrupt_queue;    // from spi-interrupt
     bool m_interrupt_rised;
 
     spi_dev_t m_device;         // unix device

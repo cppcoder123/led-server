@@ -1,8 +1,8 @@
 /*
  * Handle spi interrupt line
  */
-#ifndef SPI_IRQ_HPP
-#define SPI_IRQ_HPP
+#ifndef SPI_INTERRUPT_HPP
+#define SPI_INTERRUPT_HPP
 
 #include <gpiod.h>
 
@@ -19,7 +19,7 @@
 namespace led_d
 {
 
-  class spi_irq_t
+  class spi_interrupt_t
   {
   public:
 
@@ -31,8 +31,9 @@ namespace led_d
     static constexpr char interrupt_rised = 'r';
     static constexpr char interrupt_cleared = 'c';
 
-    spi_irq_t (spi_open_t &spi_open, queue_t &irq_queue, asio::io_context &context);
-    ~spi_irq_t ();
+    spi_interrupt_t (spi_open_t &spi_open,
+                     queue_t &interrupt_queue, asio::io_context &context);
+    ~spi_interrupt_t ();
 
     void start ();
     void stop ();
@@ -44,7 +45,7 @@ namespace led_d
 
     spi_open_t &m_spi_open;
 
-    gpiod_line *m_irq;
+    gpiod_line *m_interrupt;
 
     queue_t &m_queue;
     asio::posix::stream_descriptor m_descriptor;
