@@ -12,7 +12,7 @@
 
 #include "unix/condition-queue.hpp"
 
-#include "bash-queue.hpp"
+//#include "bash-queue.hpp"
 #include "command-queue.hpp"
 #include "content.hpp"
 #include "mcu-queue.hpp"
@@ -35,7 +35,7 @@ namespace led_d
     void start ();
     void stop ();
 
-    bash_queue_t& bash_queue () {return m_bash_queue;}
+    //bash_queue_t& bash_queue () {return m_bash_queue;}
 
     mcu_queue_t& from_mcu_queue () {return m_from_mcu_queue;}
     void to_mcu_queue (mcu_queue_t &queue) {m_to_mcu_queue = &queue;}
@@ -58,7 +58,7 @@ namespace led_d
     std::mutex m_mutex;
     std::condition_variable m_condition;
 
-    bash_queue_t m_bash_queue;
+    //bash_queue_t m_bash_queue;
 
     mcu_queue_t m_from_mcu_queue;
     mcu_queue_t *m_to_mcu_queue;

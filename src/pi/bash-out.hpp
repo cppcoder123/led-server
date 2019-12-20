@@ -6,11 +6,10 @@
 #define BASH_OUT_HPP
 
 #include <atomic>
-#include <condition_variable>
+#include <map>
 #include <mutex>
 
 #include "asio/asio.hpp"
-//#include "asio/asio/deadline_timer.hpp"
 
 #include "command-queue.hpp"
 #include "status-queue.hpp"
@@ -44,6 +43,7 @@ namespace led_d
     void timeout (command_ptr_t command);
 
     void insert (command_ptr_t command);
+    void erase (command_ptr_t command);
 
     asio::io_context &m_io_context;
     asio::steady_timer m_timeout_timer;
@@ -53,6 +53,9 @@ namespace led_d
     command_queue_t m_command_queue;
 
     std::atomic_bool m_go;
+
+    std::mutex m_mutex;
+    std::map<command_t*, command_ptr_t> m_command_map;
   };
 
 } // led_d

@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <limits>
+#include <list>
 #include <string>
 
 #include "command-id.hpp"
@@ -37,6 +38,10 @@ namespace led_d
     static timeout_t infinity_timeout ();
 
     void popen (popen_ptr_t popen_ptr);
+    popen_ptr_t popen () const {return m_popen;}
+
+    void result (const std::string &info);
+    std::string result () const;
 
   private:
 
@@ -45,6 +50,10 @@ namespace led_d
     // command_id_t m_secondary_id;
     std::string m_body;
     timeout_t m_timeout;
+
+    popen_ptr_t m_popen;
+
+    std::list<std::string> m_result_list;
   };
 }
 

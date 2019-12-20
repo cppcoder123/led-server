@@ -12,18 +12,22 @@
 #include <string>
 #include <utility>
 
+#include "command-id.hpp"
+#include "status.hpp"
+
 namespace led_d
 {
 
   class content_t
   {
   public:
+    using status_ptr_t = std::shared_ptr<status_t>;
 
     content_t () = delete;
     content_t (const std::list<std::string> &regexp_list);
     ~content_t ();
 
-    void in (std::string info);
+    void in (status_ptr_t status);
 
     using out_info_t = std::pair<std::string/*info*/, std::string/*format*/>;
     out_info_t out ();
@@ -34,7 +38,7 @@ namespace led_d
 
     std::list<std::string> m_sys_info;
 
-    using map_t = std::map<std::string/*info src*/, std::string/*info*/>;
+    using map_t = std::map<command_id_t, std::string/*info*/>;
     map_t m_info;
     map_t::iterator m_iterator;
 

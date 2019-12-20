@@ -21,7 +21,7 @@ namespace led_d
 
   handle_t::handle_t (const std::string &default_font,
                       const std::list<std::string> &regexp_list)
-    : m_bash_queue (std::ref (m_mutex), std::ref (m_condition)),
+    : //m_bash_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_to_mcu_queue (nullptr),
       m_command_queue (nullptr),
@@ -36,9 +36,9 @@ namespace led_d
   {
 
     while (m_go.load () == true) {
-      auto bash_msg = m_bash_queue.pop<false> ();
-      if (bash_msg)
-        m_content.in (*bash_msg);
+      auto status = m_status_queue.pop<false> ();
+      if (status)
+        m_content.in (*status);
 
       auto mcu_msg = m_from_mcu_queue.pop<false> ();
       if (mcu_msg)
@@ -46,7 +46,7 @@ namespace led_d
 
       {
         std::unique_lock lock (m_mutex);
-        if ((m_bash_queue.empty<false> () == true)
+        if ((m_status_queue.empty<false> () == true)
             && (m_from_mcu_queue.empty<false> () == true))
           m_condition.wait (lock);
       }

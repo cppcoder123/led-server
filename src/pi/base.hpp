@@ -9,7 +9,7 @@
 #include "asio.hpp"
 
 #include "arg.hpp"
-#include "bash-in.hpp"
+// #include "bash-in.hpp"
 #include "bash-out.hpp"
 #include "handle.hpp"
 #include "mcu-handle.hpp"
@@ -38,7 +38,7 @@ namespace led_d
     asio::io_context m_io_context;
 
     handle_t m_handle;
-    bash_in_t m_bash_in;
+    // bash_in_t m_bash_in;
     bash_out_t m_bash_out;
     mcu_handle_t m_mcu_handle;
     spi_open_t m_spi_open;

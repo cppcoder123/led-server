@@ -15,6 +15,7 @@ namespace led_d
 {
 
   constexpr auto pid_string = "pid";
+  constexpr auto status_string = "status";
 
   constexpr auto asio_buf_size = 128;
 
@@ -98,13 +99,21 @@ namespace led_d
     if (split (info, prefix, suffix) == false)
       return;
 
-    if (prefix != pid_string)
+    if ((prefix != pid_string)
+        && (prefix != status_string))
       return;
 
     info = "";
 
     std::istringstream stream (suffix);
-    stream >> m_pid;
+    if (prefix == pid_string)
+      stream >> m_pid;
+    else {
+      // status has arrived
+      int status = -1;
+      stream >> status;
+      m_status = status;
+    }
     // Note: Do we need a check here?
   }
 

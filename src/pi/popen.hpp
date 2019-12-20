@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <csignal>
 #include <functional>
+#include <optional>
 #include <regex>
 #include <string>
 
@@ -32,6 +33,8 @@ namespace led_d
 
     // man -S 2 kill
     bool kill (int signal);
+
+    std::optional<int> status () const {return m_status;}
 
     static bool split (const std::string &src,
                        std::string &prefix, std::string &suffix,
@@ -58,6 +61,7 @@ namespace led_d
     error_occurred_t m_error_occured;
 
     pid_t m_pid;
+    std::optional<int> m_status;
 
     static constexpr auto asio_buf_size = 128;
     std::array<char, asio_buf_size> m_asio_buf;

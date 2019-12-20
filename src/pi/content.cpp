@@ -41,23 +41,35 @@ namespace led_d
     // fixme
   }
 
-  void content_t::in (std::string info)
+  void content_t::in (status_ptr_t status)
   {
-    std::string prefix, suffix;
-    if (popen_t::split (info, prefix, suffix, m_regex) == false) {
-      log_t::buffer_t buf;
-      buf << "content: Failed to split info \"" << info << "\"";
-      log_t::error (buf);
-      return;
+    // std::string prefix, suffix;
+    // if (popen_t::split (info, prefix, suffix, m_regex) == false) {
+    //   log_t::buffer_t buf;
+    //   buf << "content: Failed to split info \"" << info << "\"";
+    //   log_t::error (buf);
+    //   return;
+    // }
+
+    switch (status->id ()) {
+    case STREAM_SYSTEM:
+      m_sys_info.push_back (status->out ());
+      break;
+    case STREAM_TRACK_NAME:
+      m_info[STREAM_TRACK_NAME] = replace (status->out ());
+      break;
+    default:
+      m_info[status->id ()] = status->out ();
     }
 
-    if (prefix == sys) {
-      m_sys_info.push_back (suffix);
-      return;
-    }
+    // if (prefix == sys) {
+    //   m_sys_info.push_back (suffix);
+    //   return;
+    // }
 
-    m_info[prefix] = (prefix == mpd) ? replace (suffix) : suffix;
-    m_iterator = m_info.find (prefix);
+    // m_info[prefix] = (prefix == mpd) ? replace (suffix) : suffix;
+    if (status->id () != STREAM_SYSTEM)
+      m_iterator = m_info.find (status->id ());
   }
 
   content_t::out_info_t content_t::out ()
