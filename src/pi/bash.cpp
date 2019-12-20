@@ -44,6 +44,7 @@ namespace led_d
   void bash_t::stop ()
   {
     m_go.store (false);
+    m_timeout_timer.cancel ();
     m_command_queue.notify_one<true> ();
   }
 
@@ -145,6 +146,8 @@ namespace led_d
 
   void bash_t::erase (command_ptr_t command)
   {
+    std::lock_guard<std::mutex> guard (m_mutex);
+
     auto erased_num = m_command_map.erase (command.get ());
     if (erased_num != 1) {
       log_t::buffer_t buf;

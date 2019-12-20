@@ -53,6 +53,8 @@ namespace led_d
     m_handle_thread.join ();
     m_bash_thread.join ();
     m_mcu_thread.join ();
+
+    m_io_context.stop ();
   }
 
 } // namespace led_d
