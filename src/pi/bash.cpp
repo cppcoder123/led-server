@@ -99,6 +99,8 @@ namespace led_d
 
   void bash_t::stream_error (command_ptr_t command)
   {
+    command->cancel_timeout ();
+
     log_t::buffer_t buf;
     buf << "bash: Error during stream command \"" << command->id ()
         << "\" handling";
@@ -108,6 +110,8 @@ namespace led_d
 
   void bash_t::clot_error (command_ptr_t command)
   {
+    command->cancel_timeout ();
+
     auto popen = command->popen ();
     auto status_value = (popen && popen->status ())
       ? (*(popen->status ())) : status_t::bad (); 

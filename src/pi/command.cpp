@@ -27,6 +27,12 @@ namespace led_d
             || (m_id == STREAM_SYSTEM));
   }
 
+  void command_t::cancel_timeout ()
+  {
+    if (m_timer)
+      m_timer->cancel ();
+  }
+
   command_t::timeout_t command_t::infinity_timeout ()
   {
     return std::numeric_limits<timeout_t>::max ();

@@ -13,7 +13,7 @@ OBJECT_LIST = dexec.o dfork.o dlog.o dnonblock.o dpid.o dsignal.o
 HEADER_SRC_LIST = $(foreach file, $(HEADER_LIST), include/$(file))
 OBJECT_SRC_LIST = $(foreach file, $(OBJECT_LIST), src/$(file))
 
-CFLAGS = -I include
+CFLAGS = -I include -g
 
 #
 #

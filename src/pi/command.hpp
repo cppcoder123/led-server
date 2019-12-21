@@ -36,6 +36,8 @@ namespace led_d
     const std::string& body () const {return m_body;}
     timeout_t timeout () const {return m_timeout;}
 
+    void cancel_timeout ();
+
     static timeout_t infinity_timeout ();
     static timeout_t three_seconds_timeout () {return 3;}
 
