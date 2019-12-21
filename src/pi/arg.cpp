@@ -15,7 +15,8 @@ namespace led_d
 
   arg_t::arg_t ()
     : foreground (false),
-      kill (false)
+      kill (false),
+      default_track (1)
   {
   }
 
@@ -42,6 +43,8 @@ namespace led_d
         subject_regexp_list
         ("s", "subect-regexp", "Regexp and replacement for track name",
          false, "regexp string", parser);
+
+      // fixme: add default track parsing here
 
       parser.parse (argc, argv);
 

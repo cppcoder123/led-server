@@ -18,16 +18,17 @@ namespace led_d
 {
   // we should provide info if size is less
   constexpr auto QUEUE_SIZE_LIMIT = 3;
+  constexpr auto INVOKE_MPC_PLAY = "invoke-mpc-play";
+  constexpr auto MPC_PLAY = "mpc play ";
 
-  handle_t::handle_t (const std::string &default_font,
-                      const std::list<std::string> &regexp_list)
-    : //m_bash_queue (std::ref (m_mutex), std::ref (m_condition)),
-      m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
+  handle_t::handle_t (const arg_t &arg)
+    : m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_to_mcu_queue (nullptr),
       m_command_queue (nullptr),
       m_status_queue (std::ref (m_mutex), std::ref (m_condition)),
-      m_content (regexp_list),
-      m_render (default_font),
+      m_default_track (arg.default_track),
+      m_content (arg.subject_regexp_list),
+      m_render (arg.default_font),
       m_go (true)
   {
   }
@@ -38,7 +39,8 @@ namespace led_d
     while (m_go.load () == true) {
       auto status = m_status_queue.pop<false> ();
       if (status)
-        m_content.in (*status);
+        handle_status (*status);
+        //m_content.in (*status);
 
       auto mcu_msg = m_from_mcu_queue.pop<false> ();
       if (mcu_msg)
@@ -63,6 +65,34 @@ namespace led_d
   void handle_t::notify ()
   {
     m_condition.notify_one ();
+  }
+
+  void handle_t::handle_status (status_ptr_t status)
+  {
+    if ((status->id () == STREAM_SYSTEM)
+        && (status->out () == INVOKE_MPC_PLAY)) {
+      std::string play_cmd = MPC_PLAY + std::to_string (m_default_track);
+      auto command = std::make_shared<command_t>
+        (MPC_PLAY_TRACK, play_cmd, command_t::three_seconds_timeout ());
+      m_command_queue->push (command);
+      return;
+    }
+    
+    switch (status->id ()) {
+    case STREAM_SYSTEM:
+    case STREAM_TRACK_NAME:
+      m_content.in (status);
+      break;
+    default:
+      if (status->value () != status_t::good ()) {
+          log_t::buffer_t buf;
+          buf << "Bad status \"" << status->value ()
+              << "\" arrived for command \"" << status->id () << "\"";
+          log_t::error (buf);
+      }
+        
+      break;
+    }
   }
 
   void handle_t::handle_mcu (mcu_msg_t &msg)

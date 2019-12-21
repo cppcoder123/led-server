@@ -16,7 +16,8 @@ namespace led_d
   public:
 
     arg_t ();
-    ~arg_t () {};
+    arg_t (const arg_t&) = default;
+    ~arg_t () = default;
 
     static bool init (arg_t &arg, int argc, char **argv);
 
@@ -26,6 +27,8 @@ namespace led_d
 
     std::string default_font;
     std::list<std::string> subject_regexp_list;
+
+    int default_track;
   };
 } // namespace led_d
 

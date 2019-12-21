@@ -91,7 +91,11 @@ done
 echo "Mpd Output is enabled"
 #prefix_echo
 
-echo "ready"
+mpc status | grep playing >& /dev/null
+if [ $? -ne 0 ]
+then
+   echo "invoke-mpc-play"
+fi
 
 #
 # Hang here

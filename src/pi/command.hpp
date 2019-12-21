@@ -24,7 +24,6 @@ namespace led_d
     using timeout_t = int;
     using timer_t = asio::steady_timer;
     using timer_ptr_t = std::shared_ptr<timer_t>;
-    //using timeout_action_t = std::function<void ()>;
 
     command_t () = delete;
     command_t (command_id_t id, std::string body, timeout_t time_out);
@@ -38,6 +37,7 @@ namespace led_d
     timeout_t timeout () const {return m_timeout;}
 
     static timeout_t infinity_timeout ();
+    static timeout_t three_seconds_timeout () {return 3;}
 
     void popen (popen_ptr_t popen_ptr);
     popen_ptr_t popen () const {return m_popen;}
