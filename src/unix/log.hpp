@@ -15,7 +15,7 @@ extern "C" {
   const char* led_create_pid_file_name (void);
 }
 
-const char* led_create_pid_file_name (void)
+inline const char* led_create_pid_file_name (void)
 {
   return "/var/run/led/led-d.pid";
 }
