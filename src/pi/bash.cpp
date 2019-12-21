@@ -64,12 +64,13 @@ namespace led_d
       ? std::bind (&bash_t::stream_error, this, command)
       : std::bind (&bash_t::clot_error, this, command);
 
-    // m_timeout_timer.expires_at (std::chrono::steady_clock::now ()
-    //                             //+ std::chrono::seconds (command->timeout ()));
-    //                             + std::chrono::seconds (3600));
-    m_timeout_timer.expires_after (std::chrono::seconds (3600));
-    m_timeout_timer.async_wait
-      (std::bind (&bash_t::timeout, this, command));
+    auto timer = std::make_shared<command_t::timer_t>
+      (m_io_context, std::chrono::steady_clock::now ());
+    command->timer (timer);
+
+    timer->expires_after (std::chrono::seconds (command->timeout ()));
+    timer->async_wait
+      (std::bind (&bash_t::timeout, this, std::placeholders::_1, command));
 
     // insert cmd before creating popen
     insert (command);
@@ -118,8 +119,12 @@ namespace led_d
     erase (command);
   }
 
-  void bash_t::timeout (command_ptr_t command)
+  void bash_t::timeout (const std::error_code &error, command_ptr_t command)
   {
+    if (error)
+      // timeout is cancelled
+      return;
+
     log_t::buffer_t buf;
     buf << "bash: Command \"" << command->id () << "\", execution timeout";
     log_t::error (buf);

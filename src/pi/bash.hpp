@@ -40,7 +40,7 @@ namespace led_d
     void stream_error (command_ptr_t command);
     void clot_error (command_ptr_t command);
 
-    void timeout (command_ptr_t command);
+    void timeout (const asio::error_code &error, command_ptr_t command);
 
     void insert (command_ptr_t command);
     void erase (command_ptr_t command);
