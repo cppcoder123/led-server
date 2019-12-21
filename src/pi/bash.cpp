@@ -30,8 +30,9 @@ namespace led_d
       (STREAM_SYSTEM, system_command, command_t::infinity_timeout ());
     m_command_queue.push (command);
 
-    // fixme: add track name here
-
+    command = std::make_shared<command_t>
+      (STREAM_TRACK_NAME, track_name_command, command_t::infinity_timeout ());
+    m_command_queue.push (command);
 
     while (m_go.load () == true) {
       auto command = m_command_queue.pop<true>();
@@ -63,8 +64,10 @@ namespace led_d
       ? std::bind (&bash_t::stream_error, this, command)
       : std::bind (&bash_t::clot_error, this, command);
 
-    m_timeout_timer.expires_from_now
-      (std::chrono::seconds (command->timeout ()));
+    // m_timeout_timer.expires_at (std::chrono::steady_clock::now ()
+    //                             //+ std::chrono::seconds (command->timeout ()));
+    //                             + std::chrono::seconds (3600));
+    m_timeout_timer.expires_after (std::chrono::seconds (3600));
     m_timeout_timer.async_wait
       (std::bind (&bash_t::timeout, this, command));
 

@@ -77,13 +77,16 @@ namespace unix
     std::unique_lock lock (mutex);
     std::condition_variable &condition (m_condition);
 
+    if (m_queue.empty () == false)
+      return m_queue.pop ();
+
     if constexpr (really_wait)
       condition.wait (lock);
     
     if (m_queue.empty ())
       return {};
 
-    return std::optional<record_t>(m_queue.pop ());
+    return m_queue.pop ();
   }
 
   template <typename record_t, typename mutex_t, typename condition_t>

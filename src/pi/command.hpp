@@ -18,7 +18,7 @@ namespace led_d
   {
   public:
     using popen_ptr_t = std::shared_ptr<popen_t>;
-    using timeout_t = long long;
+    using timeout_t = int;
 
     command_t () = delete;
     command_t (command_id_t id, std::string body, timeout_t time_out);

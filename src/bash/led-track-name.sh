@@ -6,9 +6,11 @@ echo "pid: "$$
 # exit 0
 
 TRACK_NAME="No-track-name"
-echo_track () {
-    echo "mpd: "${TRACK_NAME}
-}
+#echo_track () {
+#    echo "mpd: "${TRACK_NAME}
+#}
+
+echo $TRACK_NAME
 
 GO_AHEAD=1
 
@@ -18,12 +20,12 @@ trap "GO_AHEAD=0" SIGUSR1
 
 NAME=`mpc current` >& /dev/null
 STATUS=$?
-if [ "${STATUS}" == 0 ] && [ "${NAME}" != "" ]
+if [ ${STATUS} == 0 ] && [ "${NAME}" != "" ]
 then
     TRACK_NAME=${NAME}
 fi
 
-echo_track
+echo ${TRACK_NAME}
 
 while [ "${GO_AHEAD}" == 1 ]
 do
@@ -34,7 +36,7 @@ do
         if [ "${NAME}" != "${TRACK_NAME}" ]
         then
             TRACK_NAME=${NAME}
-            echo_track
+            echo ${TRACK_NAME}
         fi
         mpc idle >& /dev/null
     else
