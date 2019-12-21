@@ -56,7 +56,8 @@ namespace led_d
       m_sys_info.push_back (status->out ());
       break;
     case STREAM_TRACK_NAME:
-      m_info[STREAM_TRACK_NAME] = replace (status->out ());
+      if (status->out ().empty () == false)
+        m_info[STREAM_TRACK_NAME] = replace (status->out ());
       break;
     default:
       m_info[status->id ()] = status->out ();
