@@ -30,7 +30,8 @@ namespace led_d
     ~command_t ();
 
     bool stream () const;
-    bool wrap () const {return !stream ();}
+    bool semi_stream () const;
+    bool wrap () const;
 
     command_id_t id () const {return m_id;}
     const std::string& body () const {return m_body;}

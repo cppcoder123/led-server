@@ -106,11 +106,13 @@ namespace led_d
   {
     command->cancel_timeout ();
 
-    log_t::buffer_t buf;
-    buf << "bash: Error during stream command \"" << command->id ()
-        << "\" handling";
-    log_t::error (buf);
-    erase (command);
+    if (command->semi_stream () == false) {
+      log_t::buffer_t buf;
+      buf << "bash: Error during stream command \"" << command->id ()
+          << "\" handling";
+      log_t::error (buf);
+      erase (command);
+    }
   }
 
   void bash_t::clot_error (command_ptr_t command)

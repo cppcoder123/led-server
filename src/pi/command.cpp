@@ -26,6 +26,16 @@ namespace led_d
     return command_id::stream (m_id);
   }
 
+  bool command_t::semi_stream () const
+  {
+    return command_id::semi_stream (m_id);
+  }
+
+  bool command_t::wrap () const
+  {
+    return ((stream () == false) || (semi_stream () == true));
+  }
+
   void command_t::cancel_timeout ()
   {
     if (m_timer)

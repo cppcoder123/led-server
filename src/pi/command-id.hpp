@@ -20,7 +20,13 @@ namespace led_d
     {
       return ((id == STREAM_CLOCK)
               || (id == STREAM_SYSTEM)
-              || (id == STREAM_TRACK_NAME));
+              || (id == STREAM_TRACK_NAME)
+              || (id == MPC_PLAY_LIST));
+    }
+
+    inline bool semi_stream (command_id_t id)
+    {
+      return (id == MPC_PLAY_LIST);
     }
   } // command_id
 
