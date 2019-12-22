@@ -22,6 +22,8 @@ namespace led_d
     int value () const {return m_value;}
     const std::string& out () const {return m_out;}
 
+    bool stream () const {return command_id::stream (m_id);}
+
     static int good () {return 0;}
     static int bad ();
     static int timeout ();

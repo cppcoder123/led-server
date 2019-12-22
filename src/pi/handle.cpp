@@ -77,21 +77,14 @@ namespace led_d
       m_command_queue->push (command);
       return;
     }
-    
-    switch (status->id ()) {
-    case STREAM_SYSTEM:
-    case STREAM_TRACK_NAME:
+
+    if (status->stream ()) {
       m_content.in (status);
-      break;
-    default:
-      if (status->value () != status_t::good ()) {
+    } else if (status->value () != status_t::good ()) {
           log_t::buffer_t buf;
           buf << "Bad status \"" << status->value ()
               << "\" arrived for command \"" << status->id () << "\"";
           log_t::error (buf);
-      }
-        
-      break;
     }
   }
 

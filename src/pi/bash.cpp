@@ -14,6 +14,7 @@ namespace led_d
 {
   constexpr auto system_command = "led-system.sh";
   constexpr auto track_name_command = "led-track-name.sh";
+  constexpr auto clock_command = "led-clock.sh";
 
   bash_t::bash_t (asio::io_context &io_context,
                           status_queue_t &status_queue)
@@ -32,6 +33,10 @@ namespace led_d
 
     command = std::make_shared<command_t>
       (STREAM_TRACK_NAME, track_name_command, command_t::infinity_timeout ());
+    m_command_queue.push (command);
+
+    command = std::make_shared<command_t>
+      (STREAM_CLOCK, clock_command, command_t::infinity_timeout ());
     m_command_queue.push (command);
 
     while (m_go.load () == true) {
