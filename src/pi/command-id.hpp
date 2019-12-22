@@ -9,9 +9,21 @@ namespace led_d
   enum command_id_t {
     MPC_PLAY_LIST,              // mpc playlist
     MPC_PLAY_TRACK,             // mpc play 77
-    STREAM_TRACK_NAME,
+    STREAM_CLOCK,
     STREAM_SYSTEM,
+    STREAM_TRACK_NAME,
   };
+
+  namespace command_id
+  {
+    inline bool stream (command_id_t id)
+    {
+      return ((id == STREAM_CLOCK)
+              || (id == STREAM_SYSTEM)
+              || (id == STREAM_TRACK_NAME));
+    }
+  } // command_id
+
 } // led_d
 
 

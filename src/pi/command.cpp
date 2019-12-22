@@ -23,8 +23,7 @@ namespace led_d
 
   bool command_t::stream () const
   {
-    return ((m_id == STREAM_TRACK_NAME)
-            || (m_id == STREAM_SYSTEM));
+    return command_id::stream (m_id);
   }
 
   void command_t::cancel_timeout ()
