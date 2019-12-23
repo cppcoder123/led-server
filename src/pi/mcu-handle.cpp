@@ -41,6 +41,7 @@ namespace led_d
       (mcu::encode::join (mcu_id::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
 
     while (m_go.load () == true) {
+      // 1. if we have an interrupt, try to handle it first
       if (m_interrupt_rised == true)
         write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
       auto char_opt = m_interrupt_queue.pop<false>();
@@ -49,6 +50,8 @@ namespace led_d
           ? true : false;
       if (m_interrupt_rised == true)
         continue;
+
+      // 2. No interrupt => should we stop?
       {
         std::unique_lock lock (m_mutex);
         if ((m_interrupt_queue.empty<false>() == true)
@@ -59,9 +62,12 @@ namespace led_d
         }
       }
 
-      auto msg = m_to_queue.pop<false> ();
-      if (msg)
-        write_msg (*msg);
+      // 3. send smth only if not engaged
+      if (m_block.is_engaged () == false) {
+        auto msg = m_to_queue.pop<false> ();
+        if (msg)
+          write_msg (*msg);
+      }
     }
   }
 

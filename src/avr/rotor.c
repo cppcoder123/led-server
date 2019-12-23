@@ -49,7 +49,7 @@ void rotor_try ()
   uint8_t mask = (1 << 0);
   for (uint8_t i = 0; i < 8; ++i) {
     if (((new_state & mask) == 0)
-        && ((state & mask) == 1))
+        && ((state & mask) != 0))
       to_send |= mask;
     mask <<= 1;
   }
