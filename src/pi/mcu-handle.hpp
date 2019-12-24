@@ -14,8 +14,6 @@
 #include "mcu-block.hpp"
 #include "mcu-parse.hpp"
 #include "mcu-queue.hpp"
-// #include "bash-handle.hpp"
-// #include "bash-queue.hpp"
 #include "spi-dev.hpp"
 #include "spi-interrupt.hpp"
 

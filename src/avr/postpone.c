@@ -16,10 +16,15 @@
 static uint8_t postponed_message[BUF_SIZE];
 static uint8_t postponed_size;
 
+static uint8_t is_writable ()
+{
+  return (spi_write_space () >= ENOUGH_SPACE) ? 1 : 0;
+}
+
 static uint8_t is_enough_space ()
 {
-  return ((spi_read_space () >= ENOUGH_SPACE)
-          && (spi_write_space () >= ENOUGH_SPACE)
+  return ((is_writable () == 1)
+          && (spi_read_space () >= ENOUGH_SPACE)
           && (flush_buffer_space () >= ENOUGH_SPACE)) ? 1 : 0;
 }
 
@@ -51,7 +56,9 @@ void postpone_message (uint8_t *msg, uint8_t msg_size, uint8_t serial_id)
 {
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
     if (serial_id == SERIAL_ID_TO_IGNORE) {
-      flush (msg, msg_size);
+      if (is_writable () == 1)
+        flush (msg, msg_size);
+      // else just ignore :(
       return;
     }
 
