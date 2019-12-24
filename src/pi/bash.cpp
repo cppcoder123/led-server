@@ -114,6 +114,9 @@ namespace led_d
           << "\" handling";
       log_t::error (buf);
       erase (command);
+    } else {
+      // semi stream => we need the status
+      clot_error (command);
     }
   }
 
