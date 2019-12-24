@@ -91,13 +91,10 @@ enum {
 };
 
 enum {
-  ROTOR_A,
-  ROTOR_B,
-};
-
-enum {
-  ROTOR_PLUS,
+  ROTOR_1,
+  ROTOR_2,
   ROTOR_MINUS,
+  ROTOR_PLUS,
   ROTOR_PUSH,
 };
 

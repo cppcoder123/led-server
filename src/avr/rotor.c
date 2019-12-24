@@ -12,15 +12,21 @@
 #include "encode.h"
 #include "rotor.h"
 
-#define STATE_DEFAULT 0xFF
+#define MASK_ROTOR_1_A (1 << 3)
+#define MASK_ROTOR_1_B (1 << 5)
+#define MASK_ROTOR_1_PUSH (1 << 7)
+
+#define MASK_ROTOR_2_A (1 << 4)
+#define MASK_ROTOR_2_B (1 << 2)
+#define MASK_ROTOR_2_PUSH (1 << 6)
 
 static volatile struct buf_t rotor_buf;
-static uint8_t state = STATE_DEFAULT;
+static uint8_t toggled_bits = 0;
 
 void rotor_init ()
 {
   buf_init (&rotor_buf);
-  state = STATE_DEFAULT;
+  toggled_bits = 0;
 
   /* enable 3-rd series of pin change interrupts */
   PCICR |= (1 << PCIE2);
@@ -35,27 +41,41 @@ void rotor_init ()
   DDRK = 0;
 }
 
+static uint8_t apply_mask (uint8_t old, uint8_t new,
+                           uint8_t old_mask, uint8_t new_mask)
+{
+  return ((old & old_mask) && (new & new_mask)) ? 1 : 0;
+}
+
 void rotor_try ()
 {
-  uint8_t new_state = 0;
-  if (buf_byte_drain (&rotor_buf, &new_state) == 0)
+  uint8_t src = 0;
+  if (buf_byte_drain (&rotor_buf, &src) == 0)
     return;
 
-  /* fixme: deeper analysis is required here, */
-  /*    i.e. which rotor and what button is pushed */
+  /* negate src */
+  uint8_t new_toggled_bits = ~src;
 
-  /* report bits that changed to zero for now*/
-  uint8_t to_send = 0;
-  uint8_t mask = (1 << 0);
-  for (uint8_t i = 0; i < 8; ++i) {
-    if (((new_state & mask) == 0)
-        && ((state & mask) != 0))
-      to_send |= mask;
-    mask <<= 1;
-  }
-  encode_msg_1 (MSG_ID_ROTOR, SERIAL_ID_TO_IGNORE, to_send);
+  if (apply_mask (toggled_bits, new_toggled_bits,
+                  MASK_ROTOR_1_A, MASK_ROTOR_1_B) != 0)
+    encode_msg_2 (MSG_ID_ROTOR, SERIAL_ID_TO_IGNORE, ROTOR_1, ROTOR_PLUS);
+  if (apply_mask (toggled_bits, new_toggled_bits,
+                  MASK_ROTOR_1_B, MASK_ROTOR_1_A) != 0)
+    encode_msg_2 (MSG_ID_ROTOR, SERIAL_ID_TO_IGNORE, ROTOR_1, ROTOR_MINUS);
+  if (new_toggled_bits & MASK_ROTOR_1_PUSH)
+    encode_msg_2 (MSG_ID_ROTOR, SERIAL_ID_TO_IGNORE, ROTOR_1, ROTOR_PUSH);
 
-  state = new_state;
+  if (apply_mask (toggled_bits, new_toggled_bits,
+                  MASK_ROTOR_2_A, MASK_ROTOR_2_B) != 0)
+    encode_msg_2 (MSG_ID_ROTOR, SERIAL_ID_TO_IGNORE, ROTOR_2, ROTOR_PLUS);
+  if (apply_mask (toggled_bits, new_toggled_bits,
+                  MASK_ROTOR_2_B, MASK_ROTOR_2_A) != 0)
+    encode_msg_2 (MSG_ID_ROTOR, SERIAL_ID_TO_IGNORE, ROTOR_2, ROTOR_MINUS);
+  if (new_toggled_bits & MASK_ROTOR_2_PUSH)
+    encode_msg_2 (MSG_ID_ROTOR, SERIAL_ID_TO_IGNORE, ROTOR_2, ROTOR_PUSH);
+  
+
+  toggled_bits = new_toggled_bits;
 }
 
 ISR (PCINT2_vect)
