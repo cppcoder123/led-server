@@ -6,17 +6,17 @@
 
 namespace led_d
 {
-  enum command_id_t {
-    MPC_PLAY_LIST,              // mpc playlist
-    MPC_PLAY_TRACK,             // mpc play 77
-    STREAM_CLOCK,
-    STREAM_SYSTEM,
-    STREAM_TRACK_NAME,
-  };
-
   namespace command_id
   {
-    inline bool stream (command_id_t id)
+    enum value_t {
+      MPC_PLAY_LIST,              // mpc playlist
+      MPC_PLAY_TRACK,             // mpc play 77
+      STREAM_CLOCK,
+      STREAM_SYSTEM,
+      STREAM_TRACK_NAME,
+    };
+
+    inline bool stream (value_t id)
     {
       return ((id == STREAM_CLOCK)
               || (id == STREAM_SYSTEM)
@@ -24,7 +24,7 @@ namespace led_d
               || (id == MPC_PLAY_LIST));
     }
 
-    inline bool semi_stream (command_id_t id)
+    inline bool semi_stream (value_t id)
     {
       return (id == MPC_PLAY_LIST);
     }

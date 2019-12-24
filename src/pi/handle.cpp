@@ -19,15 +19,16 @@ namespace led_d
   // we should provide info if size is less
   constexpr auto QUEUE_SIZE_LIMIT = 3;
   constexpr auto INVOKE_MPC_PLAY = "invoke-mpc-play";
-  constexpr auto MPC_PLAY = "mpc play ";
+  constexpr auto MPC_PLAY_STRING = "mpc play ";
+  constexpr auto MPC_PLAY_LIST_STRING = "mpc playlist";
 
-  handle_t::handle_t (const arg_t &arg)
+  handle_t::handle_t (asio::io_context &io_context, const arg_t &arg)
     : m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_to_mcu_queue (nullptr),
       m_command_queue (nullptr),
       m_status_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_default_track (arg.default_track),
-      m_content (arg.subject_regexp_list),
+      m_content (io_context, arg.subject_regexp_list),
       m_render (arg.default_font),
       m_go (true)
   {
@@ -69,12 +70,13 @@ namespace led_d
 
   void handle_t::handle_status (status_ptr_t status)
   {
-    if ((status->id () == STREAM_SYSTEM)
+    if ((status->id () == command_id::STREAM_SYSTEM)
         && (status->out () == INVOKE_MPC_PLAY)) {
-      std::string play_cmd = MPC_PLAY + std::to_string (m_default_track);
-      auto command = std::make_shared<command_t>
-        (MPC_PLAY_TRACK, play_cmd, command_t::three_seconds_timeout ());
-      m_command_queue->push (command);
+      std::string play_cmd = MPC_PLAY_STRING + std::to_string (m_default_track);
+      issue_command (command_id::MPC_PLAY_TRACK,
+                     play_cmd, command_t::three_seconds ());
+      issue_command (command_id::MPC_PLAY_LIST,
+                     MPC_PLAY_LIST_STRING, command_t::three_seconds ());
       return;
     }
 
@@ -226,6 +228,13 @@ namespace led_d
       buf << "handle: To-mcu-queue size is: " << m_to_mcu_queue->size<true> ();
       log_t::info (buf);
     }
+  }
+
+  void handle_t::issue_command (command_id::value_t id,
+                                std::string text, command_t::timeout_t timeout)
+  {
+    auto command = std::make_shared<command_t>(id, text, timeout);
+    m_command_queue->push (command);
   }
 
 } // namespace led_d

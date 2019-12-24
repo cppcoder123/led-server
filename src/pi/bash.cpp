@@ -27,23 +27,18 @@ namespace led_d
 
   void bash_t::start ()
   {
-    auto command = std::make_shared<command_t>
-      (STREAM_SYSTEM, system_command, command_t::infinity_timeout ());
-    m_command_queue.push (command);
-
-    command = std::make_shared<command_t>
-      (STREAM_TRACK_NAME, track_name_command, command_t::infinity_timeout ());
-    m_command_queue.push (command);
-
-    command = std::make_shared<command_t>
-      (STREAM_CLOCK, clock_command, command_t::infinity_timeout ());
-    m_command_queue.push (command);
+    issue_command (command_id::STREAM_SYSTEM,
+                   system_command, command_t::infinity ());
+    issue_command (command_id::STREAM_TRACK_NAME,
+                   track_name_command, command_t::infinity ());
+    issue_command (command_id::STREAM_CLOCK,
+                   clock_command, command_t::infinity ());
 
     while (m_go.load () == true) {
       auto command = m_command_queue.pop<true>();
       if (!command)
         continue;
-      invoke_command (std::move(*command));
+      execute_command (std::move(*command));
     }
   }
 
@@ -54,7 +49,14 @@ namespace led_d
     m_command_queue.notify_one<true> ();
   }
 
-  void bash_t::invoke_command (command_ptr_t command)
+  void bash_t::issue_command (command_id::value_t id,
+                              std::string text, command_t::timeout_t timeout)
+  {
+    auto command = std::make_shared<command_t>(id, text, timeout);
+    m_command_queue.push (command);
+  }
+
+  void bash_t::execute_command (command_ptr_t command)
   {
     auto body = (command->wrap ())
       ? wrap (command->body ()) : command->body ();
@@ -175,4 +177,5 @@ namespace led_d
       log_t::error (buf);
     }
   }
+
 } // led_d

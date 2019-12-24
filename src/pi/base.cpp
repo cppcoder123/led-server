@@ -10,7 +10,7 @@ namespace led_d
 {
 
   base_t::base_t (const arg_t &arg)
-    : m_handle (arg),
+    : m_handle (m_io_context, arg),
       m_bash (m_io_context, m_handle.status_queue ()),
       m_mcu_handle (m_handle.from_mcu_queue (), arg.spi_msg),
       m_interrupt (m_spi_open, m_mcu_handle.interrupt_queue (), m_io_context)

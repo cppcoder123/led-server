@@ -30,7 +30,9 @@ namespace led_d
 
   private:
 
-    void invoke_command (command_ptr_t command);
+    void issue_command (command_id::value_t id,
+                        std::string text, command_t::timeout_t timeout);
+    void execute_command (command_ptr_t command);
 
     std::string wrap (const std::string &src);
 

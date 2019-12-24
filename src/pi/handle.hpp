@@ -11,6 +11,8 @@
 #include <mutex>
 #include <string>
 
+#include "asio/asio.hpp"
+
 #include "unix/condition-queue.hpp"
 
 #include "command-queue.hpp"
@@ -28,9 +30,9 @@ namespace led_d
   {
   public:
 
-    handle_t (const arg_t &arg);
+    handle_t (asio::io_context &io_context, const arg_t &arg);
     handle_t (const handle_t&) = delete;
-    ~handle_t () {};
+    ~handle_t () = default;
 
     void start ();
     void stop ();
@@ -54,6 +56,9 @@ namespace led_d
     void mcu_status (const mcu_msg_t &msg);
 
     void info_push ();
+
+    void issue_command (command_id::value_t id,
+                        std::string text, command_t::timeout_t timeout);
 
     std::mutex m_mutex;
     std::condition_variable m_condition;

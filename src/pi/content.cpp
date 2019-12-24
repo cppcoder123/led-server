@@ -16,8 +16,10 @@ namespace led_d
 
   const std::regex content_t::m_regex ("\\s*([^: ]+)\\s*:(.*)");
 
-  content_t::content_t (const std::list<std::string> &regex_list)
-    : m_iterator (m_info.begin ())
+  content_t::content_t (asio::io_context &io_context,
+                        const std::list<std::string> &regex_list)
+    : m_io_context (io_context),
+      m_iterator (m_info.begin ())
   {
     for (auto &pattern_replace : regex_list) {
       // 1. split
@@ -43,33 +45,27 @@ namespace led_d
 
   void content_t::in (status_ptr_t status)
   {
-    // std::string prefix, suffix;
-    // if (popen_t::split (info, prefix, suffix, m_regex) == false) {
-    //   log_t::buffer_t buf;
-    //   buf << "content: Failed to split info \"" << info << "\"";
-    //   log_t::error (buf);
-    //   return;
-    // }
-
     switch (status->id ()) {
-    case STREAM_SYSTEM:
+    case command_id::STREAM_SYSTEM:
       m_sys_info.push_back (status->out ());
       break;
-    case STREAM_TRACK_NAME:
+    case command_id::STREAM_TRACK_NAME:
       if (status->out ().empty () == false)
-        m_info[STREAM_TRACK_NAME] = replace (status->out ());
+        m_info[command_id::STREAM_TRACK_NAME] = replace (status->out ());
+      break;
+    case command_id::MPC_PLAY_LIST:
+      {
+        // fixme
+        log_t::buffer_t buf;
+        buf << "play-list: \"" << status->out () << "\"";
+        log_t::info (buf);
+      }
       break;
     default:
       m_info[status->id ()] = status->out ();
     }
 
-    // if (prefix == sys) {
-    //   m_sys_info.push_back (suffix);
-    //   return;
-    // }
-
-    // m_info[prefix] = (prefix == mpd) ? replace (suffix) : suffix;
-    if (status->id () != STREAM_SYSTEM)
+    if (status->id () != command_id::STREAM_SYSTEM)
       m_iterator = m_info.find (status->id ());
   }
 

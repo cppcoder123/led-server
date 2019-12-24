@@ -10,7 +10,10 @@
 #include <memory>
 #include <regex>
 #include <string>
+#include <vector>
 #include <utility>
+
+#include "asio/asio.hpp"
 
 #include "command-id.hpp"
 #include "status.hpp"
@@ -24,7 +27,8 @@ namespace led_d
     using status_ptr_t = std::shared_ptr<status_t>;
 
     content_t () = delete;
-    content_t (const std::list<std::string> &regexp_list);
+    content_t (asio::io_context &io_context,
+               const std::list<std::string> &regexp_list);
     ~content_t ();
 
     void in (status_ptr_t status);
@@ -36,9 +40,11 @@ namespace led_d
 
     std::string replace (const std::string &src);
 
+    asio::io_context &m_io_context;
+
     std::list<std::string> m_sys_info;
 
-    using map_t = std::map<command_id_t, std::string/*info*/>;
+    using map_t = std::map<command_id::value_t, std::string/*info*/>;
     map_t m_info;
     map_t::iterator m_iterator;
 
@@ -48,6 +54,8 @@ namespace led_d
     regex_list_t m_regex_list;
 
     static const std::regex m_regex;
+
+    std::vector<std::string> m_playlist;
   };
   
 } // led_d

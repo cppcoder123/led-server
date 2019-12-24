@@ -26,21 +26,21 @@ namespace led_d
     using timer_ptr_t = std::shared_ptr<timer_t>;
 
     command_t () = delete;
-    command_t (command_id_t id, std::string body, timeout_t time_out);
+    command_t (command_id::value_t id, std::string body, timeout_t time_out);
     ~command_t ();
 
     bool stream () const;
     bool semi_stream () const;
     bool wrap () const;
 
-    command_id_t id () const {return m_id;}
+    command_id::value_t id () const {return m_id;}
     const std::string& body () const {return m_body;}
     timeout_t timeout () const {return m_timeout;}
 
     void cancel_timeout ();
 
-    static timeout_t infinity_timeout ();
-    static timeout_t three_seconds_timeout () {return 3;}
+    static timeout_t infinity ();
+    static timeout_t three_seconds () {return 3;}
 
     void popen (popen_ptr_t popen_ptr);
     popen_ptr_t popen () const {return m_popen;}
@@ -52,7 +52,7 @@ namespace led_d
 
   private:
 
-    command_id_t m_id;
+    command_id::value_t m_id;
     std::string m_body;
     timeout_t m_timeout;
 
