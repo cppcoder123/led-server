@@ -16,8 +16,8 @@
 #define MASK_ROTOR_1_B (1 << 5)
 #define MASK_ROTOR_1_PUSH (1 << 7)
 
-#define MASK_ROTOR_2_A (1 << 4)
-#define MASK_ROTOR_2_B (1 << 2)
+#define MASK_ROTOR_2_A (1 << 2)
+#define MASK_ROTOR_2_B (1 << 4)
 #define MASK_ROTOR_2_PUSH (1 << 6)
 
 static volatile struct buf_t rotor_buf;
