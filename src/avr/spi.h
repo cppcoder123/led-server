@@ -16,6 +16,8 @@ uint8_t spi_write_array (uint8_t *array, uint8_t array_size);
 
 uint8_t spi_read_space ();
 
+uint8_t spi_write_space ();
+
 uint8_t spi_read_size ();
 
 #endif

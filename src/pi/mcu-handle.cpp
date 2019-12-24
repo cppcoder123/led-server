@@ -44,14 +44,15 @@ namespace led_d
       // 1. if we have an interrupt, try to handle it first
       if (m_interrupt_rised == true)
         write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
-      auto char_opt = m_interrupt_queue.pop<false>();
-      if (char_opt)
-        m_interrupt_rised = (*char_opt == spi_interrupt_t::interrupt_rised)
-          ? true : false;
+      auto bool_opt = m_interrupt_queue.pop<false>();
+      if (bool_opt)
+        m_interrupt_rised = *bool_opt;
       if (m_interrupt_rised == true)
         continue;
 
       // 2. No interrupt => should we stop?
+      //    Note: 'm_block' is handled from the same thread, so
+      //          we don't need separate queue for it
       {
         std::unique_lock lock (m_mutex);
         if ((m_interrupt_queue.empty<false>() == true)

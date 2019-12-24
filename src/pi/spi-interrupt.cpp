@@ -92,7 +92,7 @@ namespace led_d
     // }
 
     m_queue.push ((event.event_type == GPIOD_LINE_EVENT_RISING_EDGE)
-                  ? interrupt_rised : interrupt_cleared);
+                  ? true : false);
 
     m_descriptor.async_wait
       (asio::posix::stream_descriptor::wait_read,

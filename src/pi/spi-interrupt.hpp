@@ -24,12 +24,12 @@ namespace led_d
   public:
 
     using queue_t = unix::condition_queue_t
-      <char,
+      <bool,
        std::reference_wrapper<std::mutex>,
        std::reference_wrapper<std::condition_variable>>;
 
-    static constexpr char interrupt_rised = 'r';
-    static constexpr char interrupt_cleared = 'c';
+    // static constexpr char interrupt_rised = 'r';
+    // static constexpr char interrupt_cleared = 'c';
 
     spi_interrupt_t (spi_open_t &spi_open,
                      queue_t &interrupt_queue, asio::io_context &context);

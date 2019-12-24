@@ -19,6 +19,7 @@ static uint8_t postponed_size;
 static uint8_t is_enough_space ()
 {
   return ((spi_read_space () >= ENOUGH_SPACE)
+          && (spi_write_space () >= ENOUGH_SPACE)
           && (flush_buffer_space () >= ENOUGH_SPACE)) ? 1 : 0;
 }
 

@@ -76,6 +76,11 @@ uint8_t spi_read_space ()
   return buffer_space (&read_buf);
 }
 
+uint8_t spi_write_space ()
+{
+  return buffer_space (&write_buf);
+}
+
 uint8_t spi_read_size ()
 {
   return buffer_size (&read_buf);
