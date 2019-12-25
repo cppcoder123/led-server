@@ -21,7 +21,8 @@ namespace led_d
   constexpr auto INVOKE_MPC_PLAY = "invoke-mpc-play";
   constexpr auto INVOKE_MPC_PLAYLIST = "invoke-mpc-playlist";
   constexpr auto MPC_PLAY_STRING = "mpc play ";
-  constexpr auto MPC_PLAY_LIST_STRING = "mpc -f %file% playlist";
+  //constexpr auto MPC_PLAY_LIST_STRING = "mpc -f %file% playlist";
+  constexpr auto MPC_PLAY_LIST_STRING = "mpc playlist";
 
   handle_t::handle_t (asio::io_context &io_context, const arg_t &arg)
     : m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),

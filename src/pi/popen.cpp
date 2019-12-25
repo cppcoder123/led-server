@@ -131,18 +131,21 @@ namespace led_d
 
     m_buf += std::string (m_asio_buf.data (), len);
 
-    std::size_t index = m_buf.find ('\n');
-    while (index != std::string::npos) {
+    constexpr auto delimeter = '\n';
+
+    for (std::size_t index = m_buf.find (delimeter);
+         index != std::string::npos;
+         index = m_buf.find (delimeter)) {
       auto info = m_buf.substr (0, index);
       if (index < m_buf.size ())
         m_buf = m_buf.substr (index + 1);
       else
         m_buf = "";
       // ----------
-      // fixme
-      log_t::buffer_t buf;
-      buf << "popen: called: " << info;
-      log_t::info (buf);
+      // debug
+      // log_t::buffer_t buf;
+      // buf << "popen: called: " << info;
+      // log_t::info (buf);
       filter (info);
       if (info.empty () == false)
         m_info_arrived (info);
