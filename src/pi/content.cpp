@@ -18,7 +18,7 @@ namespace led_d
 
   content_t::content_t (asio::io_context &io_context,
                         const std::list<std::string> &regex_list)
-    : m_io_context (io_context),
+    : /*m_playlist (io_context),*/
       m_iterator (m_info.begin ())
   {
     for (auto &pattern_replace : regex_list) {
@@ -55,6 +55,8 @@ namespace led_d
       break;
     case command_id::MPC_PLAY_LIST:
       {
+        m_playlist.add (status->out ());
+
         // fixme
         log_t::buffer_t buf;
         buf << "play-list: \"" << status->out () << "\"";

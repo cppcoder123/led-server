@@ -10,12 +10,13 @@
 #include <memory>
 #include <regex>
 #include <string>
-#include <vector>
+// #include <vector>
 #include <utility>
 
 #include "asio/asio.hpp"
 
 #include "command-id.hpp"
+#include "playlist.hpp"
 #include "status.hpp"
 
 namespace led_d
@@ -40,7 +41,9 @@ namespace led_d
 
     std::string replace (const std::string &src);
 
-    asio::io_context &m_io_context;
+    playlist_t m_playlist;
+
+    // asio::io_context &m_io_context;
 
     std::list<std::string> m_sys_info;
 
@@ -55,7 +58,7 @@ namespace led_d
 
     static const std::regex m_regex;
 
-    std::vector<std::string> m_playlist;
+    // std::vector<std::string> m_playlist;
   };
   
 } // led_d
