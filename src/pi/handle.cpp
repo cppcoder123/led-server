@@ -89,10 +89,10 @@ namespace led_d
     if (status->stream ()) {
       m_content.in (status);
     } else if (status->value () != status_t::good ()) {
-          log_t::buffer_t buf;
-          buf << "Bad status \"" << status->value ()
-              << "\" arrived for command \"" << status->id () << "\"";
-          log_t::error (buf);
+      log_t::buffer_t buf;
+      buf << "Bad status \"" << status->value ()
+          << "\" arrived for command \"" << status->id () << "\"";
+      log_t::error (buf);
     }
   }
 
