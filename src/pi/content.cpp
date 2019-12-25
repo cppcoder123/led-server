@@ -95,9 +95,14 @@ namespace led_d
       return result;
     }
 
-    //log_t::buffer_t buf;
-    //log_t::error ("Empty info list");
     return std::make_pair ("Content is empty, nothing to display ", format);
+  }
+
+  void content_t::rotor (uint8_t id, uint8_t action)
+  {
+    // fixme: handle rotor actions
+    // mode select, value select, command issue
+    log_t::error ("content: Rotor handling is not implemented");
   }
 
   std::string content_t::replace (const std::string &src)

@@ -20,6 +20,16 @@
 #define MSG_OVERHEAD 6 /* it is less actually */
 #define LED_ARRAY_SIZE 20
 
+/*
+  Message structure:
+
+  a) EYE_CATCH <size> <serial> <msg-id>
+  b) EYE_CATCH <size> <serial> <msg-id> <payload-1>
+  c) EYE_CATCH <size> <serial> <msg-id> <payload-1> <payload-2>
+  d) ....
+*/
+
+
 enum {
   /* avr=>pi: debug */
   MSG_ID_DEBUG,
@@ -40,6 +50,8 @@ enum {
   MSG_ID_QUERY,
 
   /* avr=>pi: rotary encoder related messages */
+  /* payload: <rotor-id> <rotor-action> */
+  /* where rotor actions are: clockwise, counter-clockwise and push */
   MSG_ID_ROTOR,
 
   /*avr=>pi: see status below*/

@@ -52,8 +52,9 @@ namespace led_d
     void handle_mcu (mcu_msg_t &msg);
 
     // handle mcu messages
-    void mcu_version (const mcu_msg_t &msg);
+    void mcu_rotor (const mcu_msg_t &msg);
     void mcu_status (const mcu_msg_t &msg);
+    void mcu_version (const mcu_msg_t &msg);
 
     void info_push ();
 

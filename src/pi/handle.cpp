@@ -111,26 +111,9 @@ namespace led_d
     case MSG_ID_STATUS:
       mcu_status (msg);
       break;
-    // case MSG_ID_POLL:
-    //   {
-    //     uint8_t buf_space = 0;
-    //     if (mcu::decode::split_payload (msg, buf_space) == false) {
-    //       log_t::error ("handle: Failed to parse buffer size");
-    //       return;
-    //     }
-    //     if (m_to_mcu_queue->size<true>() >= PI_QUEUE_LIMIT)
-    //       return;
-
-    //     {
-    //       log_t::buffer_t buf;
-    //       buf << "handle: poll space: " << (int) buf_space;
-    //       log_t::info (buf);
-    //     }
-
-    //     auto info = m_content.out ();
-    //     info_push (info.first, info.second);
-    //   }
-    //   break;
+    case MSG_ID_ROTOR:
+      mcu_rotor (msg);
+      break;
     default:
       {
         log_t::buffer_t buf;
@@ -142,6 +125,36 @@ namespace led_d
       }
       break;
     }
+  }
+
+  void handle_t::mcu_rotor (const mcu_msg_t &msg)
+  {
+    uint8_t id = 0;
+    uint8_t action = 0;
+    if (mcu::decode::split_payload (msg, id, action) == false) {
+      log_t::error ("handle: Failed to decode rotor message");
+      return;
+    }
+
+    m_content.rotor (id, action);
+  }
+
+  void handle_t::mcu_status (const mcu_msg_t &msg)
+  {
+    uint8_t status = 0;
+    uint8_t src_msg_id = MSG_ID_EMPTY;
+    if (mcu::decode::split_payload (msg, status, src_msg_id) == false) {
+      log_t::error ("handle: Failed to decode status message");
+      return;
+    }
+    if (status != STATUS_SUCCESS) {
+      log_t::buffer_t buf;
+      buf << "handle: Bad status \"" << (int) status
+          << "\" has arrived for src-msg-id \"" << (int) src_msg_id << "\"";
+      log_t::error (buf);
+    }
+    if (src_msg_id == MSG_ID_LED_ARRAY)
+      info_push ();
   }
 
   void handle_t::mcu_version (const mcu_msg_t &msg)
@@ -163,24 +176,6 @@ namespace led_d
     log_t::info (buf);
 
     info_push ();
-  }
-
-  void handle_t::mcu_status (const mcu_msg_t &msg)
-  {
-    uint8_t status = 0;
-    uint8_t src_msg_id = MSG_ID_EMPTY;
-    if (mcu::decode::split_payload (msg, status, src_msg_id) == false) {
-      log_t::error ("handle: Failed to decode status message");
-      return;
-    }
-    if (status != STATUS_SUCCESS) {
-      log_t::buffer_t buf;
-      buf << "handle: Bad status \"" << (int) status
-          << "\" has arrived for src-msg-id \"" << (int) src_msg_id << "\"";
-      log_t::error (buf);
-    }
-    if (src_msg_id == MSG_ID_LED_ARRAY)
-      info_push ();
   }
 
   void handle_t::info_push ()

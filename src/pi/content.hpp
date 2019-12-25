@@ -5,12 +5,12 @@
 #ifndef CONTENT_HPP
 #define CONTENT_HPP
 
+#include <cstdint>
 #include <list>
 #include <map>
 #include <memory>
 #include <regex>
 #include <string>
-// #include <vector>
 #include <utility>
 
 #include "asio/asio.hpp"
@@ -37,6 +37,8 @@ namespace led_d
     using out_info_t = std::pair<std::string/*info*/, std::string/*format*/>;
     out_info_t out ();
 
+    void rotor (uint8_t id, uint8_t action);
+
   private:
 
     std::string replace (const std::string &src);
@@ -57,8 +59,6 @@ namespace led_d
     regex_list_t m_regex_list;
 
     static const std::regex m_regex;
-
-    // std::vector<std::string> m_playlist;
   };
   
 } // led_d
