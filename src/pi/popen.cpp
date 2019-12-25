@@ -129,19 +129,32 @@ namespace led_d
       return;
     }
 
-    auto begin = std::begin (m_asio_buf);
-    std::string asio_tmp (begin, begin + len);
-    std::string line;
-    std::stringstream stream (asio_tmp);
-    while (std::getline (stream, line, '\n')) {
+    m_buf += std::string (m_asio_buf.data (), len);
+
+    std::size_t index = m_buf.find ('\n');
+    while (index != std::string::npos) {
+      auto info = m_buf.substr (0, index);
+      if (index < m_buf.size ())
+        m_buf = m_buf.substr (index + 1);
+      else
+        m_buf = "";
+      // ----------
       // fixme
       log_t::buffer_t buf;
-      buf << "popen: called: " << line;
+      buf << "popen: called: " << info;
       log_t::info (buf);
-      filter (line);
-      if (line.empty () == false)
-        m_info_arrived (line);
+      filter (info);
+      if (info.empty () == false)
+        m_info_arrived (info);
+      // ----------
     }
+
+    // auto begin = std::begin (m_asio_buf);
+    // std::string asio_tmp (begin, begin + len);
+    // std::string line;
+    // std::stringstream stream (asio_tmp);
+    // while (std::getline (stream, line, '\n')) {
+    // }
 
     m_descriptor.async_read_some
       (asio::buffer (m_asio_buf, m_asio_buf.size ()),

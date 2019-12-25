@@ -6,6 +6,7 @@
 
 #include <sys/types.h>
 
+#include <array>
 #include <cstdio>
 #include <csignal>
 #include <functional>
@@ -65,6 +66,7 @@ namespace led_d
 
     static constexpr auto asio_buf_size = 128;
     std::array<char, asio_buf_size> m_asio_buf;
+    std::string m_buf;
 
     static const std::regex m_regex;
   };
