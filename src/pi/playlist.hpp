@@ -22,6 +22,8 @@ namespace led_d
 
     void add (const std::string &track);
 
+    void clear ();
+
   private:
     // asio::io_context &m_io_context;
     //asio::steady_timer m_timer;

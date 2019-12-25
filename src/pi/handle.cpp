@@ -19,8 +19,9 @@ namespace led_d
   // we should provide info if size is less
   constexpr auto QUEUE_SIZE_LIMIT = 3;
   constexpr auto INVOKE_MPC_PLAY = "invoke-mpc-play";
+  constexpr auto INVOKE_MPC_PLAYLIST = "invoke-mpc-playlist";
   constexpr auto MPC_PLAY_STRING = "mpc play ";
-  constexpr auto MPC_PLAY_LIST_STRING = "mpc playlist";
+  constexpr auto MPC_PLAY_LIST_STRING = "mpc -f %file% playlist";
 
   handle_t::handle_t (asio::io_context &io_context, const arg_t &arg)
     : m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
@@ -70,14 +71,18 @@ namespace led_d
 
   void handle_t::handle_status (status_ptr_t status)
   {
-    if ((status->id () == command_id::STREAM_SYSTEM)
-        && (status->out () == INVOKE_MPC_PLAY)) {
-      std::string play_cmd = MPC_PLAY_STRING + std::to_string (m_default_track);
-      issue_command (command_id::MPC_PLAY_TRACK,
-                     play_cmd, command_t::three_seconds ());
-      issue_command (command_id::MPC_PLAY_LIST,
-                     MPC_PLAY_LIST_STRING, command_t::three_seconds ());
-      return;
+    if (status->id () == command_id::STREAM_SYSTEM) {
+      if (status->out () == INVOKE_MPC_PLAY) {
+        //std::string play_cmd = MPC_PLAY_STRING + std::to_string (m_default_track);
+        issue_command (command_id::MPC_PLAY_TRACK,
+                       MPC_PLAY_STRING, command_t::three_seconds ());
+        return;
+      }
+      if (status->out () == INVOKE_MPC_PLAYLIST) {
+        issue_command (command_id::MPC_PLAY_LIST,
+                       MPC_PLAY_LIST_STRING, command_t::three_seconds ());
+        return;
+      }
     }
 
     if (status->stream ()) {

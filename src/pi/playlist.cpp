@@ -26,4 +26,9 @@ namespace led_d
     }
   }
 
+  void playlist_t::clear ()
+  {
+    m_list.clear ();
+  }
+
 } // led_d

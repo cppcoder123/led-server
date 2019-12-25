@@ -55,7 +55,13 @@ namespace led_d
       break;
     case command_id::MPC_PLAY_LIST:
       {
-        m_playlist.add (status->out ());
+        auto text = status->out ();
+        m_playlist.add (text);
+
+        if ((text.empty () == true)
+            && (status->value () != status_t::good ()))
+          // don't keep error text
+          m_playlist.clear ();
 
         // fixme
         log_t::buffer_t buf;

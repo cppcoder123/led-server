@@ -97,6 +97,8 @@ then
    echo "invoke-mpc-play"
 fi
 
+echo "invoke-mpc-playlist"
+
 #
 # Hang here
 #

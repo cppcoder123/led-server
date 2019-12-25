@@ -17,8 +17,6 @@ namespace led_d
   constexpr auto pid_string = "pid";
   constexpr auto status_string = "status";
 
-  constexpr auto asio_buf_size = 128;
-
   const std::regex popen_t::m_regex ("\\s*([^: ]+)\\s*:\\s*(\\d+)\\s*");
 
   popen_t::popen_t (const std::string &cmd_body, asio::io_context &context,
@@ -136,9 +134,10 @@ namespace led_d
     std::string line;
     std::stringstream stream (asio_tmp);
     while (std::getline (stream, line, '\n')) {
-      // log_t::buffer_t buf;
-      // buf << "popen: called: " << line;
-      // log_t::info (buf);
+      // fixme
+      log_t::buffer_t buf;
+      buf << "popen: called: " << line;
+      log_t::info (buf);
       filter (line);
       if (line.empty () == false)
         m_info_arrived (line);
