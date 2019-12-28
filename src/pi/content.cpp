@@ -6,25 +6,26 @@
 #include "unix/log.hpp"
 
 #include "content.hpp"
+#include "mcu-encode.hpp"
+#include "mcu-id.hpp"
 #include "popen.hpp"
 
 namespace led_d
 {
   constexpr auto MIN_INFO_SIZE = 3;
-  constexpr auto sys = "sys";
-  constexpr auto mpd = "mpd";
 
-  const std::regex content_t::m_regex ("\\s*([^: ]+)\\s*:(.*)");
+  const std::regex content_t::m_track_regex ("\\s*([^: ]+)\\s*:(.*)");
+  const std::regex content_t::m_time_regex ("\\s*([d+])\\s*:\\s*([d+]).*");
 
   content_t::content_t (asio::io_context &io_context,
                         const std::list<std::string> &regex_list)
-    : /*m_playlist (io_context),*/
+    : m_to_mcu_queue (nullptr),
       m_iterator (m_info.begin ())
   {
     for (auto &pattern_replace : regex_list) {
       // 1. split
       std::string pattern, replace;
-      if (popen_t::split (pattern_replace, pattern, replace, m_regex) == false) {
+      if (popen_t::split (pattern_replace, pattern, replace, m_track_regex) == false) {
         log_t::buffer_t buf;
         buf << "content: Failed to split regex_pattern \""
             << pattern_replace << "\"";
@@ -34,7 +35,7 @@ namespace led_d
       // 2. create regex
       auto regex = std::make_shared<std::regex> (pattern);
       // 3. put pair into list
-      m_regex_list.push_back (std::make_pair (regex, replace));
+      m_track_regex_list.push_back (std::make_pair (regex, replace));
     }
   }
 
@@ -69,8 +70,16 @@ namespace led_d
         log_t::info (buf);
       }
       break;
+    case command_id::STREAM_CLOCK:
+      {
+        auto clock_info = status->out ();
+        m_info[command_id::STREAM_CLOCK] = clock_info;
+        time_sync (clock_info);
+      }
+      break;
     default:
       m_info[status->id ()] = status->out ();
+      break;
     }
 
     if (status->id () != command_id::STREAM_SYSTEM)
@@ -107,7 +116,7 @@ namespace led_d
 
   std::string content_t::replace (const std::string &src)
   {
-    for (auto &re_replace : m_regex_list) {
+    for (auto &re_replace : m_track_regex_list) {
       try {
         auto dst = std::regex_replace
           (src, *(re_replace.first), re_replace.second);
@@ -125,4 +134,30 @@ namespace led_d
 
     return src;
   }
+
+  void content_t::time_sync (const std::string &time_src)
+  {
+    std::string hour_str, minute_str;
+    if (popen_t::split (time_src,
+                        hour_str, minute_str, m_time_regex) == false) {
+      log_t::buffer_t buf;
+      buf << "content: Failed to split \"" << time_src
+          << "\" into hours and minutes";
+      log_t::error (buf);
+      return;
+    }
+
+    std::istringstream stream (hour_str);
+    uint8_t hour = 0, minute = 0;
+    stream >> hour;
+
+    stream.clear ();
+    stream.str (minute_str);
+    stream >> minute;
+
+    auto msg = mcu::encode::join
+      (mcu_id::get (), MSG_ID_CLOCK_SYNC, hour, minute);
+    m_to_mcu_queue->push (msg);
+  }
+
 } // led_d

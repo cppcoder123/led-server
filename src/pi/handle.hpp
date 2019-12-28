@@ -38,7 +38,7 @@ namespace led_d
     void stop ();
 
     mcu_queue_t& from_mcu_queue () {return m_from_mcu_queue;}
-    void to_mcu_queue (mcu_queue_t &queue) {m_to_mcu_queue = &queue;}
+    void to_mcu_queue (mcu_queue_t &queue);
 
     status_queue_t& status_queue () {return m_status_queue;}
     void command_queue (command_queue_t &queue) {m_command_queue = &queue;}

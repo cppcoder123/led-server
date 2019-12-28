@@ -28,7 +28,6 @@ namespace led_d
     try {
       m_spi_open.start ();
       m_interrupt.start ();
-      //m_bash_in.start ();
       m_handle_thread = std::thread (&handle_t::start, &m_handle);
       m_bash_thread = std::thread (&bash_t::start, &m_bash);
       m_mcu_thread = std::thread (&mcu_handle_t::start, &m_mcu_handle);

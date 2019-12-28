@@ -40,26 +40,23 @@ static void decode ()
   switch (msg_id) {
   case MSG_ID_LED_ARRAY:
     {
-      /* uint8_t before = flush_buffer_space (); */
       status = (flush_push_array (in_buf, msg_size - 2) == 1)
         ? STATUS_SUCCESS : STATUS_FAIL;
       encode_msg_2 (MSG_ID_STATUS, msg_serial, status, MSG_ID_LED_ARRAY);
-      /* uint8_t after = flush_buffer_space (); */
-      /* encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ()); */
-      /* debug_3 (DEBUG_DECODE, DEBUG_10, msg_size - 2, before, after); */
     }
+    break;
+  case MSG_ID_QUERY:
+    /* just ignore, other party tries to read smth */
+    break;
+  case MSG_ID_CLOCK_SYNC:
+    /* clock_sync (in_buf[0], in_buf[1]); */
+    encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_SUCCESS, MSG_ID_CLOCK_SYNC);
     break;
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
-    /* key_board_enable (); */
-    /* fixme : it shouldn't be here*/
-    /* encode_msg_1 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE, flush_buffer_space ()); */
     if (status == STATUS_SUCCESS)
       flush_enable ();
-    break;
-  case MSG_ID_QUERY:
-    /* just ignore, other party tries to read smth */
     break;
   default:
     encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_UNKNOWN_MSG, msg_id);

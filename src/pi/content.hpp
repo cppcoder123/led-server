@@ -16,6 +16,7 @@
 #include "asio/asio.hpp"
 
 #include "command-id.hpp"
+#include "mcu-queue.hpp"
 #include "playlist.hpp"
 #include "status.hpp"
 
@@ -32,6 +33,8 @@ namespace led_d
                const std::list<std::string> &regexp_list);
     ~content_t ();
 
+    void to_mcu_queue (mcu_queue_t &queue) {m_to_mcu_queue = &queue;}
+
     void in (status_ptr_t status);
 
     using out_info_t = std::pair<std::string/*info*/, std::string/*format*/>;
@@ -42,6 +45,10 @@ namespace led_d
   private:
 
     std::string replace (const std::string &src);
+
+    void time_sync (const std::string &time_src);
+
+    mcu_queue_t *m_to_mcu_queue;
 
     playlist_t m_playlist;
 
@@ -56,9 +63,10 @@ namespace led_d
     using regex_ptr = std::shared_ptr<std::regex>;
     using find_replace_t = std::pair<regex_ptr/*find*/, std::string/*replace*/>;
     using regex_list_t = std::list<find_replace_t>;
-    regex_list_t m_regex_list;
+    regex_list_t m_track_regex_list;
 
-    static const std::regex m_regex;
+    static const std::regex m_track_regex;
+    static const std::regex m_time_regex;
   };
   
 } // led_d

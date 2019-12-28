@@ -21,7 +21,6 @@ namespace led_d
   constexpr auto INVOKE_MPC_PLAY = "invoke-mpc-play";
   constexpr auto INVOKE_MPC_PLAYLIST = "invoke-mpc-playlist";
   constexpr auto MPC_PLAY_STRING = "mpc play ";
-  //constexpr auto MPC_PLAY_LIST_STRING = "mpc -f %file% playlist";
   constexpr auto MPC_PLAY_LIST_STRING = "mpc playlist";
 
   handle_t::handle_t (asio::io_context &io_context, const arg_t &arg)
@@ -63,6 +62,12 @@ namespace led_d
     m_go.store (false);
     //
     notify ();
+  }
+
+  void handle_t::to_mcu_queue (mcu_queue_t &queue)
+  {
+    m_to_mcu_queue = &queue;
+    m_content.to_mcu_queue (queue);
   }
 
   void handle_t::notify ()
@@ -216,7 +221,7 @@ namespace led_d
 
     len = matrix.size () % LED_ARRAY_SIZE;
     if (len > 0) {
-      std::advance (finish, matrix.size () % LED_ARRAY_SIZE);
+      std::advance (finish, len);
       mcu_msg_t tmp (start, finish);
       m_to_mcu_queue->push
         (mcu::encode::join
