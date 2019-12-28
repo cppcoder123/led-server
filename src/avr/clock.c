@@ -3,74 +3,97 @@
  *
  */
 
+/*
+ * Use timer0 for clock.
+ * This timer has 8 bits, that a bit complicates its usage for longer
+ * times like 1 second, but all other 16 bits timers are already taken.
+ */
+
+#include <stdint.h>
+#include <util/atomic.h>
+
+#include "unix/constant.h"
+
 #include "clock.h"
-#include "flush.h"
-#include "render.h"
-#include "timer.h"
+#include "encode.h"
+#include "counter.h"
 
-volatile uint8_t v_hour;
-volatile uint8_t v_min;
-volatile uint8_t v_sec;
+/* Clock is 4Mhz, prescaler is 1024 => counter clock is ~3906 Hz */
+/* if we will use 55 as compare__a_value then we will get ~71.023 */
+/* interrupts per second */
+#define COUNTER_COMPARE_A_VALUE 55
 
-/*return 1 if we need to refresh display, 0 otherwise*/
-static uint8_t time_advance ()
+/*How many fractions we have in a second?*/
+/* */
+/* 71.023 * 60 = 4261.3636xxx*/
+/* if we will use 4261 fraction per minute, we will get 0.36 sec */
+/* error per minute, 22 sec per hour, 3 min during 8 hours => should be suitable */
+#define FRACTION_PER_MINUTE 4261
+
+#define MINUTES_PER_HOUR 60
+#define HOURS_PER_DAY 24
+
+static uint8_t hour = 0;
+static uint8_t min = 0;
+static volatile uint16_t fraction = 0;    /* fraction of a second */
+
+static void clock_interrupt ()
 {
-  if (v_sec == 59)
-    v_sec = 0;
-  else {
-    ++v_sec;
-    return 0;
-  }
-
-  if (v_min == 59)
-    v_min = 0;
-  else {
-    ++v_min;
-    return 1;
-  }
-
-  if (v_hour == 23)
-    v_hour = 0;
-  else
-    ++v_hour;
-
-  return 1;
+  ++fraction;
 }
 
-static void update_screen ()
+void clock_init ()
 {
-  /* 5 * 5 columns = 25, but we need 32 => add zeros, 4 here and 3 at the end*/
-  render_direct (0, 4);
-  uint8_t symbol = (v_hour / 10);
-  symbol = (symbol) ? RENDER_SPACE : render_id (symbol);
-  render (symbol);
-  render (render_id (v_hour % 10));
-  render (RENDER_COLON);
-  render (render_id (v_min / 10));
-  render (render_id (v_min % 10));
-  render_direct (0, 3);
+  hour = 0;
+  min = 0;
 
-  /*fixme: Should we place it outside of this function ?*/
-  flush_enable_clear ();
+  counter_prescaler (COUNTER_0, COUNTER_PRESCALER_1024);
+  counter_interrupt (COUNTER_0, COUNTER_INTERRUPT_COMPARE_A, &clock_interrupt);
+  counter_set_compare_a (COUNTER_0, COUNTER_COMPARE_A_VALUE, 0/*not used*/);
+  counter_enable (COUNTER_0);
+
+  /*fixme*/
 }
 
-static void advance ()
+void clock_try ()
 {
-  if (time_advance () != 0) {
-    /*fixme: convert time to pixels & put them into flush*/;
-    update_screen ();
+  uint8_t go_ahead = 0;
+  ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
+    if (fraction >= FRACTION_PER_MINUTE) {
+      fraction = 0;
+      go_ahead = 1;
+    }
   }
+
+  if (go_ahead == 0)
+    return;
+
+  ++min;
+  if (min < MINUTES_PER_HOUR)
+    return;
+
+  min = 0;
+  ++hour;
+  if (hour < HOURS_PER_DAY)
+    return;
+
+  hour = 0;
 }
 
-void clock_sync (uint8_t hour, uint8_t min, uint8_t sec)
+void clock_sync (uint8_t new_hour, uint8_t new_min)
 {
-  v_hour = hour;
-  v_min = min;
-  v_sec = sec;
+  /*debug, find out discrepancy*/
+  uint8_t fraction_high = 0;
+  uint8_t fraction_low = 0;
+  ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
+    fraction_low = (uint8_t) (fraction & 0xFF);
+    fraction_high = (uint8_t) ((fraction >> 8) & 0xFF);
+  }
+  encode_msg_4 (MSG_ID_CLOCK_SYNC, SERIAL_ID_TO_IGNORE,
+                hour, min, fraction_high, fraction_low);
+  /*debug*/
 
-  render_clear ();
-
-  update_screen ();
-
-  timer_enable (TIMER_ONE_PER_SECOND, &advance);
+  hour = new_hour;
+  min = new_min;
+  fraction = 0;
 }

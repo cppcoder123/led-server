@@ -4,20 +4,16 @@
 
 #include <avr/io.h>
 
-/* #include "unix/constant.h" */
-
-/* #include "debug.h" */
-
 #include "counter.h"
 #include "flush.h"
 #include "power.h"
 
-/* #define POWER_PIN PORTC7 */
-
 #define TEN_PER_SECOND_LOW 100
 #define TEN_PER_SECOND_HIGH 0
+
 #define PER_SECOND_LOW 0
 #define PER_SECOND_HIGH 61
+
 
 void power_init ()
 {
