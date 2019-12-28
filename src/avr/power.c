@@ -32,17 +32,12 @@ void power_up ()
 
   /* debug_0 (DEBUG_FLUSH, DEBUG_11); */
 
-  /* expect stream from r-pi */
-  /* timer_enable (TIMER_TEN_PER_SECOND, &flush_enable_shift); */
-
-  counter_prescaler (COUNTER_1, COUNTER_PRESCALER_1024);
-  counter_interrupt (COUNTER_1,
+  counter_prescaler (COUNTER_3, COUNTER_PRESCALER_1024);
+  counter_interrupt (COUNTER_3,
                      COUNTER_INTERRUPT_COMPARE_A, &flush_enable_shift);
-  /* counter_set_compare_a (COUNTER_1, */
-  /*                        TEN_PER_SECOND_LOW, TEN_PER_SECOND_HIGH); */
-  counter_set_compare_a (COUNTER_1,
+  counter_set_compare_a (COUNTER_3,
                          TEN_PER_SECOND_LOW, TEN_PER_SECOND_HIGH);
-  counter_enable (COUNTER_1);
+  counter_enable (COUNTER_3);
 }
 
 void power_down ()
