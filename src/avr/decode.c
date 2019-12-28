@@ -6,6 +6,7 @@
 
 #include "unix/constant.h"
 
+#include "clock.h"
 #include "debug.h"
 #include "decode.h"
 #include "encode.h"
@@ -49,7 +50,7 @@ static void decode ()
     /* just ignore, other party tries to read smth */
     break;
   case MSG_ID_CLOCK_SYNC:
-    /* clock_sync (in_buf[0], in_buf[1]); */
+    clock_sync (in_buf[0], in_buf[1]);
     encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_SUCCESS, MSG_ID_CLOCK_SYNC);
     break;
   case MSG_ID_VERSION:

@@ -46,7 +46,7 @@ namespace led_d
 
     std::string replace (const std::string &src);
 
-    void time_sync (const std::string &time_src);
+    void clock_sync (const std::string &time_src);
 
     mcu_queue_t *m_to_mcu_queue;
 

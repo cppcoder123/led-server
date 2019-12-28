@@ -21,8 +21,9 @@ static void init ()
 
   /* buzz_init (); */
   /* debug_init (); */
-  clock_init ();
   counter_init ();
+  /* clock after counter */
+  clock_init ();
   decode_init ();
   flush_init ();
   postpone_init ();

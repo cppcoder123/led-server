@@ -29,6 +29,63 @@ void counter_init ()
   }
 }
 
+static uint8_t eight_bits (uint8_t id)
+{
+  return ((id == COUNTER_0) || (id == COUNTER_2)) ? 1 : 0;
+}
+
+static void tccra_set (uint8_t id, uint8_t value)
+{
+  switch (id) {
+  case COUNTER_0:
+    TCCR0A |= value;
+    break;
+  case COUNTER_1:
+    TCCR1A |= value;
+    break;
+  case COUNTER_2:
+    TCCR2A |= value;
+    break;
+  case COUNTER_3:
+    TCCR3A |= value;
+    break;
+  case COUNTER_4:
+    TCCR4A |= value;
+    break;
+  case COUNTER_5:
+    TCCR5A |= value;
+    break;
+  default:
+    break;
+  }
+}
+
+static void tccra_clear (uint8_t id, uint8_t value)
+{
+  switch (id) {
+  case COUNTER_0:
+    TCCR0A &= ~value;
+    break;
+  case COUNTER_1:
+    TCCR1A &= ~value;
+    break;
+  case COUNTER_2:
+    TCCR2A &= ~value;
+    break;
+  case COUNTER_3:
+    TCCR3A &= ~value;
+    break;
+  case COUNTER_4:
+    TCCR4A &= ~value;
+    break;
+  case COUNTER_5:
+    TCCR5A &= ~value;
+    break;
+  default:
+    break;
+  }
+}
+
 static void tccrb_set(uint8_t id, uint8_t value)
 {
   switch (id) {
@@ -86,6 +143,9 @@ void counter_enable (uint8_t id)
   if (id > MAX_ID)
     return;
 
+  /* if (eight_bits (id) != 0) */
+  /*   tccra_set (id, prescaler[id]); */
+  /* else */
   tccrb_set (id, prescaler[id]);
 }
 
@@ -94,6 +154,9 @@ void counter_disable (uint8_t id)
   if (id > MAX_ID)
     return;
 
+  /* if (eight_bits (id) != 0) */
+  /*   tccra_clear (id, PRESCALER_MASK); */
+  /* else */
   tccrb_clear (id, PRESCALER_MASK);
 }
 
@@ -167,15 +230,23 @@ void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun)
   counter_handle *array = (int_type == COUNTER_INTERRUPT_OVERFLOW)
     ? overflow : compare_a;
 
-  uint8_t ctc_flag = (int_type == COUNTER_INTERRUPT_COMPARE_A)
-    ? (1 << 3) : 0;
+  uint8_t int_mask = 0;
+  if (int_type == COUNTER_INTERRUPT_COMPARE_A)
+    // ctc mode
+    int_mask = (eight_bits (id) != 0) ? (1 << 1) : (1 << 3);
 
   if (fun != 0) {
     timsk_set (id, int_type);
-    tccrb_set (id, ctc_flag);
+    if (eight_bits (id) != 0)
+      tccra_set (id, int_mask);
+    else
+      tccrb_set (id, int_mask);
   } else {
     timsk_clear (id, int_type);
-    tccrb_clear (id, ctc_flag);
+    if (eight_bits (id) != 0)
+      tccra_clear (id, int_mask);
+    else
+      tccrb_clear (id, int_mask);
   }
 
   *(array + id) = fun;
