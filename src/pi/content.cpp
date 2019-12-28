@@ -15,7 +15,7 @@ namespace led_d
   constexpr auto MIN_INFO_SIZE = 3;
 
   const std::regex content_t::m_track_regex ("\\s*([^: ]+)\\s*:(.*)");
-  const std::regex content_t::m_time_regex ("\\s*([d+])\\s*:\\s*([d+]).*");
+  const std::regex content_t::m_time_regex ("\\s*(\\d+)\\s*:\\s*(\\d+).*");
 
   content_t::content_t (asio::io_context &io_context,
                         const std::list<std::string> &regex_list)
