@@ -8,7 +8,7 @@ namespace led_d
 {
   constexpr auto result_delimiter = "\n";
 
-  command_t::command_t (command_id::value_t id, std::string body, timeout_t time_out)
+  command_t::command_t (command_id_t id, std::string body, timeout_t time_out)
     : m_id (id),
       m_body (body),
       m_timeout (time_out)
@@ -23,12 +23,12 @@ namespace led_d
 
   bool command_t::stream () const
   {
-    return command_id::stream (m_id);
+    return command_id_stream (m_id);
   }
 
   bool command_t::semi_stream () const
   {
-    return command_id::semi_stream (m_id);
+    return command_id_semi_stream (m_id);
   }
 
   bool command_t::wrap () const

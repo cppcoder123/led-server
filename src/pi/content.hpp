@@ -17,7 +17,7 @@
 
 #include "command-id.hpp"
 #include "mcu-queue.hpp"
-#include "playlist.hpp"
+#include "menu.hpp"
 #include "status.hpp"
 
 namespace led_d
@@ -50,15 +50,17 @@ namespace led_d
 
     mcu_queue_t *m_to_mcu_queue;
 
-    playlist_t m_playlist;
+    menu_t m_menu;
 
     // asio::io_context &m_io_context;
 
-    std::list<std::string> m_sys_info;
+    using info_map_t = std::map<command_id_t, std::string/*info*/>;
 
-    using map_t = std::map<command_id::value_t, std::string/*info*/>;
-    map_t m_info;
-    map_t::iterator m_iterator;
+    std::string m_top_info;               // top priority
+    std::list<std::string> m_middle_info; // 
+    info_map_t m_bottom_info;             // bottom priority
+
+    info_map_t::iterator m_iterator;
 
     using regex_ptr = std::shared_ptr<std::regex>;
     using find_replace_t = std::pair<regex_ptr/*find*/, std::string/*replace*/>;
@@ -66,7 +68,7 @@ namespace led_d
     regex_list_t m_track_regex_list;
 
     static const std::regex m_track_regex;
-    static const std::regex m_time_regex;
+    static const std::regex m_clock_regex;
   };
   
 } // led_d

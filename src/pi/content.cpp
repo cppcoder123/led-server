@@ -15,12 +15,12 @@ namespace led_d
   constexpr auto MIN_INFO_SIZE = 3;
 
   const std::regex content_t::m_track_regex ("\\s*([^: ]+)\\s*:(.*)");
-  const std::regex content_t::m_time_regex ("\\s*(\\d+)\\s*:\\s*(\\d+).*");
+  const std::regex content_t::m_clock_regex ("\\s*(\\d+)\\s*:\\s*(\\d+).*");
 
   content_t::content_t (asio::io_context &io_context,
                         const std::list<std::string> &regex_list)
     : m_to_mcu_queue (nullptr),
-      m_iterator (m_info.begin ())
+      m_iterator (m_bottom_info.begin ())
   {
     for (auto &pattern_replace : regex_list) {
       // 1. split
@@ -47,22 +47,22 @@ namespace led_d
   void content_t::in (status_ptr_t status)
   {
     switch (status->id ()) {
-    case command_id::STREAM_SYSTEM:
-      m_sys_info.push_back (status->out ());
+    case command_id_t::STREAM_SYSTEM:
+      m_middle_info.push_back (status->out ());
       break;
-    case command_id::STREAM_TRACK_NAME:
+    case command_id_t::STREAM_TRACK_NAME:
       if (status->out ().empty () == false)
-        m_info[command_id::STREAM_TRACK_NAME] = replace (status->out ());
+        m_bottom_info[command_id_t::STREAM_TRACK_NAME] = replace (status->out ());
       break;
-    case command_id::MPC_PLAY_LIST:
+    case command_id_t::MPC_PLAYLIST:
       {
         auto text = status->out ();
-        m_playlist.add (text);
+        m_menu.track_add (text);
 
         if ((text.empty () == true)
             && (status->value () != status_t::good ()))
           // don't keep error text
-          m_playlist.clear ();
+          m_menu.track_clear ();
 
         // fixme
         log_t::buffer_t buf;
@@ -70,35 +70,38 @@ namespace led_d
         log_t::info (buf);
       }
       break;
-    case command_id::STREAM_CLOCK:
+    case command_id_t::STREAM_CLOCK:
       {
         auto clock_info = status->out ();
-        m_info[command_id::STREAM_CLOCK] = clock_info;
+        m_bottom_info[command_id_t::STREAM_CLOCK] = clock_info;
         clock_sync (clock_info);
       }
       break;
     default:
-      m_info[status->id ()] = status->out ();
+      m_bottom_info[status->id ()] = status->out ();
       break;
     }
 
-    if (status->id () != command_id::STREAM_SYSTEM)
-      m_iterator = m_info.find (status->id ());
+    if (status->id () != command_id_t::STREAM_SYSTEM)
+      m_iterator = m_bottom_info.find (status->id ());
   }
 
   content_t::out_info_t content_t::out ()
   {
     static const auto format = unix::format_t::encode_empty ();
 
-    if (m_sys_info.empty () == false) {
-      auto info = m_sys_info.front ();
-      m_sys_info.pop_front ();
+    if (m_top_info.empty () == false)
+      return std::make_pair (m_top_info, format);
+
+    if (m_middle_info.empty () == false) {
+      auto info = m_middle_info.front ();
+      m_middle_info.pop_front ();
       return std::make_pair (info, format);
     }
 
-    if (m_info.empty () == false) {
-      if (m_iterator == m_info.end ())
-        m_iterator = m_info.begin ();
+    if (m_bottom_info.empty () == false) {
+      if (m_iterator == m_bottom_info.end ())
+        m_iterator = m_bottom_info.begin ();
       auto result = std::make_pair (m_iterator->second, format);
       ++m_iterator;
       return result;
@@ -109,9 +112,7 @@ namespace led_d
 
   void content_t::rotor (uint8_t id, uint8_t action)
   {
-    // fixme: handle rotor actions
-    // mode select, value select, command issue
-    log_t::error ("content: Rotor handling is not implemented");
+    m_menu.rotor (id, action);
   }
 
   std::string content_t::replace (const std::string &src)
@@ -139,7 +140,7 @@ namespace led_d
   {
     std::string hour_str, minute_str;
     if (popen_t::split (time_src,
-                        hour_str, minute_str, m_time_regex) == false) {
+                        hour_str, minute_str, m_clock_regex) == false) {
       log_t::buffer_t buf;
       buf << "content: Failed to split \"" << time_src
           << "\" into hours and minutes";

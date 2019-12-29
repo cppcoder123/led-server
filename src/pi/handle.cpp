@@ -13,22 +13,23 @@
 #include "mcu-decode.hpp"
 #include "mcu-encode.hpp"
 #include "mcu-id.hpp"
+#include "popen.hpp"
 
 namespace led_d
 {
   // we should provide info if size is less
   constexpr auto QUEUE_SIZE_LIMIT = 3;
-  constexpr auto INVOKE_MPC_PLAY = "invoke-mpc-play";
-  constexpr auto INVOKE_MPC_PLAYLIST = "invoke-mpc-playlist";
-  constexpr auto MPC_PLAY_STRING = "mpc play ";
-  constexpr auto MPC_PLAY_LIST_STRING = "mpc playlist";
+  //
+  constexpr auto MPC_PLAY = "mpc play";
+  constexpr auto MPC_PLAYLIST = "mpc playlist";
+  //
+  const std::regex system_regex ("\\s*([^:]+):(.*)");
 
   handle_t::handle_t (asio::io_context &io_context, const arg_t &arg)
     : m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_to_mcu_queue (nullptr),
       m_command_queue (nullptr),
       m_status_queue (std::ref (m_mutex), std::ref (m_condition)),
-      m_default_track (arg.default_track),
       m_content (io_context, arg.subject_regexp_list),
       m_render (arg.default_font),
       m_go (true)
@@ -77,26 +78,24 @@ namespace led_d
 
   void handle_t::handle_status (status_ptr_t status)
   {
-    if (status->id () == command_id::STREAM_SYSTEM) {
-      if (status->out () == INVOKE_MPC_PLAY) {
-        //std::string play_cmd = MPC_PLAY_STRING + std::to_string (m_default_track);
-        issue_command (command_id::MPC_PLAY_TRACK,
-                       MPC_PLAY_STRING, command_t::three_seconds ());
-        return;
-      }
-      if (status->out () == INVOKE_MPC_PLAYLIST) {
-        issue_command (command_id::MPC_PLAY_LIST,
-                       MPC_PLAY_LIST_STRING, command_t::three_seconds ());
-        return;
-      }
-    }
+    if ((status->id () == command_id_t::STREAM_SYSTEM)
+        && (filter_system (status->out ()) == true))
+      return;
+
+      // if (status->out () == MPC_PLAY) {
+      // }
+      // if (status->out () == MPC_PLAYLIST) {
+      //   issue_command (command_id::MPC_PLAY,
+      //                  MPC_PLAYLIST, command_t::three_seconds ());
+      //   return;
+      // }
 
     if (status->stream ()) {
       m_content.in (status);
     } else if (status->value () != status_t::good ()) {
       log_t::buffer_t buf;
-      buf << "Bad status \"" << status->value ()
-          << "\" arrived for command \"" << status->id () << "\"";
+      buf << "Bad status \"" << status->value () << "\" arrived for command \""
+          << static_cast<int>(status->id ()) << "\"";
       log_t::error (buf);
     }
   }
@@ -236,11 +235,30 @@ namespace led_d
     }
   }
 
-  void handle_t::issue_command (command_id::value_t id,
+  void handle_t::issue_command (command_id_t id,
                                 std::string text, command_t::timeout_t timeout)
   {
     auto command = std::make_shared<command_t>(id, text, timeout);
     m_command_queue->push (command);
+  }
+
+  bool handle_t::filter_system (const std::string &info)
+  {
+    std::string prefix, suffix;
+    if (popen_t::split (info, prefix, suffix, system_regex) == false)
+      return false;
+
+    if (prefix == MPC_PLAY) {
+      issue_command
+        (command_id_t::MPC_PLAY, MPC_PLAY, command_t::three_seconds ());
+      return true;
+    } else if (prefix == MPC_PLAYLIST) {
+      issue_command
+        (command_id_t::MPC_PLAY, MPC_PLAYLIST, command_t::three_seconds ());
+      return true;
+    }
+
+    return false;
   }
 
 } // namespace led_d

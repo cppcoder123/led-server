@@ -27,8 +27,6 @@ namespace led_d
 
     std::string default_font;
     std::list<std::string> subject_regexp_list;
-
-    int default_track;
   };
 } // namespace led_d
 

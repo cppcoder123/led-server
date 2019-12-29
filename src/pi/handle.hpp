@@ -58,8 +58,10 @@ namespace led_d
 
     void info_push ();
 
-    void issue_command (command_id::value_t id,
+    void issue_command (command_id_t id,
                         std::string text, command_t::timeout_t timeout);
+
+    bool filter_system (const std::string &info);
 
     std::mutex m_mutex;
     std::condition_variable m_condition;
@@ -69,8 +71,6 @@ namespace led_d
 
     command_queue_t *m_command_queue; // to bash
     status_queue_t m_status_queue;    // from bash
-
-    const int m_default_track;
 
     content_t m_content;
     render_t m_render;

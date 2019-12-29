@@ -94,10 +94,10 @@ echo "Mpd Output is enabled"
 mpc status | grep playing >& /dev/null
 if [ $? -ne 0 ]
 then
-   echo "invoke-mpc-play"
+   echo "mpc play: "
 fi
 
-echo "invoke-mpc-playlist"
+echo "mpc playlist: "
 
 #
 # Hang here

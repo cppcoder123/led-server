@@ -27,11 +27,11 @@ namespace led_d
 
   void bash_t::start ()
   {
-    issue_command (command_id::STREAM_SYSTEM,
+    issue_command (command_id_t::STREAM_SYSTEM,
                    system_command, command_t::infinity ());
-    issue_command (command_id::STREAM_TRACK_NAME,
+    issue_command (command_id_t::STREAM_TRACK_NAME,
                    track_name_command, command_t::infinity ());
-    issue_command (command_id::STREAM_CLOCK,
+    issue_command (command_id_t::STREAM_CLOCK,
                    clock_command, command_t::infinity ());
 
     while (m_go.load () == true) {
@@ -49,7 +49,7 @@ namespace led_d
     m_command_queue.notify_one<true> ();
   }
 
-  void bash_t::issue_command (command_id::value_t id,
+  void bash_t::issue_command (command_id_t id,
                               std::string text, command_t::timeout_t timeout)
   {
     auto command = std::make_shared<command_t>(id, text, timeout);
@@ -110,7 +110,8 @@ namespace led_d
 
     if (command->semi_stream () == false) {
       log_t::buffer_t buf;
-      buf << "bash: Error during stream command \"" << command->id ()
+      buf << "bash: Error during stream command \""
+        << static_cast<int>(command->id ())
           << "\" handling";
       log_t::error (buf);
       erase (command);
@@ -142,7 +143,8 @@ namespace led_d
       return;
 
     log_t::buffer_t buf;
-    buf << "bash: Command \"" << command->id () << "\", execution timeout";
+    buf << "bash: Command \"" << static_cast<int>(command->id ())
+        << "\", execution timeout";
     log_t::error (buf);
 
     auto status = std::make_shared<status_t>
@@ -163,7 +165,7 @@ namespace led_d
     if (status.second == false) {
       log_t::buffer_t buf;
       buf << "bash: Failed to insert command \""
-          << command->id () << "\"";
+        << static_cast<int>(command->id ()) << "\"";
       log_t::error (buf);
     }
   }
@@ -175,8 +177,8 @@ namespace led_d
     auto erased_num = m_command_map.erase (command.get ());
     if (erased_num != 1) {
       log_t::buffer_t buf;
-      buf << "bash: Failed to erase command \"" << command->id ()
-          << "\"";
+      buf << "bash: Failed to erase command \""
+        << static_cast<int>(command->id ()) << "\"";
       log_t::error (buf);
     }
   }
