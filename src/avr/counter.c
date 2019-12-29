@@ -15,6 +15,9 @@
 #define PRESCALER_MASK (COUNTER_PRESCALER_1 | COUNTER_PRESCALER_8 \
   | COUNTER_PRESCALER_256)
 
+/* either set "|=" or clear "&= ~" */
+typedef void (*reg_access) (uint8_t/*counter-id*/, uint8_t/*value*/);
+
 static uint8_t prescaler[ARRAY_SIZE];
 
 static counter_handle overflow[ARRAY_SIZE];
@@ -143,9 +146,6 @@ void counter_enable (uint8_t id)
   if (id > MAX_ID)
     return;
 
-  /* if (eight_bits (id) != 0) */
-  /*   tccra_set (id, prescaler[id]); */
-  /* else */
   tccrb_set (id, prescaler[id]);
 }
 
@@ -154,9 +154,6 @@ void counter_disable (uint8_t id)
   if (id > MAX_ID)
     return;
 
-  /* if (eight_bits (id) != 0) */
-  /*   tccra_clear (id, PRESCALER_MASK); */
-  /* else */
   tccrb_clear (id, PRESCALER_MASK);
 }
 
@@ -235,18 +232,15 @@ void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun)
     // ctc mode
     int_mask = (eight_bits (id) != 0) ? (1 << 1) : (1 << 3);
 
+  reg_access set_fun = (eight_bits (id) != 0) ? &tccra_set : &tccrb_set;
+  reg_access clear_fun = (eight_bits (id) != 0) ? tccra_clear : &tccrb_clear;
+
   if (fun != 0) {
     timsk_set (id, int_type);
-    if (eight_bits (id) != 0)
-      tccra_set (id, int_mask);
-    else
-      tccrb_set (id, int_mask);
+    set_fun (id, int_mask);
   } else {
     timsk_clear (id, int_type);
-    if (eight_bits (id) != 0)
-      tccra_clear (id, int_mask);
-    else
-      tccrb_clear (id, int_mask);
+    clear_fun (id, int_mask);
   }
 
   *(array + id) = fun;
