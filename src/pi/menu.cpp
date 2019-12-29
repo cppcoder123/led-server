@@ -12,10 +12,10 @@
 
 namespace led_d
 {
-  constexpr auto TRACK_ROTOR = ROTOR_1;      // select track
-  constexpr auto VOLUME_ROTOR = ROTOR_2;     // tune volume
-  constexpr auto MENU_ROTOR = TRACK_ROTOR;   // select menu
-  constexpr auto VALUE_ROTOR = VOLUME_ROTOR; // select value
+  constexpr auto TRACK_ROTOR = ROTOR_1;     // select track
+  constexpr auto VOLUME_ROTOR = ROTOR_2;    // tune volume
+  constexpr auto MENU_ROTOR = VOLUME_ROTOR; // select menu
+  constexpr auto VALUE_ROTOR = TRACK_ROTOR; // select value
 
   menu_t::menu_t ()
     : m_playlist_update (false)
