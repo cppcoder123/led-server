@@ -224,26 +224,29 @@ void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun)
           && (int_type != COUNTER_INTERRUPT_COMPARE_A)))
     return;
 
-  counter_handle *array = (int_type == COUNTER_INTERRUPT_OVERFLOW)
-    ? overflow : compare_a;
-
+  counter_handle *array = overflow;
   uint8_t int_mask = 0;
-  if (int_type == COUNTER_INTERRUPT_COMPARE_A)
-    // ctc mode
+  if (int_type == COUNTER_INTERRUPT_COMPARE_A) {
+    array = compare_a;
     int_mask = (eight_bits (id) != 0) ? (1 << 1) : (1 << 3);
-
-  reg_access set_fun = (eight_bits (id) != 0) ? &tccra_set : &tccrb_set;
-  reg_access clear_fun = (eight_bits (id) != 0) ? tccra_clear : &tccrb_clear;
-
-  if (fun != 0) {
-    timsk_set (id, int_type);
-    set_fun (id, int_mask);
-  } else {
-    timsk_clear (id, int_type);
-    clear_fun (id, int_mask);
   }
 
   *(array + id) = fun;
+
+  reg_access reg_set = &tccrb_set;
+  reg_access reg_clear = &tccrb_clear;
+  if (eight_bits (id) != 0) {
+    reg_set = &tccra_set;
+    reg_clear = &tccra_clear;
+  }
+
+  if (fun != 0) {
+    timsk_set (id, int_type);
+    reg_set (id, int_mask);
+  } else {
+    timsk_clear (id, int_type);
+    reg_clear (id, int_mask);
+  }
 }
 
 void counter_set_compare_a (uint8_t id, uint8_t low, uint8_t high)
