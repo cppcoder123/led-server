@@ -95,5 +95,30 @@ namespace led_d
       break;
     }
   }
+
+  void menu_t::select (id_t)
+  {
+    // fixme
+  }
+
+  void menu_t::select (bool)
+  {
+    // fixme
+  }
+
+  void menu_t::select ()
+  {
+    // fixme
+  }
+
+  void menu_t::value (bool)
+  {
+    // fixme
+  }
+
+  void menu_t::value ()
+  {
+    // fixme
+  }
   
 } // led_d
