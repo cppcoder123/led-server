@@ -74,7 +74,7 @@ namespace led_d
       {
         auto clock_info = status->out ();
         m_bottom_info[command_id_t::STREAM_CLOCK] = clock_info;
-        clock_sync (clock_info);
+        sync_clock (clock_info);
       }
       break;
     default:
@@ -136,7 +136,7 @@ namespace led_d
     return src;
   }
 
-  void content_t::clock_sync (const std::string &time_src)
+  void content_t::sync_clock (const std::string &time_src)
   {
     std::string hour_str, minute_str;
     if (popen_t::split (time_src,
@@ -168,7 +168,7 @@ namespace led_d
 #endif
 
     auto msg = mcu::encode::join
-      (mcu_id::get (), MSG_ID_CLOCK_SYNC, (uint8_t) hour, (uint8_t) minute);
+      (mcu_id::get (), MSG_ID_SYNC_CLOCK, (uint8_t) hour, (uint8_t) minute);
     m_to_mcu_queue->push (msg);
   }
 

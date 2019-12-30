@@ -5,7 +5,6 @@
 #include <avr/interrupt.h>
 
 /* #include "buzz.h" */
-#include "clock.h"
 #include "counter.h"
 #include "decode.h"
 #include "flush.h"
@@ -13,6 +12,7 @@
 #include "power.h"
 #include "rotor.h"
 #include "spi.h"
+#include "sync.h"
 
 static void init ()
 {
@@ -21,14 +21,15 @@ static void init ()
 
   /* buzz_init (); */
   /* debug_init (); */
+
+  /* init counters right after spi */
   counter_init ();
-  /* clock after counter */
-  clock_init ();
   decode_init ();
   flush_init ();
   postpone_init ();
   rotor_init ();
   power_init ();
+  sync_init ();
 
   /* enable r-pi */
   power_up ();
@@ -42,11 +43,11 @@ int main ()
 
   while (1) {
     /* buzz_try (); */
-    clock_try ();
     decode_try ();
     flush_try ();
-    rotor_try ();
     postpone_try ();
+    rotor_try ();
+    sync_try ();
   }
 
   return 0;

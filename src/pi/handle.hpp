@@ -58,8 +58,8 @@ namespace led_d
 
     void info_push ();
 
-    void issue_command (command_id_t id,
-                        std::string text, command_t::timeout_t timeout);
+    // void issue_command (command_id_t id,
+    //                     std::string text, command_t::timeout_t timeout);
 
     bool filter_system (const std::string &info);
 

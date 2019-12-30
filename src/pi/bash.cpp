@@ -8,6 +8,7 @@
 #include "unix/log.hpp"
 
 #include "bash.hpp"
+#include "command-issue.hpp"
 #include "popen.hpp"
 
 namespace led_d
@@ -27,12 +28,12 @@ namespace led_d
 
   void bash_t::start ()
   {
-    issue_command (command_id_t::STREAM_SYSTEM,
-                   system_command, command_t::infinity ());
-    issue_command (command_id_t::STREAM_TRACK_NAME,
-                   track_name_command, command_t::infinity ());
-    issue_command (command_id_t::STREAM_CLOCK,
-                   clock_command, command_t::infinity ());
+    command_issue (command_id_t::STREAM_SYSTEM,
+                   system_command, command_t::infinity (), m_command_queue);
+    command_issue (command_id_t::STREAM_TRACK_NAME,
+                   track_name_command, command_t::infinity (), m_command_queue);
+    command_issue (command_id_t::STREAM_CLOCK,
+                   clock_command, command_t::infinity (), m_command_queue);
 
     while (m_go.load () == true) {
       auto command = m_command_queue.pop<true>();
@@ -49,12 +50,12 @@ namespace led_d
     m_command_queue.notify_one<true> ();
   }
 
-  void bash_t::issue_command (command_id_t id,
-                              std::string text, command_t::timeout_t timeout)
-  {
-    auto command = std::make_shared<command_t>(id, text, timeout);
-    m_command_queue.push (command);
-  }
+  // void bash_t::issue_command (command_id_t id,
+  //                             std::string text, command_t::timeout_t timeout)
+  // {
+  //   auto command = std::make_shared<command_t>(id, text, timeout);
+  //   m_command_queue.push (command);
+  // }
 
   void bash_t::execute_command (command_ptr_t command)
   {

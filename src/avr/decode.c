@@ -6,12 +6,12 @@
 
 #include "unix/constant.h"
 
-#include "clock.h"
 #include "debug.h"
 #include "decode.h"
 #include "encode.h"
 #include "flush.h"
 #include "spi.h"
+#include "sync.h"
 
 #define IN_SIZE (LED_ARRAY_SIZE + MSG_OVERHEAD)
 
@@ -49,9 +49,9 @@ static void decode ()
   case MSG_ID_QUERY:
     /* just ignore, other party tries to read smth */
     break;
-  case MSG_ID_CLOCK_SYNC:
-    clock_sync (in_buf[0], in_buf[1]);
-    encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_SUCCESS, MSG_ID_CLOCK_SYNC);
+  case MSG_ID_SYNC_CLOCK:
+    sync_clock (in_buf[0], in_buf[1]);
+    encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_SUCCESS, MSG_ID_SYNC_CLOCK);
     break;
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;

@@ -34,13 +34,6 @@ enum {
   /* avr=>pi: debug */
   MSG_ID_DEBUG,
 
-  /*pi=>avr send time from OS to avr*/
-  /*payload: <hours> <minutes>*/
-  /**/
-  /*avr=>pi Send current avr time to pi, used for debug*/
-  /*payload: <hours> <minutes> <seconds> <second-fraction>*/
-  MSG_ID_CLOCK_SYNC,
-
   /*should not be sent in either direction, initialization*/
   MSG_ID_EMPTY,
 
@@ -64,6 +57,13 @@ enum {
   /*avr=>pi: see status below*/
   /*payload: original MSG_ID_* */
   MSG_ID_STATUS,
+
+  /*pi=>avr send time from OS to avr*/
+  /*payload: <hours> <minutes>*/
+  /**/
+  /*avr=>pi Send current avr time to pi, used for debug*/
+  /*payload: <hours> <minutes> <seconds> <second-fraction>*/
+  MSG_ID_SYNC_CLOCK,
 
   /*pi=>avr: PROTOCOL_VERSION as payload, */
   /*avr=>pi: VERSION: STATUS_SUCCESS(or STATUS_FAIL) as payload*/

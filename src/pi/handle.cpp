@@ -8,6 +8,7 @@
 
 #include "unix/log.hpp"
 
+#include "command-issue.hpp"
 #include "handle.hpp"
 #include "matrix.hpp"
 #include "mcu-decode.hpp"
@@ -235,12 +236,12 @@ namespace led_d
     }
   }
 
-  void handle_t::issue_command (command_id_t id,
-                                std::string text, command_t::timeout_t timeout)
-  {
-    auto command = std::make_shared<command_t>(id, text, timeout);
-    m_command_queue->push (command);
-  }
+  // void handle_t::issue_command (command_id_t id,
+  //                               std::string text, command_t::timeout_t timeout)
+  // {
+  //   auto command = std::make_shared<command_t>(id, text, timeout);
+  //   m_command_queue->push (command);
+  // }
 
   bool handle_t::filter_system (const std::string &info)
   {
@@ -249,12 +250,14 @@ namespace led_d
       return false;
 
     if (prefix == MPC_PLAY) {
-      issue_command
-        (command_id_t::MPC_PLAY, MPC_PLAY, command_t::three_seconds ());
+      command_issue
+        (command_id_t::MPC_PLAY, MPC_PLAY,
+         command_t::three_seconds (), *m_command_queue);
       return true;
     } else if (prefix == MPC_PLAYLIST) {
-      issue_command
-        (command_id_t::MPC_PLAY, MPC_PLAYLIST, command_t::three_seconds ());
+      command_issue
+        (command_id_t::MPC_PLAY, MPC_PLAYLIST,
+         command_t::three_seconds (), *m_command_queue);
       return true;
     }
 

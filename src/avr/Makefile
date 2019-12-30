@@ -10,7 +10,6 @@ OBJECT_LIST = \
   avr.o \
   buffer.o \
   buf.o \
-  clock.o \
   counter.o \
   debug.o \
   decode.o \
@@ -22,7 +21,8 @@ OBJECT_LIST = \
   render.o \
   ring.o \
   rotor.o \
-  spi.o
+  spi.o \
+  sync.o
 
 MCU = atmega2560
 
