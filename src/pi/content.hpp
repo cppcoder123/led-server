@@ -16,9 +16,11 @@
 #include "asio/asio.hpp"
 
 #include "command-id.hpp"
+#include "command-queue.hpp"
 #include "mcu-queue.hpp"
 #include "menu.hpp"
 #include "status.hpp"
+#include "status-queue.hpp"
 
 namespace led_d
 {
@@ -30,10 +32,12 @@ namespace led_d
 
     content_t () = delete;
     content_t (asio::io_context &io_context,
+               status_queue_t &status_queue,
                const std::list<std::string> &regexp_list);
     ~content_t ();
 
     void to_mcu_queue (mcu_queue_t &queue) {m_to_mcu_queue = &queue;}
+    void command_queue (command_queue_t &command_queue);
 
     void in (status_ptr_t status);
 

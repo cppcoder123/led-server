@@ -8,7 +8,13 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
+
+#include "asio/asio.hpp"
+
+#include "command-queue.hpp"
+#include "status-queue.hpp"
 
 namespace led_d
 {
@@ -16,8 +22,12 @@ namespace led_d
   {
   public:
 
-    menu_t ();
+    menu_t (asio::io_context &io_context,
+            status_queue_t &status_queue);
+    menu_t (const menu_t&) = delete;
     ~menu_t () = default;
+
+    void command_queue (command_queue_t &command_queue);
 
     void track_add (const std::string &track);
     void track_clear ();
@@ -39,12 +49,39 @@ namespace led_d
     void value (bool inc);
     void value ();
 
+    void set_range ();
+
+    void get_value ();
+    void set_value (bool only_volume);
+    bool inc_value (bool inc);
+    void wrap_value (bool);
+
+    id_t inc_id (bool inc) const;
+    void reflect ();
+
+    void menu_timeout (const asio::error_code &error);
+    void track_timeout (const asio::error_code &error);
+
     std::optional<id_t> m_id;
-    std::optional<int> m_track;
-    std::optional<int> m_volume;
+
+    using value_t = int;
+    using pair_t = std::pair<value_t, value_t>;
+    std::optional<pair_t> m_range;
+    std::optional<value_t> m_value;
 
     bool m_playlist_update;     // in progress
     std::vector<std::string> m_playlist;
+
+    pair_t m_volume_limit;
+    std::string m_volume_get;   // command
+    std::string m_volume_set;   // command
+
+    //asio::io_context &m_io_context;
+    asio::steady_timer m_menu_timer;
+    asio::steady_timer m_track_timer;
+
+    command_queue_t *m_command_queue {};
+    status_queue_t &m_status_queue;
   };
 
 }

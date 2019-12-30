@@ -7,11 +7,16 @@
 namespace led_d
 {
     enum class command_id_t {
-      MPC_PLAY,          // mpc play - play last track
-      MPC_PLAYLIST,      // mpc playlist - show list of tracks/stations
+      MENU_SET,                 // artificial command (status)
+      MENU_ADD,                 // to handle menu
+      MPC_PLAY,                 // mpc play
+      MPC_PLAYLIST,     // mpc playlist - show list of tracks/stations
+      MPC_CURRENT,      // current track
       STREAM_CLOCK,
       STREAM_SYSTEM,
       STREAM_TRACK_NAME,
+      VOLUME_GET,
+      VOLUME_SET,
     };
 
     inline bool command_id_stream (command_id_t id)

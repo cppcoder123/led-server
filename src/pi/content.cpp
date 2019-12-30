@@ -18,8 +18,10 @@ namespace led_d
   const std::regex content_t::m_clock_regex ("\\s*(\\d+)\\s*:\\s*(\\d+).*");
 
   content_t::content_t (asio::io_context &io_context,
+                        status_queue_t &status_queue,
                         const std::list<std::string> &regex_list)
     : m_to_mcu_queue (nullptr),
+      m_menu (io_context, status_queue),
       m_iterator (m_bottom_info.begin ())
   {
     for (auto &pattern_replace : regex_list) {
@@ -42,6 +44,11 @@ namespace led_d
   content_t::~content_t ()
   {
     // fixme
+  }
+
+  void content_t::command_queue (command_queue_t &queue)
+  {
+    m_menu.command_queue (queue);
   }
 
   void content_t::in (status_ptr_t status)

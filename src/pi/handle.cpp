@@ -31,7 +31,7 @@ namespace led_d
       m_to_mcu_queue (nullptr),
       m_command_queue (nullptr),
       m_status_queue (std::ref (m_mutex), std::ref (m_condition)),
-      m_content (io_context, arg.subject_regexp_list),
+      m_content (io_context, m_status_queue, arg.subject_regexp_list),
       m_render (arg.default_font),
       m_go (true)
   {
@@ -70,6 +70,12 @@ namespace led_d
   {
     m_to_mcu_queue = &queue;
     m_content.to_mcu_queue (queue);
+  }
+
+  void handle_t::command_queue (command_queue_t &queue)
+  {
+    m_command_queue = &queue;
+    m_content.command_queue (queue);
   }
 
   void handle_t::notify ()

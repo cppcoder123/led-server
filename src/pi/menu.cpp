@@ -5,10 +5,9 @@
 #include "unix/constant.h"
 #include "unix/log.hpp"
 
+#include "command-issue.hpp"
+#include "command-queue.hpp"
 #include "menu.hpp"
-
-// current track number
-// mpc -f %position% current
 
 namespace led_d
 {
@@ -17,9 +16,25 @@ namespace led_d
   constexpr auto MENU_ROTOR = VOLUME_ROTOR; // select menu
   constexpr auto VALUE_ROTOR = TRACK_ROTOR; // select value
 
-  menu_t::menu_t ()
-    : m_playlist_update (false)
+  constexpr auto CURRENT_TRACK = "mpc -f %position% current";
+  constexpr auto START_TRACK = "mpc play ";
+
+  constexpr auto LONG_DELAY = 5;
+  constexpr auto SHORT_DELAY = 2;
+
+  menu_t::menu_t (asio::io_context &io_context,
+                  status_queue_t &status_queue)
+    : m_playlist_update (false),
+      // m_io_context (io_context),
+      m_menu_timer (io_context),
+      m_track_timer (io_context),
+      m_status_queue (status_queue)
   {
+  }
+
+  void menu_t::command_queue (command_queue_t &command_queue)
+  {
+    m_command_queue = &command_queue;
   }
 
   void menu_t::track_add (const std::string &track)
@@ -96,29 +111,240 @@ namespace led_d
     }
   }
 
-  void menu_t::select (id_t)
+  void menu_t::select (id_t id)
   {
-    // fixme
+    m_id = id;
+    // engage_timeout ();
+    m_value.reset ();
+    set_range ();
+    get_value ();
+    reflect ();                 // show menu info on display
   }
 
-  void menu_t::select (bool)
+  void menu_t::select (bool inc)
   {
-    // fixme
+    select (inc_id (inc));
   }
 
   void menu_t::select ()
   {
-    // fixme
+    if (m_id)
+      return;
+
+    // we shouldn't get here,
+    // but select menu that is not volume or track
+    select (id_t::BRIGHTNESS);
   }
 
-  void menu_t::value (bool)
+  void menu_t::value (bool inc)
   {
-    // fixme
+    if ((!m_id) || (!m_value))
+      return;
+
+    if (!m_range) {
+      log_t::buffer_t buf;
+      buf << "menu: Empty range while handling menu value";
+      log_t::error (buf);
+      return;
+    }
+
+    auto old_value = *m_value;
+
+    if (inc_value (inc) == false)
+      wrap_value (inc);
+
+    if (old_value != *m_value)
+      set_value (true);
+
+    reflect ();
   }
 
   void menu_t::value ()
   {
-    // fixme
+    set_value (false);
+    //m_timer.cancel ()
+    if (m_id)
+      m_id.reset ();
+    if (m_range)
+      m_range.reset ();
+    if (m_value)
+      m_value.reset ();
   }
-  
+
+  void menu_t::set_range ()
+  {
+    if (!m_id)
+      return;
+
+    switch (*m_id) {
+    case id_t::BRIGHTNESS:
+      m_range = std::make_pair (0, 15);
+      break;
+    case id_t::TRACK:
+      if (m_playlist.empty () == false)
+        m_range = std::make_pair (0, static_cast<int>(m_playlist.size () - 1));
+      break;
+    case id_t::VOLUME:
+      m_range = m_volume_limit;
+      break;
+    }
+  }
+
+  void menu_t::get_value ()
+  {
+    if (!m_id)
+      return;
+
+    switch (*m_id) {
+    case id_t::BRIGHTNESS:
+      // fixme: not-implemented
+      break;
+    case id_t::TRACK:
+      command_issue (command_id_t::MPC_CURRENT, CURRENT_TRACK,
+                     command_t::three_seconds (), *m_command_queue);
+      break;
+    case id_t::VOLUME:
+      command_issue (command_id_t::VOLUME_GET, m_volume_get,
+                     command_t::three_seconds (), *m_command_queue);
+      break;
+    }
+  }
+
+  void menu_t::set_value (bool volume_only)
+  {
+    if (!m_id || !m_value
+        || ((volume_only == true) || (*m_id != id_t::VOLUME)))
+      return;
+
+    switch (*m_id) {
+    case id_t::BRIGHTNESS:
+      // fixme: not-implemented
+      break;
+    case id_t::TRACK:
+      {
+        auto txt = std::string (START_TRACK) + std::to_string (*m_value);
+        command_issue (command_id_t::MPC_PLAY, txt,
+                       command_t::three_seconds (), *m_command_queue);
+      }
+      break;
+    case id_t::VOLUME:
+      {
+        auto txt = m_volume_set + " " + std::to_string (*m_value);
+        command_issue (command_id_t::VOLUME_SET, txt,
+                       command_t::three_seconds (), *m_command_queue);
+      }
+      break;
+    }
+  }
+
+  bool menu_t::inc_value (bool dir)
+  {
+    if (dir == true) {
+      if (*m_value < m_range->second) {
+        ++(*m_value);
+        return true;
+      }
+    } else {
+      if (*m_value > m_range->first) {
+        --(*m_value);
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  void menu_t::wrap_value (bool dir)
+  {
+    if ((!m_id) || (*m_id == id_t::VOLUME) || (!m_range))
+      return;
+
+    m_value = (dir == true) ? m_range->first : m_range->second;
+  }
+
+  menu_t::id_t menu_t::inc_id (bool dir) const
+  {
+    id_t new_id = id_t::BRIGHTNESS;
+
+    if (!m_id)
+      return new_id;
+
+    switch (*m_id) {
+    case id_t::BRIGHTNESS:
+      new_id = (dir == true) ? id_t::TRACK : id_t::VOLUME;
+      break;
+    case id_t::TRACK:
+      new_id = (dir == true) ? id_t::VOLUME : id_t::BRIGHTNESS;
+      break;
+    case id_t::VOLUME:
+      new_id = (dir == true) ? id_t::BRIGHTNESS : id_t::TRACK;
+      break;
+    }
+
+    return new_id;
+  }
+
+  void menu_t::reflect ()
+  {
+    if (!m_id)
+      return;
+
+    std::string text;
+    switch (*m_id) {
+    case id_t::BRIGHTNESS:
+      text = "B ";
+      break;
+    case id_t::TRACK:
+      text = "T ";
+      break;
+    case id_t::VOLUME:
+      text = "V ";
+      break;
+    }
+
+    text += (m_value) ? std::to_string (*m_value) : std::string ("?");
+    auto status = std::make_shared<status_t>
+      (command_id_t::MENU_SET, status_t::good (), text);
+    m_status_queue.push (status);
+
+    m_menu_timer.expires_after (std::chrono::seconds (LONG_DELAY));
+    m_menu_timer.async_wait
+      (std::bind (&menu_t::menu_timeout, this, std::placeholders::_1));
+
+    if (*m_id == id_t::TRACK) {
+      m_track_timer.expires_after (std::chrono::seconds (SHORT_DELAY));
+      m_track_timer.async_wait
+        (std::bind (&menu_t::track_timeout, this, std::placeholders::_1));
+    }
+  }
+
+  void menu_t::menu_timeout (const asio::error_code &error)
+  {
+    if (error)
+      return;
+
+    auto status = std::make_shared<status_t>
+      (command_id_t::MENU_SET, status_t::good (), "");
+    m_status_queue.push (status);
+  }
+
+  void menu_t::track_timeout (const asio::error_code &error)
+  {
+    if (error)
+      return;
+
+    if ((!m_id) || (*m_id != id_t::TRACK) || (!m_value) || (!m_range))
+      return;
+
+    // ?
+    if ((*m_value < 0)
+        || (static_cast<std::size_t>(*m_value) >= m_playlist.size ()))
+      return;
+
+    auto track_name = m_playlist[*m_value];
+
+    auto status = std::make_shared<status_t>
+      (command_id_t::MENU_ADD, status_t::good (), track_name);
+    m_status_queue.push (status);
+  }
 } // led_d

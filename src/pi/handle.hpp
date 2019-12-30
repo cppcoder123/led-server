@@ -41,7 +41,7 @@ namespace led_d
     void to_mcu_queue (mcu_queue_t &queue);
 
     status_queue_t& status_queue () {return m_status_queue;}
-    void command_queue (command_queue_t &queue) {m_command_queue = &queue;}
+    void command_queue (command_queue_t &queue);
 
   private:
     using status_ptr_t = std::shared_ptr<status_t>;
