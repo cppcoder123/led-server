@@ -18,7 +18,6 @@
 #include "command-id.hpp"
 #include "command-queue.hpp"
 #include "mcu-queue.hpp"
-#include "menu.hpp"
 #include "status.hpp"
 #include "status-queue.hpp"
 
@@ -31,9 +30,7 @@ namespace led_d
     using status_ptr_t = std::shared_ptr<status_t>;
 
     content_t () = delete;
-    content_t (asio::io_context &io_context,
-               status_queue_t &status_queue,
-               const std::list<std::string> &regexp_list);
+    content_t (const std::list<std::string> &regexp_list);
     ~content_t ();
 
     void to_mcu_queue (mcu_queue_t &queue) {m_to_mcu_queue = &queue;}
@@ -44,8 +41,6 @@ namespace led_d
     using out_info_t = std::pair<std::string/*info*/, std::string/*format*/>;
     out_info_t out ();
 
-    void rotor (uint8_t id, uint8_t action);
-
   private:
 
     std::string replace (const std::string &src);
@@ -53,10 +48,6 @@ namespace led_d
     void sync_clock (const std::string &time_src);
 
     mcu_queue_t *m_to_mcu_queue;
-
-    menu_t m_menu;
-
-    // asio::io_context &m_io_context;
 
     using info_map_t = std::map<command_id_t, std::string/*info*/>;
 

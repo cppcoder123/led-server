@@ -31,7 +31,8 @@ namespace led_d
       m_to_mcu_queue (nullptr),
       m_command_queue (nullptr),
       m_status_queue (std::ref (m_mutex), std::ref (m_condition)),
-      m_content (io_context, m_status_queue, arg.subject_regexp_list),
+      m_content (arg.subject_regexp_list),
+      m_menu (io_context, m_status_queue),
       m_render (arg.default_font),
       m_go (true)
   {
@@ -75,7 +76,7 @@ namespace led_d
   void handle_t::command_queue (command_queue_t &queue)
   {
     m_command_queue = &queue;
-    m_content.command_queue (queue);
+    m_menu.command_queue (queue);
   }
 
   void handle_t::notify ()
@@ -89,21 +90,34 @@ namespace led_d
         && (filter_system (status->out ()) == true))
       return;
 
-      // if (status->out () == MPC_PLAY) {
-      // }
-      // if (status->out () == MPC_PLAYLIST) {
-      //   issue_command (command_id::MPC_PLAY,
-      //                  MPC_PLAYLIST, command_t::three_seconds ());
-      //   return;
-      // }
+    switch (status->id ()) {
+    case command_id_t::MPC_PLAYLIST:
+      {
+        auto text = status->out ();
+        m_menu.track_add (text);
+        
+        if ((text.empty () == true)
+            && (status->value () != status_t::good ()))
+          // don't keep error text
+          m_menu.track_clear ();
 
-    if (status->stream ()) {
-      m_content.in (status);
-    } else if (status->value () != status_t::good ()) {
-      log_t::buffer_t buf;
-      buf << "Bad status \"" << status->value () << "\" arrived for command \""
-          << static_cast<int>(status->id ()) << "\"";
-      log_t::error (buf);
+        // fixme
+        log_t::buffer_t buf;
+        buf << "play-list: \"" << status->out () << "\"";
+        log_t::info (buf);
+        
+      }
+      break;
+    default:
+      if (status->stream ()) {
+        m_content.in (status);
+      } else if (status->value () != status_t::good ()) {
+        log_t::buffer_t buf;
+        buf << "Bad status \"" << status->value () << "\" arrived for command \""
+            << static_cast<int>(status->id ()) << "\"";
+        log_t::error (buf);
+      }
+      break;
     }
   }
 
@@ -147,7 +161,7 @@ namespace led_d
       return;
     }
 
-    m_content.rotor (id, action);
+    m_menu.rotor (id, action);
   }
 
   void handle_t::mcu_status (const mcu_msg_t &msg)
@@ -262,7 +276,7 @@ namespace led_d
       return true;
     } else if (prefix == MPC_PLAYLIST) {
       command_issue
-        (command_id_t::MPC_PLAY, MPC_PLAYLIST,
+        (command_id_t::MPC_PLAYLIST, MPC_PLAYLIST,
          command_t::three_seconds (), *m_command_queue);
       return true;
     }

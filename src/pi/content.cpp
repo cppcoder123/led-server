@@ -17,11 +17,8 @@ namespace led_d
   const std::regex content_t::m_track_regex ("\\s*([^: ]+)\\s*:(.*)");
   const std::regex content_t::m_clock_regex ("\\s*(\\d+)\\s*:\\s*(\\d+).*");
 
-  content_t::content_t (asio::io_context &io_context,
-                        status_queue_t &status_queue,
-                        const std::list<std::string> &regex_list)
+  content_t::content_t (const std::list<std::string> &regex_list)
     : m_to_mcu_queue (nullptr),
-      m_menu (io_context, status_queue),
       m_iterator (m_bottom_info.begin ())
   {
     for (auto &pattern_replace : regex_list) {
@@ -46,11 +43,6 @@ namespace led_d
     // fixme
   }
 
-  void content_t::command_queue (command_queue_t &queue)
-  {
-    m_menu.command_queue (queue);
-  }
-
   void content_t::in (status_ptr_t status)
   {
     switch (status->id ()) {
@@ -60,22 +52,6 @@ namespace led_d
     case command_id_t::STREAM_TRACK_NAME:
       if (status->out ().empty () == false)
         m_bottom_info[command_id_t::STREAM_TRACK_NAME] = replace (status->out ());
-      break;
-    case command_id_t::MPC_PLAYLIST:
-      {
-        auto text = status->out ();
-        m_menu.track_add (text);
-
-        if ((text.empty () == true)
-            && (status->value () != status_t::good ()))
-          // don't keep error text
-          m_menu.track_clear ();
-
-        // fixme
-        log_t::buffer_t buf;
-        buf << "play-list: \"" << status->out () << "\"";
-        log_t::info (buf);
-      }
       break;
     case command_id_t::STREAM_CLOCK:
       {
@@ -115,11 +91,6 @@ namespace led_d
     }
 
     return std::make_pair ("Content is empty, nothing to display ", format);
-  }
-
-  void content_t::rotor (uint8_t id, uint8_t action)
-  {
-    m_menu.rotor (id, action);
   }
 
   std::string content_t::replace (const std::string &src)

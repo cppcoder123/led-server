@@ -19,6 +19,7 @@
 #include "content.hpp"
 #include "mcu-queue.hpp"
 #include "mcu-msg.hpp"
+#include "menu.hpp"
 #include "render.hpp"
 #include "status.hpp"
 #include "status-queue.hpp"
@@ -73,6 +74,7 @@ namespace led_d
     status_queue_t m_status_queue;    // from bash
 
     content_t m_content;
+    menu_t m_menu;
     render_t m_render;
 
     std::atomic_bool m_go;
