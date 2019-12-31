@@ -23,8 +23,10 @@ namespace led_d
   //
   constexpr auto MPC_PLAY = "mpc play";
   constexpr auto MPC_PLAYLIST = "mpc playlist";
+  constexpr auto VOLUME_RANGE = "volume range";
   //
   const std::regex system_regex ("\\s*([^:]+):(.*)");
+  const std::regex volume_regex ("\\s*(\\d+)-(\\d+)\\s*");
 
   handle_t::handle_t (asio::io_context &io_context, const arg_t &arg)
     : m_from_mcu_queue (std::ref (m_mutex), std::ref (m_condition)),
@@ -86,6 +88,14 @@ namespace led_d
 
   void handle_t::handle_status (status_ptr_t status)
   {
+    if (status->value () != status_t::good ()) {
+      log_t::buffer_t buf;
+      buf << "handle: Bad status \"" << status->value ()
+          << "\" has arrived for command \"" << command_id_name (status->id ());
+      log_t::error (buf);
+      return;
+    }
+
     if ((status->id () == command_id_t::STREAM_SYSTEM)
         && (filter_system (status->out ()) == true))
       return;
@@ -101,17 +111,26 @@ namespace led_d
           // don't keep error text
           m_menu.track_clear ();
 
-        // fixme
+        // fixme: remove
         log_t::buffer_t buf;
         buf << "play-list: \"" << status->out () << "\"";
         log_t::info (buf);
         
       }
       break;
+    case command_id_t::MPC_CURRENT:
+      m_menu.current_track (status->out ());
+      break;
+    case command_id_t::VOLUME_GET:
+      m_menu.current_volume (status->out ());
+      break;
+    case command_id_t::VOLUME_SET:
+      // ignore
+      break;
     default:
-      if (status->stream ()) {
+      if (status->value () == status_t::good ()) {
         m_content.in (status);
-      } else if (status->value () != status_t::good ()) {
+      } else {
         log_t::buffer_t buf;
         buf << "Bad status \"" << status->value () << "\" arrived for command \""
             << static_cast<int>(status->id ()) << "\"";
@@ -279,6 +298,15 @@ namespace led_d
         (command_id_t::MPC_PLAYLIST, MPC_PLAYLIST,
          command_t::three_seconds (), *m_command_queue);
       return true;
+    } else if (prefix == VOLUME_RANGE) {
+      std::string low, high;
+      if (popen_t::split (suffix, low, high, volume_regex) == false) {
+        log_t::buffer_t buf;
+        buf << "handle: Failed to parse volume range";
+        log_t::error (buf);
+        return true;
+      }
+      m_menu.volume_range (low, high);
     }
 
     return false;

@@ -34,6 +34,11 @@ namespace led_d
 
     void rotor (uint8_t id, uint8_t action);
 
+    void volume_range (const std::string &low, const std::string &high);
+
+    void current_track (const std::string &str);
+    void current_volume (const std::string &str);
+
   private:
 
     enum class id_t {
@@ -62,6 +67,8 @@ namespace led_d
     void menu_timeout (const asio::error_code &error);
     void track_timeout (const asio::error_code &error);
 
+    static std::optional<int> to_int (const std::string &src);
+
     std::optional<id_t> m_id;
 
     using value_t = int;
@@ -72,7 +79,7 @@ namespace led_d
     bool m_playlist_update;     // in progress
     std::vector<std::string> m_playlist;
 
-    pair_t m_volume_limit;
+    std::optional<pair_t> m_volume_range;
     std::string m_volume_get;   // command
     std::string m_volume_set;   // command
 

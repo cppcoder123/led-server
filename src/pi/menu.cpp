@@ -1,6 +1,7 @@
 /*
  *
  */
+#include <sstream>
 
 #include "unix/constant.h"
 #include "unix/log.hpp"
@@ -111,6 +112,55 @@ namespace led_d
     }
   }
 
+  void menu_t::volume_range (const std::string &low_str,
+                             const std::string &high_str)
+  {
+    auto low = to_int (low_str);
+    auto high = to_int (high_str);
+    if ((!low) || (!high)) {
+      log_t::buffer_t buf;
+      buf << "menu: Failed to set volume range";
+      log_t::error (buf);
+      return;
+    }
+
+    m_volume_range = std::make_pair (*low, *high);
+  }
+
+  void menu_t::current_track (const std::string &src)
+  {
+    if ((!m_id) || (*m_id != id_t::TRACK))
+      return;
+
+    auto position = to_int (src);
+    if (!position) {
+      log_t::buffer_t buf;
+      buf << "menu: Failed to convert \"" << src
+          << "\" to track number";
+      log_t::error (buf);
+      return;
+    }
+
+    m_value = *position;
+  }
+
+  void menu_t::current_volume (const std::string &src)
+  {
+    if ((!m_id) || (*m_id != id_t::VOLUME))
+      return;
+
+    auto level = to_int (src);
+    if (!level) {
+      log_t::buffer_t buf;
+      buf << "menu: Failed to convert \"" << src
+          << "\" to volume level";
+      log_t::error (buf);
+      return;
+    }
+
+    m_value = *level;
+  }
+
   void menu_t::select (id_t id)
   {
     m_id = id;
@@ -185,7 +235,8 @@ namespace led_d
         m_range = std::make_pair (0, static_cast<int>(m_playlist.size () - 1));
       break;
     case id_t::VOLUME:
-      m_range = m_volume_limit;
+      if (m_volume_range)
+        m_range = *m_volume_range;
       break;
     }
   }
@@ -346,5 +397,17 @@ namespace led_d
     auto status = std::make_shared<status_t>
       (command_id_t::MENU_ADD, status_t::good (), track_name);
     m_status_queue.push (status);
+  }
+
+  std::optional<menu_t::value_t> menu_t::to_int (const std::string &src)
+  {
+    std::istringstream stream (src);
+    menu_t::value_t val = 0;
+    stream >> val;
+
+    if (stream.fail () == true)
+      return {};
+
+    return val;
   }
 } // led_d
