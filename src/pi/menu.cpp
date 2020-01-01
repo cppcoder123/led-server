@@ -405,8 +405,12 @@ namespace led_d
     menu_t::value_t val = 0;
     stream >> val;
 
-    if (stream.fail () == true)
+    if (stream.fail () == true) {
+      log_t::buffer_t buf;
+      buf << "menu: Failed to convert \"" << src << "\" to integer";
+      log_t::error (buf);
       return {};
+    }
 
     return val;
   }
