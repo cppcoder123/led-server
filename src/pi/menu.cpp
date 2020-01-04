@@ -15,7 +15,7 @@ namespace led_d
   constexpr auto TRACK_ROTOR = ROTOR_1;     // select track
   constexpr auto VOLUME_ROTOR = ROTOR_2;    // tune volume
   constexpr auto MENU_ROTOR = VOLUME_ROTOR; // select menu
-  constexpr auto VALUE_ROTOR = TRACK_ROTOR; // select value
+  // constexpr auto VALUE_ROTOR = TRACK_ROTOR; // select value
 
   constexpr auto CURRENT_TRACK = "mpc -f %position% current";
   constexpr auto START_TRACK = "mpc play ";
@@ -186,7 +186,7 @@ namespace led_d
     select (id_t::BRIGHTNESS);
   }
 
-  void menu_t::value (bool inc)
+  void menu_t::value (bool direction)
   {
     if ((!m_id) || (!m_value))
       return;
@@ -200,18 +200,19 @@ namespace led_d
 
     auto old_value = *m_value;
 
-    if (inc_value (inc) == false)
-      wrap_value (inc);
+    inc_value (direction);
 
-    if (old_value != *m_value)
-      set_value (true);
+    if ((old_value != *m_value)
+        && (applyable () == true))
+      set_value ();
 
+    // reflect unconditionally to keep timer
     reflect ();
   }
 
   void menu_t::value ()
   {
-    set_value (false);
+    set_value ();
     //m_timer.cancel ()
     if (m_id)
       m_id.reset ();
@@ -261,10 +262,9 @@ namespace led_d
     }
   }
 
-  void menu_t::set_value (bool volume_only)
+  void menu_t::set_value ()
   {
-    if (!m_id || !m_value
-        || ((volume_only == true) || (*m_id != id_t::VOLUME)))
+    if (!m_id || !m_value)
       return;
 
     switch (*m_id) {
@@ -288,29 +288,35 @@ namespace led_d
     }
   }
 
-  bool menu_t::inc_value (bool dir)
+  void menu_t::inc_value (bool dir)
   {
+    if (!m_id || !m_value || !m_range)
+      return;
+
     if (dir == true) {
       if (*m_value < m_range->second) {
         ++(*m_value);
-        return true;
+        return;
       }
     } else {
       if (*m_value > m_range->first) {
         --(*m_value);
-        return true;
+        return;
       }
     }
 
-    return false;
+    if (wrapable () == true)
+      m_value = (dir == true) ? m_range->first : m_range->second;
   }
 
-  void menu_t::wrap_value (bool dir)
+  bool menu_t::wrapable () const
   {
-    if ((!m_id) || (*m_id == id_t::VOLUME) || (!m_range))
-      return;
+    return (!m_id || (*m_id == id_t::VOLUME)) ? false : true;
+  }
 
-    m_value = (dir == true) ? m_range->first : m_range->second;
+  bool menu_t::applyable () const
+  {
+    return (m_id && (*m_id == id_t::VOLUME)) ? true : false;
   }
 
   menu_t::id_t menu_t::inc_id (bool dir) const

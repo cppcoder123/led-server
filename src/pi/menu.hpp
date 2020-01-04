@@ -57,9 +57,11 @@ namespace led_d
     void set_range ();
 
     void get_value ();
-    void set_value (bool only_volume);
-    bool inc_value (bool inc);
-    void wrap_value (bool);
+    void set_value ();
+    void inc_value (bool direction);
+
+    bool wrapable () const;
+    bool applyable () const;
 
     id_t inc_id (bool inc) const;
     void reflect ();
