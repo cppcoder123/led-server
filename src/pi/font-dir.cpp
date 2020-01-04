@@ -33,21 +33,36 @@ namespace led_d
     auto font_add = [&font] (char symbol, const matrix_t &src) {
       static const constexpr std::size_t matrix_size = 8;
 
-      if (src.size () != matrix_size)
+      if (src.size () != matrix_size) {
+        font.add (symbol, src);
         return;
+      }
 
       matrix_t dst (matrix_size, 0xFF);
 
-      uint8_t src_mask = (1 << 0);
-      for (std::size_t i = 0; i < matrix_size; ++i) {
-        uint8_t transposed = 0;
-        for (std::size_t j = 0; j < matrix_size; ++j) {
-          transposed <<= 1;
-          if (src[matrix_size - j - 1] & src_mask)
-            transposed |= (1 << 0);
-        }
+      // uint8_t src_mask = (1 << 0);
+      // for (auto dst_iter = dst.begin (); dst_iter != dst.end (); ++dst_iter) {
+      //   uint8_t transposed = 0;
+      //   for (auto src_iter = src.crbegin (); src_iter != src.crend (); ++src_iter) {
+      //     transposed <<= 1;
+      //     if (*src_iter & src_mask)
+      //       transposed |= (1 << 0);
+      //   }
 
-        dst[i] = transposed;
+      //   *dst_iter = transposed;
+      //   src_mask <<= 1;
+      // }
+
+      uint8_t src_mask = (1 << 0);
+      for (auto &dst_byte : dst) {
+        uint8_t rotated = 0;
+        for (auto src_iter = src.rbegin ();
+             src_iter != src.rend (); ++src_iter) {
+          rotated <<= 1;
+          if (*src_iter & src_mask)
+            rotated |= (1 << 0);
+        }
+        dst_byte = rotated;
         src_mask <<= 1;
       }
 

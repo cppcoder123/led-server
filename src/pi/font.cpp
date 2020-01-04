@@ -7,6 +7,9 @@
 namespace led_d
 {
   namespace {
+    constexpr auto id_min = 0;
+    constexpr auto id_max = 127;
+
     static const matrix_t filler_a = {0xAA, 0xAA, 0xAA, 0xAA, 0xAA};
     static const matrix_t filler_b = {0x0B, 0x0B, 0x0B, 0x0B, 0x0B};
   }

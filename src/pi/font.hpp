@@ -29,9 +29,6 @@ namespace led_d
 
     using vector_t = std::vector<matrix_t>;
 
-    static const auto id_min = 0;
-    static const auto id_max = 127;
-
     vector_t m_vector;
   };
 
