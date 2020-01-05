@@ -32,7 +32,8 @@ static void init ()
   sync_init ();
 
   /* enable r-pi */
-  power_up ();
+  /* use default mode (slave) now, fixme: change to master later */
+  /* power_set_mode (POWER_MASTER); */
 
   sei ();
 }
