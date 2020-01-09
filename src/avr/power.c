@@ -41,7 +41,7 @@ static void stop_slave ()
   counter_disable (COUNTER_3);
   counter_set_compare_a (COUNTER_3, 0xFF, 0xFF);
   counter_interrupt (COUNTER_3, COUNTER_INTERRUPT_COMPARE_A, 0);
-  counter_prescaler (COUNTER_PRESCALER_0);
+  counter_prescaler (COUNTER_3, COUNTER_PRESCALER_0);
 }
 
 void power_init ()

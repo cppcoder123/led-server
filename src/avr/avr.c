@@ -5,6 +5,7 @@
 #include <avr/interrupt.h>
 
 /* #include "buzz.h" */
+#include "clock.h"
 #include "counter.h"
 #include "decode.h"
 #include "flush.h"
@@ -24,6 +25,8 @@ static void init ()
 
   /* init counters right after spi */
   counter_init ();
+
+  clock_init ();
   decode_init ();
   flush_init ();
   postpone_init ();

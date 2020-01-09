@@ -10,6 +10,7 @@ OBJECT_LIST = \
   avr.o \
   buffer.o \
   buf.o \
+  clock.o \
   counter.o \
   debug.o \
   decode.o \
