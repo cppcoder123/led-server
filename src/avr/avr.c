@@ -4,7 +4,7 @@
 
 #include <avr/interrupt.h>
 
-/* #include "buzz.h" */
+#include "buzz.h"
 #include "clock.h"
 #include "counter.h"
 #include "decode.h"
@@ -20,11 +20,11 @@ static void init ()
   /*init channel first*/
   spi_init ();
 
-  /* buzz_init (); */
-  /* debug_init (); */
 
   /* init counters right after spi */
   counter_init ();
+
+  buzz_init ();
 
   clock_init ();
   decode_init ();

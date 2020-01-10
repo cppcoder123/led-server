@@ -13,7 +13,7 @@
 #include "flush.h"
 
 #define MATRIX_SIZE 32
-#define POLL_LIMIT 64 /* ? */
+/* #define POLL_LIMIT 64 /\* ? *\/ */
 
 static volatile struct buffer_t led_data;
 

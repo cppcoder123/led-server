@@ -32,12 +32,12 @@ uint8_t buf_space (volatile struct buf_t *buf);
 uint8_t buf_byte_fill (volatile struct buf_t *buf, uint8_t byte);
 uint8_t buf_byte_drain (volatile struct buf_t *buf, uint8_t *byte);
 uint8_t buf_byte_get (volatile struct buf_t *buf,
-                         uint8_t index, uint8_t *byte);
+                      uint8_t index, uint8_t *byte);
 
 uint8_t buf_array_fill (volatile struct buf_t *buf,
-                           uint8_t *array, uint8_t array_size);
+                        uint8_t *array, uint8_t array_size);
 uint8_t buf_array_drain (volatile struct buf_t *buf,
-                            uint8_t *array, uint8_t array_size);
+                         uint8_t *array, uint8_t array_size);
 
 uint8_t buf_is_fillable (volatile struct buf_t *buf, uint8_t fill_size);
 uint8_t buf_is_drainable (volatile struct buf_t *buf, uint8_t drain_size);

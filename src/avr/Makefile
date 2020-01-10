@@ -6,10 +6,12 @@ TARGET_HEX = $(TARGET).hex
 TARGET_ELF = $(TARGET).elf
 
 #  buzz.o
+#  render.o
 OBJECT_LIST = \
   avr.o \
-  buffer.o \
   buf.o \
+  buffer.o \
+  buzz.o \
   clock.o \
   counter.o \
   debug.o \
@@ -17,9 +19,9 @@ OBJECT_LIST = \
   display.o \
   encode.o \
   flush.o \
+  font.o \
   postpone.o \
   power.o \
-  render.o \
   ring.o \
   rotor.o \
   spi.o \
