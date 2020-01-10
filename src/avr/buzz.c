@@ -9,6 +9,19 @@
 #include "buzz.h"
 #include "counter.h"
 
+ /*
+  * !!!
+  *
+  *  fixme
+  *
+  * Counter 0 is used in sync
+  * So, these things are required
+  *   1. Organize shared counter (second-counter, "second" module?)
+  *     1.a COUNTER_2 should be used, because COUNTER_0 drives buzz
+  *   2. Write a function that will be called 100 (or 256?) times per second
+  *      2.a this function should call sync & buzz callbacks
+  */
+
 #define SOUND_COUNTER COUNTER_0
 #define DURATION_COUNTER COUNTER_2
 
