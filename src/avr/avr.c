@@ -9,6 +9,7 @@
 #include "counter.h"
 #include "decode.h"
 #include "flush.h"
+#include "invoke.h"
 #include "postpone.h"
 #include "power.h"
 #include "rotor.h"
@@ -17,15 +18,16 @@
 
 static void init ()
 {
-  /*init channel first*/
+  /*init communication channel first*/
   spi_init ();
 
-
-  /* init counters right after spi */
+  /* init counter after spi */
   counter_init ();
 
-  buzz_init ();
+  /* invoke needs a counter, so init it now*/
+  invoke_init ();
 
+  buzz_init ();
   clock_init ();
   decode_init ();
   flush_init ();

@@ -20,6 +20,7 @@ OBJECT_LIST = \
   encode.o \
   flush.o \
   font.o \
+  invoke.o \
   postpone.o \
   power.o \
   ring.o \
