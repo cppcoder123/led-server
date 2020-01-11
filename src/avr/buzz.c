@@ -9,18 +9,18 @@
 #include "buzz.h"
 #include "counter.h"
 
- /*
-  * !!!
-  *
-  *  fixme
-  *
-  * Counter 0 is used in sync
-  * So, these things are required
-  *   1. Organize shared counter (second-counter, "second" module?)
-  *     1.a COUNTER_2 should be used, because COUNTER_0 drives buzz
-  *   2. Write a function that will be called 100 (or 256?) times per second
-  *      2.a this function should call sync & buzz callbacks
-  */
+/*
+ * !!!
+ *
+ *  fixme
+ *
+ * Counter 0 is used in sync
+ * So, these things are required
+ *   1. Organize shared counter (second-counter, "second" module?)
+ *     1.a COUNTER_2 should be used, because COUNTER_0 drives buzz
+ *   2. Write a function that will be called 100 (or 256?) times per second
+ *      2.a this function should call sync & buzz callbacks
+ */
 
 #define SOUND_COUNTER COUNTER_0
 #define DURATION_COUNTER COUNTER_2
@@ -29,9 +29,9 @@
 #define PAUSE_SIZE 3
 
 enum {
-    EOF,
-    PAUSE,
-    SOUND,
+  EOF,
+  PAUSE,
+  SOUND,
 };
 
 static uint8_t in_progress = 0;
@@ -43,149 +43,149 @@ static volatile uint8_t melody_position = 0;
 
 void buzz_init()
 {
-    /* fixme */
+  /* fixme */
 }
 
 /* it returns either SOUND, PAUSE or EOF */
 static uint8_t get_sound(uint16_t *duration, uint8_t *pitch, uint8_t *volume)
 {
-    if (melody_position >= buf_size(&melody)) {
-        if (++repeat_counter >= repeat_limit)
-            return EOF;
-        melody_position = 0;
-    }
+  if (melody_position >= buf_size(&melody)) {
+    if (++repeat_counter >= repeat_limit)
+      return EOF;
+    melody_position = 0;
+  }
 
-    uint8_t what = 0;
-    if ((buf_byte_get(&melody, melody_position++, &what) == 0)
-        || ((what != SOUND)
-            && (what != PAUSE))) /* either sound or silence */
-        return EOF;              /* internal error */
+  uint8_t what = 0;
+  if ((buf_byte_get(&melody, melody_position++, &what) == 0)
+      || ((what != SOUND)
+          && (what != PAUSE))) /* either sound or silence */
+    return EOF;              /* internal error */
 
-    if (what == SOUND) {
-        if ((buf_byte_get(&melody, melody_position++, pitch) == 0)
-            || (buf_byte_get(&melody, melody_position++, volume) == 0))
-            return EOF;         /* internal error */
-    }
-    uint8_t high = 0, low = 0;
-    if ((buf_byte_get(&melody, melody_position++, &high) == 0)
-        || (buf_byte_get(&melody, melody_position++, &low) == 0))
-        return EOF;             /* internal error */
+  if (what == SOUND) {
+    if ((buf_byte_get(&melody, melody_position++, pitch) == 0)
+        || (buf_byte_get(&melody, melody_position++, volume) == 0))
+      return EOF;         /* internal error */
+  }
+  uint8_t high = 0, low = 0;
+  if ((buf_byte_get(&melody, melody_position++, &high) == 0)
+      || (buf_byte_get(&melody, melody_position++, &low) == 0))
+    return EOF;             /* internal error */
 
-    *duration = (((uint16_t) high) << 8) + ((uint16_t) low);
+  *duration = (((uint16_t) high) << 8) + ((uint16_t) low);
 
-    return what;
+  return what;
 }
 
 static void set_pitch_volume(uint8_t pitch, uint8_t volume)
 {
-    /* fixme */
+  /* fixme */
 }
 
 static void set_duration(uint16_t duration)
 {
-    /* fixme */
+  /* fixme */
 }
 
 void buzz_start()
 {
-    if (in_progress != 0)
-        return;
+  if (in_progress != 0)
+    return;
 
-    repeat_counter = 0;
+  repeat_counter = 0;
 
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        uint16_t duration = 0;
-        uint8_t pitch = 0, volume = 0;
-        switch(get_sound(&duration, &pitch, &volume)) {
-        case EOF:
-            return;
-        case SOUND:
-            set_pitch_volume(pitch, volume);
-            counter_enable(SOUND_COUNTER);
-            /* intentionally no break here */
-        case PAUSE:
-            set_duration(duration);
-            counter_enable(DURATION_COUNTER);
-            break;
-        default:
-            break;
-        }
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    uint16_t duration = 0;
+    uint8_t pitch = 0, volume = 0;
+    switch(get_sound(&duration, &pitch, &volume)) {
+    case EOF:
+      return;
+    case SOUND:
+      set_pitch_volume(pitch, volume);
+      counter_enable(SOUND_COUNTER);
+      /* intentionally no break here */
+    case PAUSE:
+      set_duration(duration);
+      counter_enable(DURATION_COUNTER);
+      break;
+    default:
+      break;
     }
+  }
 }
 
 void buzz_stop()
 {
-    if (in_progress == 0)
-        return;
+  if (in_progress == 0)
+    return;
 
-    counter_disable(SOUND_COUNTER);
-    counter_disable(DURATION_COUNTER);
+  counter_disable(SOUND_COUNTER);
+  counter_disable(DURATION_COUNTER);
 }
 
 void buzz_clear()
 {
-    if (in_progress != 0)
-        return;
+  if (in_progress != 0)
+    return;
 
-    buf_clear(&melody);
-    repeat_limit = 0;
+  buf_clear(&melody);
+  repeat_limit = 0;
 
-    melody_position = 0;
+  melody_position = 0;
 }
 
 static void split_16_bit(uint16_t src, uint8_t *high, uint8_t *low)
 {
-    *low = (uint8_t) (src & 0xFF);
-    *high = (uint8_t) (src >> 8);
+  *low = (uint8_t) (src & 0xFF);
+  *high = (uint8_t) (src >> 8);
 }
 
 uint8_t buzz_add_sound(uint8_t pitch, uint8_t volume, uint16_t duration)
 {
-    if (buf_space(&melody) < SOUND_SIZE)
-        return 0;
+  if (buf_space(&melody) < SOUND_SIZE)
+    return 0;
 
-    uint8_t status = 0;
+  uint8_t status = 0;
 
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        if (volume > pitch)
-            volume = pitch;
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    if (volume > pitch)
+      volume = pitch;
 
-        uint8_t high = 0, low = 0;
-        split_16_bit(duration, &high, &low);
+    uint8_t high = 0, low = 0;
+    split_16_bit(duration, &high, &low);
 
-        status = ((buf_byte_fill(&melody, SOUND) == 0)
-                  || (buf_byte_fill(&melody, pitch) == 0)
-                  || (buf_byte_fill(&melody, volume) == 0)
-                  || (buf_byte_fill(&melody, high) == 0)
-                  || (buf_byte_fill(&melody, low) == 0))
-            ? 0 : 1;
-    }
+    status = ((buf_byte_fill(&melody, SOUND) == 0)
+              || (buf_byte_fill(&melody, pitch) == 0)
+              || (buf_byte_fill(&melody, volume) == 0)
+              || (buf_byte_fill(&melody, high) == 0)
+              || (buf_byte_fill(&melody, low) == 0))
+      ? 0 : 1;
+  }
 
-    return status;
+  return status;
 }
 
 uint8_t buzz_add_pause(uint16_t duration)
 {
-    if (buf_space(&melody) < PAUSE_SIZE)
-        return 0;
+  if (buf_space(&melody) < PAUSE_SIZE)
+    return 0;
 
-    uint8_t status = 0;
+  uint8_t status = 0;
 
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-        uint8_t high = 0, low = 0;
-        split_16_bit(duration, &high, &low);
-        status = ((buf_byte_fill(&melody, PAUSE) == 0)
-                  || (buf_byte_fill(&melody, high) == 0)
-                  || (buf_byte_fill(&melody, low) == 0))
-            ? 0 : 1;
-    }
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+    uint8_t high = 0, low = 0;
+    split_16_bit(duration, &high, &low);
+    status = ((buf_byte_fill(&melody, PAUSE) == 0)
+              || (buf_byte_fill(&melody, high) == 0)
+              || (buf_byte_fill(&melody, low) == 0))
+      ? 0 : 1;
+  }
 
-    return status;
+  return status;
 }
 
 void buzz_repeat(uint8_t num)
 {
-    repeat_limit = num;
+  repeat_limit = num;
 }
     
 
