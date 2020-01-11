@@ -14,6 +14,8 @@
 #define PER_SECOND_LOW 0
 #define PER_SECOND_HIGH 61
 
+#define POWER_COUNTER COUNTER_3
+
 static uint8_t mode = POWER_MASTER;
 
 static void start_master ()
@@ -28,20 +30,20 @@ static void stop_master ()
 
 static void start_slave ()
 {
-  counter_prescaler (COUNTER_3, COUNTER_PRESCALER_1024);
-  counter_interrupt (COUNTER_3,
+  /* counter_prescaler (POWER_COUNTER, COUNTER_PRESCALER_1024); */
+  counter_interrupt (POWER_COUNTER,
                      COUNTER_INTERRUPT_COMPARE_A, &flush_enable_shift);
-  counter_set_compare_a (COUNTER_3,
+  counter_set_compare_a (POWER_COUNTER,
                          TEN_PER_SECOND_LOW, TEN_PER_SECOND_HIGH);
-  counter_enable (COUNTER_3);
+  counter_enable (POWER_COUNTER, COUNTER_PRESCALER_1024);
 }
 
 static void stop_slave ()
 {
-  counter_disable (COUNTER_3);
-  counter_set_compare_a (COUNTER_3, 0xFF, 0xFF);
-  counter_interrupt (COUNTER_3, COUNTER_INTERRUPT_COMPARE_A, 0);
-  counter_prescaler (COUNTER_3, COUNTER_PRESCALER_0);
+  counter_disable (POWER_COUNTER);
+  /* counter_set_compare_a (POWER_COUNTER, 0xFF, 0xFF); */
+  /* counter_interrupt (POWER_COUNTER, COUNTER_INTERRUPT_COMPARE_A, 0); */
+  /* counter_prescaler (POWER_COUNTER, COUNTER_PRESCALER_0); */
 }
 
 void power_init ()
@@ -78,12 +80,12 @@ void power_up ()
 
   /* debug_0 (DEBUG_FLUSH, DEBUG_11); */
 
-  counter_prescaler (COUNTER_3, COUNTER_PRESCALER_1024);
-  counter_interrupt (COUNTER_3,
+  /* counter_prescaler (POWER_COUNTER, COUNTER_PRESCALER_1024); */
+  counter_interrupt (POWER_COUNTER,
                      COUNTER_INTERRUPT_COMPARE_A, &flush_enable_shift);
-  counter_set_compare_a (COUNTER_3,
+  counter_set_compare_a (POWER_COUNTER,
                          TEN_PER_SECOND_LOW, TEN_PER_SECOND_HIGH);
-  counter_enable (COUNTER_3);
+  counter_enable (POWER_COUNTER, COUNTER_PRESCALER_1024);
 }
 
 void power_down ()

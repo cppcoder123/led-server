@@ -51,9 +51,9 @@ int main ()
     /* buzz_try (); */
     decode_try ();
     flush_try ();
+    invoke_try ();
     postpone_try ();
     rotor_try ();
-    sync_try ();
   }
 
   return 0;

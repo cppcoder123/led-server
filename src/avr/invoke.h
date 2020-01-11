@@ -12,6 +12,8 @@
 
 void invoke_init ();
 
+void invoke_try ();
+
 typedef void (*invoke_callback) ();
 
 enum {
@@ -21,7 +23,7 @@ enum {
 };
 
 uint8_t invoke_enable (uint8_t id,
-                       uint16_t factor, invoke_callback callback);
+                       uint8_t factor, invoke_callback callback);
 uint8_t invoke_disable (uint8_t id);
 
 #endif

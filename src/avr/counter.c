@@ -18,7 +18,7 @@
 /* either set "|=" or clear "&= ~" */
 typedef void (*reg_access) (uint8_t/*counter-id*/, uint8_t/*value*/);
 
-static uint8_t prescaler[ARRAY_SIZE];
+/* static uint8_t prescaler[ARRAY_SIZE]; */
 
 static counter_handle overflow[ARRAY_SIZE];
 static counter_handle compare_a[ARRAY_SIZE];
@@ -26,7 +26,7 @@ static counter_handle compare_a[ARRAY_SIZE];
 void counter_init ()
 {
   for (uint8_t i = 0; i < ARRAY_SIZE; ++i) {
-    prescaler[i] = COUNTER_PRESCALER_0;
+    /* prescaler[i] = COUNTER_PRESCALER_0; */
     overflow[i] = 0;
     compare_a[i] = 0;
   }
@@ -141,12 +141,12 @@ static void tccrb_clear(uint8_t id, uint8_t value)
   }
 }
 
-void counter_enable (uint8_t id)
+void counter_enable (uint8_t id, uint8_t prescaler)
 {
   if (id > MAX_ID)
     return;
 
-  tccrb_set (id, prescaler[id]);
+  tccrb_set (id, prescaler & PRESCALER_MASK);
 }
 
 void counter_disable (uint8_t id)
@@ -157,13 +157,13 @@ void counter_disable (uint8_t id)
   tccrb_clear (id, PRESCALER_MASK);
 }
 
-void counter_prescaler (uint8_t id, uint8_t value)
-{
-  if (id > MAX_ID)
-    return;
+/* void counter_prescaler (uint8_t id, uint8_t value) */
+/* { */
+/*   if (id > MAX_ID) */
+/*     return; */
 
-  prescaler[id] = value & PRESCALER_MASK;
-}
+/*   prescaler[id] = value & PRESCALER_MASK; */
+/* } */
 
 static void timsk_set (uint8_t id, uint8_t value)
 {

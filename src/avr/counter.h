@@ -38,11 +38,10 @@ typedef void (*counter_handle) ();
 /* init internal structure */
 void counter_init ();
 
-/* counter can't be enabled w/o prescaler set first */
-void counter_enable (uint8_t id);
+void counter_enable (uint8_t id, uint8_t prescaler);
 void counter_disable (uint8_t id);
 
-void counter_prescaler (uint8_t id, uint8_t prescaler);
+/* void counter_prescaler (uint8_t id, uint8_t prescaler); */
 
 void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun);
 

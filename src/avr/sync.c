@@ -15,58 +15,23 @@
 #include "unix/constant.h"
 
 #include "encode.h"
-#include "counter.h"
+#include "invoke.h"
 #include "sync.h"
 
-/* 
- * Clock is 4Mhz, prescaler is 1024 => counter clock is ~3906 Hz 
- * The period will be 0,000256 sec. 
- * the goal is 60 sec, so the factor is equal to 234375.
- * 234375 = 5*5*5*5*5*5*5*3, max value close to 255 is 5*5*5 = 125
- * The fraction value is 5*5*5*5*3 = 1875
- */
-#define COUNTER_COMPARE_A_VALUE 125
-#define FRACTIONS_PER_MINUTE 1875
+/* 1 second is 3906 */
+#define TWO_SECONDS 200
+#define CALLS_PER_MINUTE 30
 
 #define MINUTES_PER_HOUR 60
 #define HOURS_PER_DAY 24
 
 static uint8_t hour = 0;
 static uint8_t min = 0;
-static volatile uint16_t fraction = 0;    /* fraction of a second */
 
-void sync_interrupt ()
+static uint8_t call_num = 0;
+
+static void increment_minute ()
 {
-  ++fraction;
-}
-
-void sync_init ()
-{
-  hour = 0;
-  min = 0;
-  fraction = 0;
-
-  counter_prescaler (COUNTER_0, COUNTER_PRESCALER_1024);
-  counter_interrupt (COUNTER_0, COUNTER_INTERRUPT_COMPARE_A, &sync_interrupt);
-  counter_set_compare_a (COUNTER_0, COUNTER_COMPARE_A_VALUE, 0/*not used*/);
-  counter_enable (COUNTER_0);
-
-  /*fixme*/
-}
-
-void sync_try ()
-{
-  uint8_t go_ahead = 0;
-  ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
-    if (fraction >= FRACTIONS_PER_MINUTE) {
-      fraction -= FRACTIONS_PER_MINUTE;
-      go_ahead = 1;
-    }
-  }
-
-  if (go_ahead == 0)
-    return;
-
   ++min;
   if (min < MINUTES_PER_HOUR)
     return;
@@ -77,6 +42,32 @@ void sync_try ()
     return;
 
   hour = 0;
+}
+
+static void sync_call ()
+{
+  ++call_num;
+  if (call_num >= CALLS_PER_MINUTE) {
+    call_num = 0;
+    increment_minute ();
+  }
+
+}
+
+void sync_init ()
+{
+  hour = 0;
+  min = 0;
+  call_num = 0;
+
+  invoke_enable (INVOKE_ID_SYNC, TWO_SECONDS, sync_call);
+
+  /* counter_prescaler (COUNTER_0, COUNTER_PRESCALER_1024); */
+  /* counter_interrupt (COUNTER_0, COUNTER_INTERRUPT_COMPARE_A, &sync_interrupt); */
+  /* counter_set_compare_a (COUNTER_0, COUNTER_COMPARE_A_VALUE, 0/\*not used*\/); */
+  /* counter_enable (COUNTER_0); */
+
+  /*fixme*/
 }
 
 void sync_clock (uint8_t new_hour, uint8_t new_min)
@@ -97,5 +88,6 @@ void sync_clock (uint8_t new_hour, uint8_t new_min)
 
   hour = new_hour;
   min = new_min;
-  fraction = 0;
+
+  call_num = 0;
 }
