@@ -16,11 +16,11 @@
 #define SOUND_SIZE 3
 
 static uint8_t in_progress = 0;
-static volatile uint8_t repeat_counter = 0;
-static volatile uint8_t repeat_limit = 0;
+static uint8_t repeat_counter = 0;
+static uint8_t repeat_limit = 0;
 
 static volatile struct buf_t melody;
-static volatile uint8_t melody_position = 0;
+static uint8_t melody_position = 0;
 
 static void handle_sound ();
 
