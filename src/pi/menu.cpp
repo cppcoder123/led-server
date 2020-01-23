@@ -142,6 +142,8 @@ namespace led_d
     }
 
     m_value = *position;
+
+    reflect ();
   }
 
   void menu_t::current_volume (const std::string &src)
@@ -159,6 +161,8 @@ namespace led_d
     }
 
     m_value = *level;
+
+    reflect ();
   }
 
   void menu_t::select (id_t id)
@@ -168,7 +172,7 @@ namespace led_d
     m_value.reset ();
     set_range ();
     get_value ();
-    reflect ();                 // show menu info on display
+    // reflect ();                 // show menu info on display
   }
 
   void menu_t::select (bool inc)
