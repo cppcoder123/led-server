@@ -74,7 +74,7 @@ namespace led_d
       case ROTOR_PUSH:
         // volume & track directly accessible,
         // user wants something different
-        select (id_t::BRIGHTNESS);
+        // select (id_t::BRIGHTNESS);
         break;
       default:
         log_t::buffer_t buf;
@@ -172,7 +172,7 @@ namespace led_d
     m_value.reset ();
     set_range ();
     get_value ();
-    // reflect ();                 // show menu info on display
+    reflect ();                 // show menu info on display
   }
 
   void menu_t::select (bool inc)
@@ -187,7 +187,8 @@ namespace led_d
 
     // we shouldn't get here,
     // but select menu that is not volume or track
-    select (id_t::BRIGHTNESS);
+    // fixme ???
+    // select (id_t::BRIGHTNESS);
   }
 
   void menu_t::value (bool direction)
@@ -232,9 +233,9 @@ namespace led_d
       return;
 
     switch (*m_id) {
-    case id_t::BRIGHTNESS:
-      m_range = std::make_pair (0, 15);
-      break;
+    // case id_t::BRIGHTNESS:
+    //   m_range = std::make_pair (0, 15);
+    //   break;
     case id_t::TRACK:
       if (m_playlist.empty () == false)
         m_range = std::make_pair (0, static_cast<int>(m_playlist.size () - 1));
@@ -252,9 +253,9 @@ namespace led_d
       return;
 
     switch (*m_id) {
-    case id_t::BRIGHTNESS:
-      // fixme: not-implemented
-      break;
+    // case id_t::BRIGHTNESS:
+    //   // fixme: not-implemented
+    //   break;
     case id_t::TRACK:
       command_issue (command_id_t::MPC_CURRENT, CURRENT_TRACK,
                      command_t::three_seconds (), *m_command_queue);
@@ -272,9 +273,9 @@ namespace led_d
       return;
 
     switch (*m_id) {
-    case id_t::BRIGHTNESS:
-      // fixme: not-implemented
-      break;
+    // case id_t::BRIGHTNESS:
+    //   // fixme: not-implemented
+    //   break;
     case id_t::TRACK:
       {
         auto txt = std::string (START_TRACK) + std::to_string (*m_value);
@@ -325,20 +326,20 @@ namespace led_d
 
   menu_t::id_t menu_t::inc_id (bool dir) const
   {
-    id_t new_id = id_t::BRIGHTNESS;
+    id_t new_id = id_t::TRACK;
 
     if (!m_id)
       return new_id;
 
     switch (*m_id) {
-    case id_t::BRIGHTNESS:
-      new_id = (dir == true) ? id_t::TRACK : id_t::VOLUME;
-      break;
+    // case id_t::BRIGHTNESS:
+    //   new_id = (dir == true) ? id_t::TRACK : id_t::VOLUME;
+    //   break;
     case id_t::TRACK:
-      new_id = (dir == true) ? id_t::VOLUME : id_t::BRIGHTNESS;
+      new_id = id_t::VOLUME;
       break;
     case id_t::VOLUME:
-      new_id = (dir == true) ? id_t::BRIGHTNESS : id_t::TRACK;
+      new_id = id_t::TRACK;
       break;
     }
 
@@ -352,9 +353,9 @@ namespace led_d
 
     std::string text;
     switch (*m_id) {
-    case id_t::BRIGHTNESS:
-      text = "B ";
-      break;
+    // case id_t::BRIGHTNESS:
+    //   text = "B ";
+    //   break;
     case id_t::TRACK:
       text = "T ";
       break;
@@ -402,7 +403,7 @@ namespace led_d
         || (static_cast<std::size_t>(*m_value) >= m_playlist.size ()))
       return;
 
-    auto track_name = m_playlist[*m_value];
+    auto track_name = std::string (" ") + m_playlist[*m_value];
 
     auto status = std::make_shared<status_t>
       (command_id_t::MENU_ADD, status_t::good (), track_name);

@@ -65,7 +65,7 @@ void rotor_try ()
   /* negate src */
   uint8_t new_toggled_bits = ~src;
 
-  debug_1 (DEBUG_ROTOR, DEBUG_11, new_toggled_bits);
+  /* debug_1 (DEBUG_ROTOR, DEBUG_11, new_toggled_bits); */
 
   if (apply_mask
       (toggled_bits, new_toggled_bits, MASK_ROTOR_1_A, MASK_ROTOR_1_BOTH) != 0)

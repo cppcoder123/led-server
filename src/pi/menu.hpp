@@ -42,7 +42,7 @@ namespace led_d
   private:
 
     enum class id_t {
-      BRIGHTNESS,
+      // BRIGHTNESS,
       TRACK,
       VOLUME,
     };
