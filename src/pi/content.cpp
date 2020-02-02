@@ -92,7 +92,7 @@ namespace led_d
     static const auto format = unix::format_t::encode_empty ();
 
     if (m_top_info.empty () == false)
-      return info_t (m_top_info, format);
+      return info_t (m_top_info, format, 1);
 
     if (m_middle_info.empty () == false) {
       auto info = m_middle_info.front ();
