@@ -151,14 +151,17 @@ namespace led_d
     }
 
     switch (msg_id) {
-    case MSG_ID_VERSION:
-      mcu_version (msg);
+    case MSG_ID_POLL:
+      info_push ();
+      break;
+    case MSG_ID_ROTOR:
+      mcu_rotor (msg);
       break;
     case MSG_ID_STATUS:
       mcu_status (msg);
       break;
-    case MSG_ID_ROTOR:
-      mcu_rotor (msg);
+    case MSG_ID_VERSION:
+      mcu_version (msg);
       break;
     default:
       {
