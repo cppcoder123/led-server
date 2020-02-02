@@ -20,8 +20,10 @@ namespace led_d
   constexpr auto CURRENT_TRACK = "mpc -f %position% current";
   constexpr auto START_TRACK = "mpc play ";
 
-  constexpr auto LONG_DELAY = 5;
-  constexpr auto SHORT_DELAY = 2;
+  constexpr auto LONG_DELAY = 15;
+  constexpr auto SHORT_DELAY = 10;
+
+  constexpr auto DISPLAY_CAPACITY = 8;
 
   menu_t::menu_t (asio::io_context &io_context,
                   status_queue_t &status_queue)
@@ -404,6 +406,13 @@ namespace led_d
       return;
 
     auto track_name = std::string (" ") + m_playlist[*m_value];
+    // std::string track_name;
+    // if (raw.size () == DISPLAY_CAPACITY)
+    //   track_name = raw;
+    // else if (raw.size () < DISPLAY_CAPACITY)
+    //   track_name = raw + std::string (DISPLAY_CAPACITY - raw.size (), ' ');
+    // else
+    //   raw.substr (0, DISPLAY_CAPACITY);
 
     auto status = std::make_shared<status_t>
       (command_id_t::MENU_ADD, status_t::good (), track_name);

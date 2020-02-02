@@ -255,10 +255,16 @@ namespace led_d
       return;
     }
 
-    if ((clear_buffer == true)
-        && (matrix.size () < MATRIX_MIN_SIZE))
-      // add zeros to make info visible
-      matrix.insert (matrix.end (), MATRIX_MIN_SIZE - matrix.size (), 0);
+    if (clear_buffer == true) {
+        if (matrix.size () < MATRIX_MIN_SIZE)
+          // add zeros to make info visible
+          matrix.insert (matrix.end (), MATRIX_MIN_SIZE - matrix.size (), 0);
+        else if (matrix.size () > MATRIX_MIN_SIZE) {
+          auto iter = matrix.begin ();
+          std::advance (iter, MATRIX_MIN_SIZE);
+          matrix.erase (iter, matrix.end ());
+        }
+    }
 
     std::size_t len = matrix.size () / LED_ARRAY_SIZE;
     auto start = matrix.begin ();
