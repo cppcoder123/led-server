@@ -31,6 +31,9 @@
 
 
 enum {
+  /* pi=>avr: clear display buffer */
+  MSG_ID_CLEAR,
+
   /* avr=>pi: debug */
   MSG_ID_DEBUG,
 

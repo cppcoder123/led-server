@@ -25,6 +25,8 @@ namespace led_d
   constexpr auto MPC_PLAYLIST = "mpc playlist";
   constexpr auto VOLUME_RANGE = "volume range";
   //
+  constexpr auto MATRIX_MIN_SIZE = 64;
+  //
   const std::regex system_regex ("\\s*([^:]+):(.*)");
   const std::regex volume_regex ("\\s*(\\d+)-(\\d+)\\s*");
 
@@ -230,6 +232,11 @@ namespace led_d
     auto content_info = m_content.out ();
     auto info = content_info.text + " ";
     auto &format = content_info.format;
+    bool clear_buffer = (content_info.flag) ? true : false;
+    if (clear_buffer == true) {
+      m_to_mcu_queue->clear ();
+      m_to_mcu_queue->push (mcu::encode::join (mcu_id::get (), MSG_ID_CLEAR));
+    }
 
     {
       log_t::buffer_t buf;
@@ -244,6 +251,11 @@ namespace led_d
       log_t::error (buf);
       return;
     }
+
+    if ((clear_buffer == true)
+        && (matrix.size () < MATRIX_MIN_SIZE))
+      // add zeros to make info visible
+      matrix.insert (matrix.end (), MATRIX_MIN_SIZE - matrix.size (), 0);
 
     std::size_t len = matrix.size () / LED_ARRAY_SIZE;
     auto start = matrix.begin ();

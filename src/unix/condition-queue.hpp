@@ -29,6 +29,8 @@ namespace unix
 
     template <bool wait> std::optional<record_t> pop ();
 
+    void clear ();
+
     template <bool lock> bool empty ();
 
     template <bool lock> std::size_t size ();
@@ -87,6 +89,15 @@ namespace unix
       return {};
 
     return m_queue.pop ();
+  }
+
+  template <typename record_t, typename mutex_t, typename condition_t>
+  void condition_queue_t<record_t, mutex_t, condition_t>::clear ()
+  {
+    std::mutex &mutex (m_mutex);
+    std::lock_guard lock (mutex);
+
+    m_queue.clear ();
   }
 
   template <typename record_t, typename mutex_t, typename condition_t>

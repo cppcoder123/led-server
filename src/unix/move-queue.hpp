@@ -24,6 +24,8 @@ namespace unix
 
     std::optional<record_t> pop ();
 
+    void clear ();
+
     bool empty () const;
 
     std::size_t size () const;
@@ -49,6 +51,12 @@ namespace unix
     m_holder.pop_front ();
 
     return std::optional<record_t>(std::move (record));
+  }
+
+  template <typename record_t>
+  void move_queue_t<record_t>::clear ()
+  {
+    m_holder.clear ();
   }
 
   template <typename record_t>
