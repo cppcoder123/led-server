@@ -228,8 +228,8 @@ namespace led_d
       return;
 
     auto content_info = m_content.out ();
-    auto info = content_info.first + " ";
-    auto &format = content_info.second;
+    auto info = content_info.text + " ";
+    auto &format = content_info.format;
 
     {
       log_t::buffer_t buf;

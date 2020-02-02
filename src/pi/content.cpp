@@ -24,7 +24,8 @@ namespace led_d
     for (auto &pattern_replace : regex_list) {
       // 1. split
       std::string pattern, replace;
-      if (popen_t::split (pattern_replace, pattern, replace, m_track_regex) == false) {
+      if (popen_t::split (pattern_replace,
+                          pattern, replace, m_track_regex) == false) {
         log_t::buffer_t buf;
         buf << "content: Failed to split regex_pattern \""
             << pattern_replace << "\"";
@@ -86,28 +87,28 @@ namespace led_d
       m_iterator = m_bottom_info.find (status->id ());
   }
 
-  content_t::out_info_t content_t::out ()
+  info_t content_t::out ()
   {
     static const auto format = unix::format_t::encode_empty ();
 
     if (m_top_info.empty () == false)
-      return std::make_pair (m_top_info, format);
+      return info_t (m_top_info, format);
 
     if (m_middle_info.empty () == false) {
       auto info = m_middle_info.front ();
       m_middle_info.pop_front ();
-      return std::make_pair (info, format);
+      return info_t (info, format);
     }
 
     if (m_bottom_info.empty () == false) {
       if (m_iterator == m_bottom_info.end ())
         m_iterator = m_bottom_info.begin ();
-      auto result = std::make_pair (m_iterator->second, format);
+      info_t result (m_iterator->second, format);
       ++m_iterator;
       return result;
     }
 
-    return std::make_pair ("Content is empty, nothing to display ", format);
+    return info_t ("Content is empty, nothing to display ", format);
   }
 
   std::string content_t::replace (const std::string &src)

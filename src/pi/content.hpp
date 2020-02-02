@@ -17,6 +17,7 @@
 
 #include "command-id.hpp"
 #include "command-queue.hpp"
+#include "info.hpp"
 #include "mcu-queue.hpp"
 #include "status.hpp"
 #include "status-queue.hpp"
@@ -38,8 +39,8 @@ namespace led_d
 
     void in (status_ptr_t status);
 
-    using out_info_t = std::pair<std::string/*info*/, std::string/*format*/>;
-    out_info_t out ();
+    // using out_info_t = std::pair<std::string/*info*/, std::string/*format*/>;
+    info_t out ();
 
   private:
 
