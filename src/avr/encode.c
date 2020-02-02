@@ -23,6 +23,13 @@ static uint8_t encode_msg (uint8_t msg_id, uint8_t serial_id, uint8_t size)
   return len;
 }
 
+void encode_msg_0 (uint8_t msg_id, uint8_t serial_id)
+{
+  uint8_t len = encode_msg (msg_id, serial_id, 2);
+
+  postpone_message (out_buf, ++len, serial_id);
+}
+
 void encode_msg_1 (uint8_t msg_id, uint8_t serial_id, uint8_t payload_1)
 {
   uint8_t len = encode_msg (msg_id, serial_id, 3);

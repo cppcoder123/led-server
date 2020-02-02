@@ -22,4 +22,6 @@ void flush_try ();
 
 uint8_t flush_buffer_space ();
 
+void flush_buffer_clear ();
+
 #endif

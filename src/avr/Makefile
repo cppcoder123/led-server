@@ -21,6 +21,7 @@ OBJECT_LIST = \
   flush.o \
   font.o \
   invoke.o \
+  poll.o \
   postpone.o \
   power.o \
   ring.o \

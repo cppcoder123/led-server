@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+void encode_msg_0 (uint8_t msg_id, uint8_t serial_id);
+
 void encode_msg_1 (uint8_t msg_id, uint8_t serial_id, uint8_t payload_1);
 
 void encode_msg_2 (uint8_t msg_id, uint8_t serial_id, uint8_t payload_1,

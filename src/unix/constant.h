@@ -46,7 +46,7 @@ enum {
   MSG_ID_LED_ARRAY,
 
   /* avr=>pi: request data to display, 0 as payload */
-  /* MSG_ID_POLL, */
+  MSG_ID_POLL,
 
   /*pi=>avr: No response from avr is expected, SERIAL_ID_TO_IGNORE should be used*/
   /*aux message to enable spi slave (avr) to master (pi) transfer*/

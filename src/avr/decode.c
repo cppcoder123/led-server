@@ -39,6 +39,10 @@ static void decode ()
   uint8_t status = STATUS_FAIL;
 
   switch (msg_id) {
+  case MSG_ID_CLEAR:
+    flush_buffer_clear ();
+    encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_SUCCESS, MSG_ID_CLEAR);
+    break;
   case MSG_ID_LED_ARRAY:
     {
       status = (flush_push_array (in_buf, msg_size - 2) == 1)

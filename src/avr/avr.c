@@ -10,6 +10,7 @@
 #include "decode.h"
 #include "flush.h"
 #include "invoke.h"
+#include "poll.h"
 #include "postpone.h"
 #include "power.h"
 #include "rotor.h"
@@ -31,6 +32,7 @@ static void init ()
   clock_init ();
   decode_init ();
   flush_init ();
+  poll_init ();
   postpone_init ();
   rotor_init ();
   power_init ();

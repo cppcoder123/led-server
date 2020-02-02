@@ -18,6 +18,7 @@ typedef void (*invoke_callback) ();
 
 enum {
   INVOKE_ID_BUZZ,
+  INVOKE_ID_POLL,
   INVOKE_ID_SYNC,
   INVOKE_ID_MAX,                /* Keep last */
 };
