@@ -6,6 +6,9 @@
 
 void poll_init ();
 
+void poll_enable ();
+void poll_disable ();
+
 void poll_start ();
 void poll_stop ();
 

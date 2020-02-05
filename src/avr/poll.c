@@ -12,11 +12,28 @@
 
 #define ONCE_PER_SECOND 100
 
-static uint8_t started = 0;
+enum {
+  ENABLED = (1 << 0),           /* else disabled */
+  STARTED = (1 << 1),           /* else stopped */
+};
+
+static uint8_t flag = 0;
 
 void poll_init ()
 {
-  started = 0;
+  flag = 0;
+}
+
+void poll_enable ()
+{
+  flag |= ENABLED;
+}
+
+void poll_disable ()
+{
+  flag &= ~ENABLED;
+
+  poll_stop ();
 }
 
 static void poll_callback ()
@@ -26,17 +43,19 @@ static void poll_callback ()
 
 void poll_start ()
 {
-  if (started != 0)
+  if ((flag & STARTED) != 0)
     return;
 
-  started = 1;
+  flag |= STARTED;
   invoke_enable (INVOKE_ID_POLL, ONCE_PER_SECOND, poll_callback);
 }
 
 void poll_stop ()
 {
-  if (started == 0)
+  if ((flag & STARTED) == 0)
     return;
+
+  flag &= ~STARTED;
 
   invoke_disable (INVOKE_ID_POLL);
 }
