@@ -1,0 +1,9 @@
+[Unit]
+Description=Led matrix server
+
+[Service]
+User=pi
+ExecStart=/usr/bin/led-d --foreground
+
+[Install]
+WantedBy=multi-user.target
