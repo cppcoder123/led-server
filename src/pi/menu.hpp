@@ -47,7 +47,7 @@ namespace led_d
       VOLUME,
     };
 
-    void select (id_t id);
+    void select_param (id_t id);
     void select (bool inc);
     void select ();
 
@@ -64,14 +64,17 @@ namespace led_d
     bool applyable () const;
 
     id_t inc_id (bool inc) const;
-    void reflect ();
+    char id_to_letter () const;
+    void display ();
 
     void menu_timeout (const asio::error_code &error);
     void track_timeout (const asio::error_code &error);
 
     static std::optional<int> to_int (const std::string &src);
 
-    std::optional<id_t> m_id;
+    int m_delta;
+
+    std::optional<id_t> m_id;   // track/volume/..
 
     using value_t = int;
     using pair_t = std::pair<value_t, value_t>;
