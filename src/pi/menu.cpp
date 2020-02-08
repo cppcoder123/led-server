@@ -79,6 +79,10 @@ namespace led_d
       // volume & track directly accessible,
       // user wants something different
       // select (id_t::BRIGHTNESS);
+      if (rotor_id == MENU_ROTOR)
+        select ();
+      else
+        value ();
       break;
     default:
       log_t::buffer_t buf;
