@@ -27,7 +27,8 @@ namespace led_d
 
   menu_t::menu_t (asio::io_context &io_context,
                   status_queue_t &status_queue)
-    : m_playlist_update (false),
+    : m_delta (0),
+      m_playlist_update (false),
       // m_io_context (io_context),
       m_menu_timer (io_context),
       m_track_timer (io_context),
@@ -62,56 +63,57 @@ namespace led_d
   {
     if (!m_id) {
       if (rotor_id == VOLUME_ROTOR)
-        select (id_t::VOLUME);
+        select_param (id_t::VOLUME);
       else 
-        select (id_t::TRACK);
-      //
-      switch (action) {
-      case ROTOR_CLOCKWISE:
-        value (true);
-        break;
-      case ROTOR_COUNTER_CLOCKWISE:
-        value (false);
-        break;
-      case ROTOR_PUSH:
-        // volume & track directly accessible,
-        // user wants something different
-        // select (id_t::BRIGHTNESS);
-        break;
-      default:
-        log_t::buffer_t buf;
-        buf << "menu: Unknown rotor action has arrived in idle mode \""
-          << static_cast<int>(action) << "\"";
-        log_t::error (buf);
-        break;
-      }
-      return;
+        select_param (id_t::TRACK);
     }
-
+    //
     switch (action) {
     case ROTOR_CLOCKWISE:
+      ++m_delta;
+      break;
     case ROTOR_COUNTER_CLOCKWISE:
-      {
-        bool inc = (action == ROTOR_CLOCKWISE) ? true : false;
-        if (rotor_id == MENU_ROTOR)
-          select (inc);
-        else
-          value (inc);
-      }
+      --m_delta;
       break;
     case ROTOR_PUSH:
-      if (rotor_id == MENU_ROTOR)
-        select ();
-      else
-        value ();
+      // volume & track directly accessible,
+      // user wants something different
+      // select (id_t::BRIGHTNESS);
       break;
     default:
       log_t::buffer_t buf;
-      buf << "menu: Unknown rotor action has arrived in non idle mode \""
+      buf << "menu: Unknown rotor action has arrived in idle mode \""
         << static_cast<int>(action) << "\"";
       log_t::error (buf);
       break;
     }
+
+    display ();
+
+    // switch (action) {
+    // case ROTOR_CLOCKWISE:
+    // case ROTOR_COUNTER_CLOCKWISE:
+    //   {
+    //     bool inc = (action == ROTOR_CLOCKWISE) ? true : false;
+    //     if (rotor_id == MENU_ROTOR)
+    //       select (inc);
+    //     else
+    //       value (inc);
+    //   }
+    //   break;
+    // case ROTOR_PUSH:
+    //   if (rotor_id == MENU_ROTOR)
+    //     select ();
+    //   else
+    //     value ();
+    //   break;
+    // default:
+    //   log_t::buffer_t buf;
+    //   buf << "menu: Unknown rotor action has arrived in non idle mode \""
+    //     << static_cast<int>(action) << "\"";
+    //   log_t::error (buf);
+    //   break;
+    // }
   }
 
   void menu_t::volume_range (const std::string &low_str,
@@ -145,7 +147,7 @@ namespace led_d
 
     m_value = *position;
 
-    reflect ();
+    display ();
   }
 
   void menu_t::current_volume (const std::string &src)
@@ -164,22 +166,22 @@ namespace led_d
 
     m_value = *level;
 
-    reflect ();
+    display ();
   }
 
-  void menu_t::select (id_t id)
+  void menu_t::select_param (id_t id)
   {
     m_id = id;
-    // engage_timeout ();
+    m_delta = 0;
     m_value.reset ();
     set_range ();
     get_value ();
-    reflect ();                 // show menu info on display
+    // reflect ();                 // show menu info on display
   }
 
   void menu_t::select (bool inc)
   {
-    select (inc_id (inc));
+    select_param (inc_id (inc));
   }
 
   void menu_t::select ()
@@ -214,7 +216,7 @@ namespace led_d
       set_value ();
 
     // reflect unconditionally to keep timer
-    reflect ();
+    display ();
   }
 
   void menu_t::value ()
@@ -348,25 +350,36 @@ namespace led_d
     return new_id;
   }
 
-  void menu_t::reflect ()
+  char menu_t::id_to_letter () const
   {
     if (!m_id)
-      return;
+      return ' ';
 
-    std::string text;
     switch (*m_id) {
-    // case id_t::BRIGHTNESS:
-    //   text = "B ";
-    //   break;
     case id_t::TRACK:
-      text = "T ";
-      break;
+      return 'T';
     case id_t::VOLUME:
-      text = "V ";
-      break;
+      return 'V';
+    default:
+      return '?';
+    }
+  }
+
+  void menu_t::display ()
+  {
+    std::string text;
+    text += id_to_letter ();
+    text += ' ';
+
+    bool pos = (m_delta >= 0) ? true : false;
+    text += (pos == true) ? '+' : '-';
+    text += std::to_string ((pos == true) ? m_delta : -m_delta);
+
+    if (m_value) {
+      text += ' ';
+      text += std::to_string (*m_value);
     }
 
-    text += (m_value) ? std::to_string (*m_value) : std::string ("?");
     auto status = std::make_shared<status_t>
       (command_id_t::MENU_SET, status_t::good (), text);
     m_status_queue.push (status);
@@ -375,7 +388,7 @@ namespace led_d
     m_menu_timer.async_wait
       (std::bind (&menu_t::menu_timeout, this, std::placeholders::_1));
 
-    if (*m_id == id_t::TRACK) {
+    if ((m_id) && (*m_id == id_t::TRACK)) {
       m_track_timer.expires_after (std::chrono::seconds (SHORT_DELAY));
       m_track_timer.async_wait
         (std::bind (&menu_t::track_timeout, this, std::placeholders::_1));
