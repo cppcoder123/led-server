@@ -235,11 +235,16 @@ namespace led_d
     auto content_info = m_content.out ();
     auto info = content_info.text + " ";
     auto &format = content_info.format;
-    bool clear_buffer = (content_info.flag) ? true : false;
-    if (clear_buffer == true) {
-      m_to_mcu_queue->clear ();
-      m_to_mcu_queue->push (mcu::encode::join (mcu_id::get (), MSG_ID_CLEAR));
-    }
+    // static bool clear_mode = false;
+    //bool clear_buffer = (content_info.flag) ? true : false;
+    // if (clear_mode != clear_buffer) {
+    //   if (clear_buffer == true) {
+    //     //m_to_mcu_queue->clear ();
+    //     m_to_mcu_queue->push (mcu::encode::join (mcu_id::get (), MSG_ID_CLEAR));
+    //   } else {
+    //     clear_mode = false;
+    //   }
+    // }
 
     {
       log_t::buffer_t buf;
@@ -255,16 +260,16 @@ namespace led_d
       return;
     }
 
-    if (clear_buffer == true) {
-        if (matrix.size () < MATRIX_MIN_SIZE)
-          // add zeros to make info visible
-          matrix.insert (matrix.end (), MATRIX_MIN_SIZE - matrix.size (), 0);
-        else if (matrix.size () > MATRIX_MIN_SIZE) {
-          auto iter = matrix.begin ();
-          std::advance (iter, MATRIX_MIN_SIZE);
-          matrix.erase (iter, matrix.end ());
-        }
-    }
+    // if (clear_buffer == true) {
+    //     if (matrix.size () < MATRIX_MIN_SIZE)
+    //       // add zeros to make info visible
+    //       matrix.insert (matrix.end (), MATRIX_MIN_SIZE - matrix.size (), 0);
+    //     else if (matrix.size () > MATRIX_MIN_SIZE) {
+    //       auto iter = matrix.begin ();
+    //       std::advance (iter, MATRIX_MIN_SIZE);
+    //       matrix.erase (iter, matrix.end ());
+    //     }
+    // }
 
     std::size_t len = matrix.size () / LED_ARRAY_SIZE;
     auto start = matrix.begin ();

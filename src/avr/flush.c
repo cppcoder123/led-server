@@ -126,6 +126,11 @@ uint8_t flush_buffer_space ()
   return buffer_space (&led_data);
 }
 
+uint8_t flush_buffer_size ()
+{
+  return buffer_size (&led_data);
+}
+
 void flush_buffer_clear ()
 {
   buffer_clear (&led_data);

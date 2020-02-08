@@ -21,7 +21,7 @@ void flush_enable_clear ();
 void flush_try ();
 
 uint8_t flush_buffer_space ();
-
+uint8_t flush_buffer_size ();
 void flush_buffer_clear ();
 
 #endif

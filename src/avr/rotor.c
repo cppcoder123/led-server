@@ -69,19 +69,19 @@ void rotor_try ()
 
   if (apply_mask
       (toggled_bits, new_toggled_bits, MASK_ROTOR_1_A, MASK_ROTOR_1_BOTH) != 0)
-    send_msg (ROTOR_1, ROTOR_COUNTER_CLOCKWISE);
+    send_msg (ROTOR_1, ROTOR_CLOCKWISE);
   if (apply_mask
       (toggled_bits, new_toggled_bits, MASK_ROTOR_1_B, MASK_ROTOR_1_BOTH) != 0)
-    send_msg (ROTOR_1, ROTOR_CLOCKWISE);
+    send_msg (ROTOR_1, ROTOR_COUNTER_CLOCKWISE);
   if (new_toggled_bits & MASK_ROTOR_1_PUSH)
     send_msg (ROTOR_1, ROTOR_PUSH);
 
   if (apply_mask
       (toggled_bits, new_toggled_bits, MASK_ROTOR_2_A, MASK_ROTOR_2_BOTH) != 0)
-    send_msg (ROTOR_2, ROTOR_COUNTER_CLOCKWISE);
+    send_msg (ROTOR_2, ROTOR_CLOCKWISE);
   if (apply_mask
       (toggled_bits, new_toggled_bits, MASK_ROTOR_2_B, MASK_ROTOR_2_BOTH) != 0)
-    send_msg (ROTOR_2, ROTOR_CLOCKWISE);
+    send_msg (ROTOR_2, ROTOR_COUNTER_CLOCKWISE);
   if (new_toggled_bits & MASK_ROTOR_2_PUSH)
     send_msg (ROTOR_2, ROTOR_PUSH);
 

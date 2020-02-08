@@ -49,6 +49,11 @@ static void decode ()
       status = (flush_push_array (in_buf, msg_size - 2) == 1)
         ? STATUS_SUCCESS : STATUS_FAIL;
       encode_msg_2 (MSG_ID_STATUS, msg_serial, status, MSG_ID_LED_ARRAY);
+      /*debug*/
+      uint8_t buf_size = flush_buffer_size ();
+      if (buf_size <= 64)
+        debug_2 (DEBUG_DECODE, 77, buf_size, msg_size - 2);
+      /*debug*/
     }
     break;
   case MSG_ID_QUERY:
