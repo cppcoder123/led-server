@@ -26,11 +26,13 @@ void poll_init ()
 
 void poll_enable ()
 {
+  return;
   flag |= ENABLED;
 }
 
 void poll_disable ()
 {
+  return;
   flag &= ~ENABLED;
 
   poll_stop ();
@@ -38,11 +40,14 @@ void poll_disable ()
 
 static void poll_callback ()
 {
+  return;
   encode_msg_0 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE);
 }
 
 void poll_start ()
 {
+  return;
+
   if ((flag & STARTED) != 0)
     return;
 
@@ -52,6 +57,7 @@ void poll_start ()
 
 void poll_stop ()
 {
+  return;
   if ((flag & STARTED) == 0)
     return;
 

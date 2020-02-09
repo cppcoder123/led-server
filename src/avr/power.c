@@ -6,7 +6,9 @@
 
 #include "counter.h"
 #include "flush.h"
+#include "poll.h"
 #include "power.h"
+#include "spi.h"
 
 #define TEN_PER_SECOND_LOW 100
 #define TEN_PER_SECOND_HIGH 0
@@ -51,6 +53,8 @@ void power_init ()
   /* fixme: Configure power wire as output and set 0 there */
   mode = POWER_SLAVE;
   start_slave ();
+
+  spi_note_disconnect (poll_disable);
 }
 
 void power_set_mode (uint8_t new_mode)
