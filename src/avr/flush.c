@@ -75,7 +75,6 @@ uint8_t flush_push_array (uint8_t *arr, uint8_t arr_size)
 
 void flush_enable_shift ()
 {
-
   mode_change (FLUSH_SHIFT);
 }
 

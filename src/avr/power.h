@@ -12,7 +12,8 @@
 void power_init ();
 
 enum {
-  POWER_MASTER,                 /* there is no pi connected */
+  POWER_UNKNOWN,                /* initial state */
+  POWER_MASTER,                 /* pi is disconnected */
   POWER_SLAVE,                  /* pi is connected */
 };
 

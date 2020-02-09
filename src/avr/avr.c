@@ -38,9 +38,8 @@ static void init ()
   power_init ();
   sync_init ();
 
-  /* enable r-pi */
-  /* use default mode (slave) now, fixme: change to master later */
-  /* power_set_mode (POWER_MASTER); */
+  /* after power-up pi should be alive, so */
+  power_set_mode (POWER_SLAVE);
 
   sei ();
 }
