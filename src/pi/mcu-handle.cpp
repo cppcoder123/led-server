@@ -55,7 +55,8 @@ namespace led_d
       //          we don't need separate queue for it
       {
         std::unique_lock lock (m_mutex);
-        if ((m_interrupt_queue.empty<false>() == true)
+        if ((m_go.load () == true)
+            && (m_interrupt_queue.empty<false>() == true)
             && ((m_block.is_engaged () == true)
                 || (m_to_queue.empty<false>() == true))) {
           m_condition.wait (lock);
