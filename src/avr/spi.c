@@ -113,6 +113,7 @@ void heartbeat_check ()
   }
 
   flag |= FLAG_HEARTBEAT_CHECK;
+  write_interrupt_start ();
 }
 
 void heartbeat_confirm ()
