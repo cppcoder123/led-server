@@ -7,9 +7,8 @@
 #include "clock.h"
 #include "counter.h"
 #include "flush.h"
-#include "poll.h"
+#include "invoke.h"
 #include "power.h"
-#include "spi.h"
 
 #define TEN_PER_SECOND_LOW 100
 #define TEN_PER_SECOND_HIGH 0
@@ -60,6 +59,7 @@ static void stop_master ()
 static void start_slave ()
 {
   timer_engage (TEN_PER_SECOND_LOW, TEN_PER_SECOND_HIGH, &flush_enable_shift);
+  /* invoke_enable (INVOKE_ID_SPI, 4, &flush_enable_shift); */
 }
 
 static void stop_slave ()
@@ -67,17 +67,17 @@ static void stop_slave ()
   timer_relax ();
 }
 
-static void disconnect_callback ()
-{
-  power_set_mode (POWER_MASTER);
-}
+/* static void disconnect_callback () */
+/* { */
+/*   power_set_mode (POWER_MASTER); */
+/* } */
 
 void power_init ()
 {
   /* fixme: Configure power wire as output and set 0 there */
   mode = POWER_UNKNOWN;
 
-  spi_note_disconnect (disconnect_callback);
+  /* spi_note_disconnect (disconnect_callback); */
 }
 
 void power_set_mode (uint8_t new_mode)

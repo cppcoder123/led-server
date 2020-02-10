@@ -10,6 +10,7 @@
 #define INVOKE_PRESCALER COUNTER_PRESCALER_1024
 
 #define HUNDRED_TIMES_PER_SECOND 39
+#define TWENTY_FIVE_TIMES_PER_SECOND 160
 
 static invoke_callback callback_array[INVOKE_ID_MAX];
 static uint8_t factor_array[INVOKE_ID_MAX];
@@ -53,7 +54,8 @@ static void engage_timer ()
   /* counter_prescaler (INVOKE_COUNTER, COUNTER_PRESCALER_1024); */
   counter_interrupt (INVOKE_COUNTER,
                      COUNTER_INTERRUPT_COMPARE_A, interrupt_function);
-  counter_set_compare_a (INVOKE_COUNTER, HUNDRED_TIMES_PER_SECOND, 0);
+  /* counter_set_compare_a (INVOKE_COUNTER, HUNDRED_TIMES_PER_SECOND, 0); */
+  counter_set_compare_a (INVOKE_COUNTER, TWENTY_FIVE_TIMES_PER_SECOND, 0);
   counter_enable (INVOKE_COUNTER, INVOKE_PRESCALER);
 }
 
@@ -64,7 +66,7 @@ static void disengage_timer ()
   /* counter_interrupt (INVOKE_COUNTER, COUNTER_INTERRUPT_COMPARE_A, 0); */
 }
 
-static uint8_t is_idle ()
+static uint8_t is_required ()
 {
   uint8_t status = 0;
   for (uint8_t i = 0; i < INVOKE_ID_MAX; ++i)
@@ -81,13 +83,13 @@ uint8_t invoke_enable (uint8_t id, uint8_t factor, invoke_callback callback)
   if (id >= INVOKE_ID_MAX)
     return 0;
 
-  uint8_t idle = is_idle ();
+  uint8_t required = is_required ();
 
   callback_array[id] = callback;
   factor_array[id] = factor;
   counter_array[id] = 0;
 
-  if (idle != 0)
+  if (required != 0)
     engage_timer ();
 
   return 1;
@@ -102,7 +104,7 @@ uint8_t invoke_disable (uint8_t id)
   factor_array[id] = 0;
   counter_array[id] = 0;
 
-  if (is_idle () != 0)
+  if (is_required () == 0)
     disengage_timer ();
 
   return 1;

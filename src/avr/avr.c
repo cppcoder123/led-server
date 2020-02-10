@@ -38,7 +38,7 @@ static void init ()
   power_init ();
   sync_init ();
 
-  /* after power-up pi should be alive, so */
+  /* fixme: change to master later */
   power_set_mode (POWER_SLAVE);
 
   sei ();
