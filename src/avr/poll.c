@@ -38,11 +38,11 @@ void poll_disable ()
   poll_stop ();
 }
 
-static void poll_callback ()
-{
-  return;
-  encode_msg_0 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE);
-}
+/* static void poll_callback () */
+/* { */
+/*   return; */
+/*   encode_msg_0 (MSG_ID_POLL, SERIAL_ID_TO_IGNORE); */
+/* } */
 
 void poll_start ()
 {
@@ -52,7 +52,7 @@ void poll_start ()
     return;
 
   flag |= STARTED;
-  invoke_enable (INVOKE_ID_POLL, ONCE_PER_SECOND, poll_callback);
+  /* invoke_enable (INVOKE_ID_POLL, ONCE_PER_SECOND, poll_callback); */
 }
 
 void poll_stop ()
@@ -63,5 +63,5 @@ void poll_stop ()
 
   flag &= ~STARTED;
 
-  invoke_disable (INVOKE_ID_POLL);
+  /* invoke_disable (INVOKE_ID_POLL); */
 }

@@ -5,36 +5,16 @@
 #include <avr/io.h>
 
 #include "clock.h"
-#include "counter.h"
 #include "flush.h"
 #include "invoke.h"
 #include "power.h"
 
-#define TEN_PER_SECOND_LOW 100
-#define TEN_PER_SECOND_HIGH 0
-
-#define ONE_PER_SECOND_LOW 0
-#define ONE_PER_SECOND_HIGH 61
-
-#define POWER_COUNTER COUNTER_3
+#define MASTER_DELAY 50
+#define SLAVE_DELAY 0
 
 #define MASTER_BUFFER_SIZE 64
 
-typedef void (*timer_callback) ();
-
 static uint8_t mode = POWER_UNKNOWN;
-
-static void timer_engage (uint8_t low, uint8_t high, timer_callback callback)
-{
-  counter_interrupt (POWER_COUNTER, COUNTER_INTERRUPT_COMPARE_A, callback);
-  counter_set_compare_a (POWER_COUNTER, low, high);
-  counter_enable (POWER_COUNTER, COUNTER_PRESCALER_1024);
-}
-
-static void timer_relax ()
-{
-  counter_disable (POWER_COUNTER);
-}
 
 static void advance_clock ()
 {
@@ -48,36 +28,28 @@ static void advance_clock ()
 
 static void start_master ()
 {
-  timer_engage (ONE_PER_SECOND_LOW, ONE_PER_SECOND_HIGH, &advance_clock);
+  invoke_enable (INVOKE_ID_POWER, MASTER_DELAY, &advance_clock);
 }
 
 static void stop_master ()
 {
-  timer_relax ();
+  invoke_disable (INVOKE_ID_POWER);
 }
 
 static void start_slave ()
 {
-  timer_engage (TEN_PER_SECOND_LOW, TEN_PER_SECOND_HIGH, &flush_enable_shift);
-  /* invoke_enable (INVOKE_ID_SPI, 4, &flush_enable_shift); */
+  invoke_enable (INVOKE_ID_POWER, SLAVE_DELAY, &flush_enable_shift);
 }
 
 static void stop_slave ()
 {
-  timer_relax ();
+  invoke_disable (INVOKE_ID_POWER);
 }
-
-/* static void disconnect_callback () */
-/* { */
-/*   power_set_mode (POWER_MASTER); */
-/* } */
 
 void power_init ()
 {
-  /* fixme: Configure power wire as output and set 0 there */
+  /* fixme: Configure power wire as output and set it to 0 */
   mode = POWER_UNKNOWN;
-
-  /* spi_note_disconnect (disconnect_callback); */
 }
 
 void power_set_mode (uint8_t new_mode)
