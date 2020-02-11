@@ -23,7 +23,7 @@ static void advance_clock ()
   uint8_t buffer[MASTER_BUFFER_SIZE];
   clock_render (buffer);
   flush_push_array (buffer, MASTER_BUFFER_SIZE);
-  flush_enable_stable ();
+  flush_dump_clear ();
 }
 
 static void start_master ()
@@ -38,12 +38,12 @@ static void stop_master ()
 
 static void start_slave ()
 {
-  invoke_enable (INVOKE_ID_POWER, SLAVE_DELAY, &flush_enable_shift);
+    flush_shift_enable();
 }
 
 static void stop_slave ()
 {
-  invoke_disable (INVOKE_ID_POWER);
+  flush_shift_disable ();
 }
 
 void power_init ()

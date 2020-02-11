@@ -66,7 +66,7 @@ static void decode ()
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
     if (status == STATUS_SUCCESS) {
-      flush_enable ();
+      flush_shift_enable ();
     }
     break;
   default:

@@ -20,6 +20,7 @@ enum {
   INVOKE_ID_BUZZ,
   /* INVOKE_ID_POLL, */
   /* INVOKE_ID_SPI, */
+  INVOKE_ID_FLUSH,
   INVOKE_ID_POWER,
   INVOKE_ID_SYNC,
   INVOKE_ID_MAX,                /* Keep last */

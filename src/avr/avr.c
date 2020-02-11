@@ -49,7 +49,6 @@ int main ()
   while (1) {
     /* buzz_try (); */
     decode_try ();
-    flush_try ();
     invoke_try ();
     postpone_try ();
     rotor_try ();
