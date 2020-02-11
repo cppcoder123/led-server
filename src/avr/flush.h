@@ -8,14 +8,14 @@
 
 void flush_init ();
 
-uint8_t flush_push (uint8_t symbol);
 uint8_t flush_push_array (uint8_t *arr, uint8_t arr_size);
 
 void flush_shift_enable ();
 void flush_shift_disable();
 
-/* dump buffer and clear it */
-void flush_dump_clear ();
+void flush_stable_enable ();
+void flush_stable_disable ();
+void flush_stable_display ();
 
 uint8_t flush_buffer_space ();
 uint8_t flush_buffer_size ();
