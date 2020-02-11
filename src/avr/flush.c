@@ -11,7 +11,6 @@
 #include "display.h"
 #include "encode.h"
 #include "flush.h"
-#include "poll.h"
 
 #define MATRIX_SIZE 32
 #define MIN_DATA_SIZE (MATRIX_SIZE * 2)
@@ -86,15 +85,10 @@ void flush_enable_clear ()
 void flush_try ()
 {
   if ((global_mode == FLUSH_GLOBAL_DISABLED)
-      || (mode == FLUSH_DISABLED))
+      || (mode == FLUSH_DISABLED)
+      || ((mode == FLUSH_SHIFT)
+          && (buffer_size (&led_data) < MIN_DATA_SIZE)))
     return;
-  
-  if (buffer_size (&led_data) < MIN_DATA_SIZE) {
-    poll_start ();
-    return;
-  }
-
-  poll_stop ();
 
   display_data_start (&display_left);
   display_data_start (&display_right);

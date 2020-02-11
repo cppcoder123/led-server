@@ -5,7 +5,6 @@ TARGET = avr
 TARGET_HEX = $(TARGET).hex
 TARGET_ELF = $(TARGET).elf
 
-#  buzz.o
 #  render.o
 OBJECT_LIST = \
   avr.o \
@@ -21,7 +20,6 @@ OBJECT_LIST = \
   flush.o \
   font.o \
   invoke.o \
-  poll.o \
   postpone.o \
   power.o \
   ring.o \

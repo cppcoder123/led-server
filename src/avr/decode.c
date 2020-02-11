@@ -10,7 +10,6 @@
 #include "decode.h"
 #include "encode.h"
 #include "flush.h"
-#include "poll.h"
 #include "spi.h"
 #include "sync.h"
 
@@ -67,7 +66,6 @@ static void decode ()
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
     if (status == STATUS_SUCCESS) {
-      poll_enable ();
       flush_enable ();
     }
     break;

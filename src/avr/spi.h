@@ -19,8 +19,4 @@ uint8_t spi_write_space ();
 
 uint8_t spi_read_size ();
 
-/* typedef void (*spi_disconnect_callback) (); */
-/* register disconnect callback */
-/* void spi_note_disconnect (spi_disconnect_callback callback); */
-
 #endif
