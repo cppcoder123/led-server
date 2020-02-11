@@ -4,6 +4,7 @@
 
 #include "buzz.h"
 #include "clock.h"
+#include "debug.h"
 #include "font.h"
 
 #define FIFTY_NINE 59
@@ -52,6 +53,8 @@ void clock_get(uint8_t *hour_value, uint8_t *minute_value)
 
 static uint8_t advance_second()
 {
+  /* debug_3 (15, 7, hour, minute, second); */
+
   if (second < FIFTY_NINE) {
     ++second;
     return MINUTE_NOT_CHANGED;
@@ -166,8 +169,11 @@ static void add_number(uint8_t number, uint8_t *buffer,
   }
 
   if ((tmp != 0)
-      || (leading_zero != 0))
+      || (leading_zero != 0)) {
     add_digit(tmp, buffer, position);
+    /* small space between digits for better look */
+    *(buffer + (*position)++) = 0;
+  }
 
   tmp = number % TEN;
   add_digit(tmp, buffer, position);
@@ -181,7 +187,7 @@ void clock_render(uint8_t *buffer)
 
   uint8_t position = 0;
   for (uint8_t i = 0; i < indent; ++i)
-    font_add_symbol(FONT_SPACE, buffer, &position, BUFFER_SIZE);
+    buffer[position++] = 0;
 
   add_number(hour, buffer, &position, 0);
   font_add_symbol(FONT_COLON, buffer, &position, BUFFER_SIZE);
@@ -197,5 +203,5 @@ void clock_render(uint8_t *buffer)
 
   /* fill the tail with spaces */
   for (uint8_t j = position; j < BUFFER_SIZE; ++j)
-    font_add_symbol(FONT_SPACE, buffer, &position, BUFFER_SIZE);
+    buffer[position++] = 0;
 }

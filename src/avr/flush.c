@@ -121,7 +121,7 @@ void flush_stable_display ()
   dump ();
 
   /*clear*/
-  buffer_clear (&shift_data);
+  /* buffer_clear (&stable_data); */
 }
 
 uint8_t flush_buffer_space ()

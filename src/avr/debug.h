@@ -1,5 +1,5 @@
 /*
- * Switch on/off pcb led
+ *
  */
 
 #ifndef DEBUG_H

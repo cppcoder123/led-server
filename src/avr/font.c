@@ -124,7 +124,7 @@ static uint8_t fill_matrix(uint8_t matrix[], uint8_t symbol_id)
   return 1;
 }
 
-uint8_t font_add_symbol(uint8_t symbol, uint8_t buffer[],
+uint8_t font_add_symbol(uint8_t symbol, uint8_t *buffer,
                         uint8_t *position, uint8_t position_limit)
 {
   if ((*position + SYMBOL_SIZE >= position_limit)
@@ -136,7 +136,7 @@ uint8_t font_add_symbol(uint8_t symbol, uint8_t buffer[],
     return 0;
 
   for (uint8_t i = 0; i < SYMBOL_SIZE; ++i)
-    buffer[(*position)++] = matrix[i];
+    *(buffer + (*position)++) = matrix[i];
 
   return 1;
 }

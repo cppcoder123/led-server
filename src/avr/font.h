@@ -29,7 +29,7 @@ enum {
 };
 
 /* return 0 in case of failure */
-uint8_t font_add_symbol(uint8_t symbol, uint8_t buffer[],
+uint8_t font_add_symbol(uint8_t symbol, uint8_t *buffer,
                         uint8_t *position, uint8_t limit_position);
 
 #endif

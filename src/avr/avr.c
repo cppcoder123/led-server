@@ -37,6 +37,7 @@ static void init ()
   sync_init ();
 
   /* fixme: change to master later */
+  /* power_set_mode (POWER_MASTER); */
   power_set_mode (POWER_SLAVE);
 
   sei ();

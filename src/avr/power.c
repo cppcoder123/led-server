@@ -5,6 +5,7 @@
 #include <avr/io.h>
 
 #include "clock.h"
+#include "debug.h"
 #include "flush.h"
 #include "invoke.h"
 #include "power.h"
@@ -22,8 +23,12 @@ static void advance_clock ()
 
   uint8_t buffer[MASTER_BUFFER_SIZE];
   clock_render (buffer);
+  /* ? */
+  flush_buffer_clear ();
   flush_push_array (buffer, MASTER_BUFFER_SIZE);
   flush_stable_display ();
+
+
 }
 
 static void start_master ()
