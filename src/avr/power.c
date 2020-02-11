@@ -23,7 +23,7 @@ static void advance_clock ()
   uint8_t buffer[MASTER_BUFFER_SIZE];
   clock_render (buffer);
   flush_push_array (buffer, MASTER_BUFFER_SIZE);
-  flush_enable_clear ();
+  flush_enable_stable ();
 }
 
 static void start_master ()

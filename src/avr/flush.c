@@ -22,7 +22,7 @@ static struct display_t display_left;
 
 enum {
   FLUSH_SHIFT,
-  FLUSH_CLEAR,
+  FLUSH_STABLE,
   FLUSH_DISABLED
 };
 volatile uint8_t mode;
@@ -77,9 +77,9 @@ void flush_enable_shift ()
   mode_change (FLUSH_SHIFT);
 }
 
-void flush_enable_clear ()
+void flush_enable_stable ()
 {
-  mode_change (FLUSH_CLEAR);
+  mode_change (FLUSH_STABLE);
 }
 
 void flush_try ()
@@ -108,7 +108,7 @@ void flush_try ()
 
   if (mode == FLUSH_SHIFT) {
     buffer_byte_drain (&led_data, &symbol);
-  } else if (mode == FLUSH_CLEAR)
+  } else if (mode == FLUSH_STABLE)
     buffer_clear (&led_data);
 
   mode = FLUSH_DISABLED;
