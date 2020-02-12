@@ -8,7 +8,7 @@
 
 void heartbeat_init ();
 
-void heartbeat_note ();
+void heartbeat_confirm ();
 
 typedef void (*heartbeat_callback) ();
 /*

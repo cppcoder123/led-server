@@ -38,8 +38,7 @@ static void init ()
   rotor_init ();
   power_init ();
 
-  /* fixme: change to master later */
-  mode_set (MODE_SLAVE);
+  mode_set (MODE_MASTER);
 
   sei ();
 }

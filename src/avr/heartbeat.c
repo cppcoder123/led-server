@@ -18,7 +18,7 @@ void heartbeat_init ()
   provoke = 0;
 }
 
-void heartbeat_note ()
+void heartbeat_confirm ()
 {
   current_misses = 0;
 }
@@ -41,6 +41,8 @@ void heartbeat_start (uint8_t delay, uint8_t max,
   if ((report_cb == 0) || (provoke_cb == 0))
     return;
 
+  current_misses = 0;
+  max_misses = max;
   report = report_cb;
   provoke = provoke_cb;
 

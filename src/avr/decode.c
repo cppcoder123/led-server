@@ -11,6 +11,8 @@
 #include "decode.h"
 #include "encode.h"
 #include "flush.h"
+#include "heartbeat.h"
+#include "mode.h"
 #include "spi.h"
 
 #define IN_SIZE (LED_ARRAY_SIZE + MSG_OVERHEAD)
@@ -36,6 +38,8 @@ static uint8_t is_decodable (uint8_t msg_id)
 
 static void decode ()
 {
+  heartbeat_confirm ();
+
   uint8_t status = STATUS_FAIL;
 
   switch (msg_id) {
@@ -67,6 +71,7 @@ static void decode ()
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
+    mode_set (MODE_SLAVE);
     /* if (status == STATUS_SUCCESS) { */
     /*   flush_shift_enable (); */
     /* } */
