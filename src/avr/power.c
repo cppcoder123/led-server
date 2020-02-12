@@ -24,33 +24,29 @@ static void advance_clock ()
   uint8_t buffer[MASTER_BUFFER_SIZE];
   clock_render (buffer);
   /* ? */
-  flush_buffer_clear ();
-  flush_push_array (buffer, MASTER_BUFFER_SIZE);
+  /* flush_buffer_clear (); */
+  flush_stable_data (buffer);
   flush_stable_display ();
-
-
 }
 
 static void start_master ()
 {
-  flush_stable_enable ();
   invoke_enable (INVOKE_ID_POWER, MASTER_DELAY, &advance_clock);
 }
 
 static void stop_master ()
 {
   invoke_disable (INVOKE_ID_POWER);
-  flush_stable_disable ();
 }
 
 static void start_slave ()
 {
-    flush_shift_enable();
+  invoke_enable (INVOKE_ID_POWER, SLAVE_DELAY, &flush_shift_display);
 }
 
 static void stop_slave ()
 {
-  flush_shift_disable ();
+  invoke_disable (INVOKE_ID_POWER);
 }
 
 void power_init ()

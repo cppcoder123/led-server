@@ -6,13 +6,11 @@
 
 #include "unix/constant.h"
 
-#include "buf.h"
 #include "buffer.h"
 #include "debug.h"
 #include "display.h"
 #include "encode.h"
 #include "flush.h"
-#include "invoke.h"
 
 #define MATRIX_SIZE 32
 #define MIN_DATA_SIZE (MATRIX_SIZE * 2)
@@ -20,134 +18,127 @@
 #define SHIFT_DELAY 0
 
 static volatile struct buffer_t shift_data;
-static volatile struct buf_t stable_data;
+static uint8_t stable_data[MIN_DATA_SIZE];
 
 static struct display_t display_right;
 static struct display_t display_left;
 
-enum {
-  MODE_UNKNOWN,
-  MODE_SHIFT,
-  MODE_STABLE,
-};
-static uint8_t mode;
+static uint8_t drain;
+
+/* enum { */
+/*   MODE_UNKNOWN, */
+/*   MODE_SHIFT, */
+/*   MODE_STABLE, */
+/* }; */
+/* static uint8_t mode; */
 
 void flush_init ()
 {
   /*fixme*/
-  mode = MODE_UNKNOWN;
-
   buffer_init (&shift_data);
-  buf_init (&stable_data);
+  for (uint8_t i = 0; i < MIN_DATA_SIZE; ++i)
+    stable_data[i] = 0;
 
   display_init (&display_left, PORTA0, PORTA2, PORTA4);
   display_init (&display_right, PORTA1, PORTA3, PORTA5);
+
+  drain = 0;
 }
 
-static uint8_t get_data (uint8_t position)
+static uint8_t get_data (uint8_t shift_mode, uint8_t position)
 {
   uint8_t byte;
-  uint8_t status = (mode == MODE_SHIFT)
-    ? buffer_byte_get (&shift_data, position, &byte)
-    : buf_byte_get (&stable_data, position, &byte);
+  uint8_t status = 1;
+
+  if (shift_mode != 0)
+    status = buffer_byte_get (&shift_data, position, &byte);
+  else
+    byte = stable_data[position];
 
   return (status != 0) ? byte : 0;
 }
 
-static void dump ()
+static void dump (uint8_t shift_mode)
 {
-  if (mode == MODE_UNKNOWN)
-    return;
-
   display_data_start (&display_left);
   display_data_start (&display_right);
 
   for (uint8_t i = 0; i < MATRIX_SIZE; ++i) {
-    display_data_column (&display_left, get_data (i));
-    display_data_column (&display_right, get_data (i + MATRIX_SIZE));
+    display_data_column (&display_left, get_data (shift_mode, i));
+    display_data_column (&display_right,
+                         get_data (shift_mode, i + MATRIX_SIZE));
   }
 
   display_data_stop (&display_left);
   display_data_stop (&display_right);
 }
 
-uint8_t flush_push_array (uint8_t *arr, uint8_t arr_size)
+uint8_t flush_shift_data (uint8_t *arr, uint8_t arr_size)
 {
-  if (mode == MODE_UNKNOWN)
-    return 0;
+  if (drain != 0)
+    return 1;
 
-  return (mode == MODE_SHIFT)
-    ? buffer_array_fill (&shift_data, arr, arr_size)
-    : buf_array_fill (&stable_data, arr, arr_size);
+  return buffer_array_fill (&shift_data, arr, arr_size);
 }
 
-static void dump_shift ()
+/* static void dump_shift () */
+/* { */
+/*   if (buffer_size (&shift_data) < MIN_DATA_SIZE) */
+/*     return; */
+
+/*   dump (); */
+
+/*   /\* shift *\/ */
+/*   uint8_t symbol; */
+/*   buffer_byte_drain (&shift_data, &symbol); */
+/* } */
+
+void flush_shift_display ()
 {
   if (buffer_size (&shift_data) < MIN_DATA_SIZE)
     return;
 
-  dump ();
+  dump (1);
 
   /* shift */
   uint8_t symbol;
   buffer_byte_drain (&shift_data, &symbol);
 }
 
-void flush_shift_enable ()
+void flush_shift_drain_start ()
 {
-  mode = MODE_SHIFT;
-  invoke_enable (INVOKE_ID_FLUSH, SHIFT_DELAY, &dump_shift);
+  drain = 1;
+  buffer_clear (&shift_data);
 }
 
-void flush_shift_disable ()
+void flush_shift_drain_stop ()
 {
-  invoke_disable (INVOKE_ID_FLUSH);
-  mode = MODE_UNKNOWN;
+  drain = 0;
 }
 
-void flush_stable_enable ()
+uint8_t flush_shift_buffer_space ()
 {
-  invoke_disable (INVOKE_ID_FLUSH);
-  mode = MODE_STABLE;
+  return buffer_space (&shift_data);
 }
 
-void flush_stable_disable ()
+uint8_t flush_shift_buffer_size ()
 {
-  mode = MODE_UNKNOWN;
+  return buffer_size (&shift_data);
+}
+
+void flush_shift_buffer_clear ()
+{
+    buffer_clear (&shift_data);
+}
+
+void flush_stable_data (uint8_t *arr)
+{
+  for (uint8_t i = 0; i < MIN_DATA_SIZE; ++i)
+    stable_data[i] = arr[i];
 }
 
 void flush_stable_display ()
 {
-  dump ();
-
-  /*clear*/
-  /* buffer_clear (&stable_data); */
+  dump (0);
 }
 
-uint8_t flush_buffer_space ()
-{
-  if (mode == MODE_UNKNOWN)
-    return 0;
-
-  return (mode == MODE_SHIFT)
-    ? buffer_space (&shift_data) : buf_space (&stable_data);
-}
-
-uint8_t flush_buffer_size ()
-{
-  if (mode == MODE_UNKNOWN)
-    return 0;
-
-  return (mode == MODE_SHIFT)
-    ? buffer_size (&shift_data) : buf_size (&stable_data);
-}
-
-void flush_buffer_clear ()
-{
-  if (mode == MODE_UNKNOWN)
-    return;
-  if (mode == MODE_SHIFT)
-    buffer_clear (&shift_data);
-  else
-    buf_clear (&stable_data);
-}

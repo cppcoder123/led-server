@@ -40,18 +40,18 @@ static void decode ()
 
   switch (msg_id) {
   case MSG_ID_CLEAR:
-    flush_buffer_clear ();
+    flush_shift_buffer_clear ();
     encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_SUCCESS, MSG_ID_CLEAR);
     break;
   case MSG_ID_LED_ARRAY:
     {
       /* debug */
-      status = (flush_push_array (in_buf, msg_size - 2) == 1)
+      status = (flush_shift_data (in_buf, msg_size - 2) == 1)
         ? STATUS_SUCCESS : STATUS_FAIL;
       /* status = STATUS_SUCCESS; */
       encode_msg_2 (MSG_ID_STATUS, msg_serial, status, MSG_ID_LED_ARRAY);
       /*debug*/
-      uint8_t buf_size = flush_buffer_size ();
+      uint8_t buf_size = flush_shift_buffer_size ();
       if (buf_size <= 64)
         debug_2 (DEBUG_DECODE, 77, buf_size, msg_size - 2);
       /*debug*/
@@ -67,9 +67,9 @@ static void decode ()
   case MSG_ID_VERSION:
     status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
     encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
-    if (status == STATUS_SUCCESS) {
-      flush_shift_enable ();
-    }
+    /* if (status == STATUS_SUCCESS) { */
+    /*   flush_shift_enable (); */
+    /* } */
     break;
   default:
     encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_UNKNOWN_MSG, msg_id);

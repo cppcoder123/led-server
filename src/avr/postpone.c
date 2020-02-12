@@ -25,7 +25,7 @@ static uint8_t is_enough_space ()
 {
   return ((is_writable () == 1)
           && (spi_read_space () >= ENOUGH_SPACE)
-          && (flush_buffer_space () >= ENOUGH_SPACE)) ? 1 : 0;
+          && (flush_shift_buffer_space () >= ENOUGH_SPACE)) ? 1 : 0;
 }
 
 static void flush (uint8_t *msg, uint8_t msg_size)
