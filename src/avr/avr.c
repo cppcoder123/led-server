@@ -9,12 +9,13 @@
 #include "counter.h"
 #include "decode.h"
 #include "flush.h"
+#include "heartbeat.h"
 #include "invoke.h"
+#include "mode.h"
 #include "postpone.h"
 #include "power.h"
 #include "rotor.h"
 #include "spi.h"
-#include "sync.h"
 
 static void init ()
 {
@@ -31,14 +32,14 @@ static void init ()
   clock_init ();
   decode_init ();
   flush_init ();
+  heartbeat_init ();
+  mode_init ();
   postpone_init ();
   rotor_init ();
   power_init ();
-  sync_init ();
 
   /* fixme: change to master later */
-  /* power_set_mode (POWER_MASTER); */
-  power_set_mode (POWER_SLAVE);
+  mode_set (MODE_SLAVE);
 
   sei ();
 }

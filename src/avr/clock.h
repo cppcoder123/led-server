@@ -14,8 +14,7 @@ void clock_set(uint8_t hour, uint8_t min);
 
 void clock_get(uint8_t *hour, uint8_t *min);
 
-/* return not zero if minute value is changed */
-uint8_t clock_advance_second();
+void clock_advance_second();
 
 uint8_t clock_alarm_engage(uint8_t hour, uint8_t minute);
 

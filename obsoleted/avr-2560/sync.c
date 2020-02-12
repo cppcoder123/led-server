@@ -62,11 +62,6 @@ void sync_init ()
 
   invoke_enable (INVOKE_ID_SYNC, TWO_SECONDS, sync_call);
 
-  /* counter_prescaler (COUNTER_0, COUNTER_PRESCALER_1024); */
-  /* counter_interrupt (COUNTER_0, COUNTER_INTERRUPT_COMPARE_A, &sync_interrupt); */
-  /* counter_set_compare_a (COUNTER_0, COUNTER_COMPARE_A_VALUE, 0/\*not used*\/); */
-  /* counter_enable (COUNTER_0); */
-
   /*fixme*/
 }
 

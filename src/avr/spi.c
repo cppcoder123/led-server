@@ -21,7 +21,7 @@ static volatile struct buffer_t write_buf;
 
 static volatile uint8_t flag;
 
-static void write_interrupt_start ()
+void spi_interrupt_start ()
 {
   /*set irq pin 1*/
   if ((flag & FLAG_WRITE_INTERRUPT) == 0) {
@@ -30,7 +30,7 @@ static void write_interrupt_start ()
   }
 }
 
-static void write_interrupt_stop ()
+static void interrupt_stop ()
 {
   if ((flag & FLAG_WRITE_INTERRUPT) != 0) {
     PORTB &= ~(1 << SPI_IRQ);
@@ -53,7 +53,7 @@ void spi_init ()
   buffer_init (&write_buf);
 
   flag = FLAG_WRITE_INTERRUPT;
-  write_interrupt_stop ();
+  interrupt_stop ();
 
   /*enable spi, and enable related interrupt*/
   SPCR = (1 << SPIE) | (1 << SPE);
@@ -87,7 +87,7 @@ uint8_t spi_read_size ()
 uint8_t spi_write_array (uint8_t *array, uint8_t array_size)
 {
   uint8_t status = buffer_array_fill (&write_buf, array, array_size);
-  write_interrupt_start ();
+  spi_interrupt_start ();
   return status;
 }
 
@@ -108,6 +108,6 @@ ISR (SPI_STC_vect)
     SPDR = to_send;
   } else {
     SPDR = SPI_WRITE_UNDERFLOW;
-    write_interrupt_stop ();
+    interrupt_stop ();
   }
 }

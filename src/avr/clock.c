@@ -76,20 +76,17 @@ static uint8_t advance_second()
   return MINUTE_CHANGED;
 }
 
-uint8_t clock_advance_second()
+void clock_advance_second()
 {
-  uint8_t minute_changed = advance_second();
-  if (minute_changed == 0)
-    return 0;
+  if (advance_second () == 0)
+    return;
 
   if (alarm_engaged == 0)
-    return 1;
+    return;
 
   if ((alarm_hour == hour)
       && (alarm_minute == minute))
     buzz_start();
-
-  return 1;
 }
 
 uint8_t clock_alarm_engage(uint8_t a_hour, uint8_t a_minute)

@@ -5,7 +5,7 @@ TARGET = avr
 TARGET_HEX = $(TARGET).hex
 TARGET_ELF = $(TARGET).elf
 
-#  render.o
+#  sync.o
 OBJECT_LIST = \
   avr.o \
   buf.o \
@@ -19,13 +19,14 @@ OBJECT_LIST = \
   encode.o \
   flush.o \
   font.o \
+  heartbeat.o \
   invoke.o \
+  mode.o \
   postpone.o \
   power.o \
   ring.o \
   rotor.o \
-  spi.o \
-  sync.o
+  spi.o
 
 MCU = atmega2560
 

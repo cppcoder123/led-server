@@ -8,10 +8,11 @@
 
 void spi_init ();
 
+void spi_interrupt_start ();
+
 uint8_t spi_read_symbol (uint8_t *symbol);
 uint8_t spi_read_array (uint8_t *array, uint8_t array_size);
 
-/* uint8_t spi_write_symbol (uint8_t symbol); */
 uint8_t spi_write_array (uint8_t *array, uint8_t array_size);
 
 uint8_t spi_read_space ();
