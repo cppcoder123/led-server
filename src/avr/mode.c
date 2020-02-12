@@ -29,11 +29,11 @@ static void stop_mode ()
     break;
   case MODE_MASTER:
     invoke_disable (INVOKE_ID_FLUSH);
+    invoke_disable (INVOKE_ID_CLOCK);
     break;
   case MODE_SLAVE:
-    invoke_disable (INVOKE_ID_FLUSH);
-    invoke_disable (INVOKE_ID_CLOCK);
     heartbeat_cancel ();
+    invoke_disable (INVOKE_ID_FLUSH);
     break;
   default:
     break;
