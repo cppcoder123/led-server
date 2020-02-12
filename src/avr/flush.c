@@ -25,13 +25,6 @@ static struct display_t display_left;
 
 static uint8_t drain;
 
-/* enum { */
-/*   MODE_UNKNOWN, */
-/*   MODE_SHIFT, */
-/*   MODE_STABLE, */
-/* }; */
-/* static uint8_t mode; */
-
 void flush_init ()
 {
   /*fixme*/
@@ -81,18 +74,6 @@ uint8_t flush_shift_data (uint8_t *arr, uint8_t arr_size)
   return buffer_array_fill (&shift_data, arr, arr_size);
 }
 
-/* static void dump_shift () */
-/* { */
-/*   if (buffer_size (&shift_data) < MIN_DATA_SIZE) */
-/*     return; */
-
-/*   dump (); */
-
-/*   /\* shift *\/ */
-/*   uint8_t symbol; */
-/*   buffer_byte_drain (&shift_data, &symbol); */
-/* } */
-
 void flush_shift_display ()
 {
   if (buffer_size (&shift_data) < MIN_DATA_SIZE)
@@ -141,4 +122,3 @@ void flush_stable_display ()
 {
   dump (0);
 }
-
