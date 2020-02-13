@@ -12,6 +12,7 @@
 #include "flush.h"
 #include "heartbeat.h"
 #include "invoke.h"
+#include "menu.h"
 #include "mode.h"
 #include "postpone.h"
 #include "power.h"
@@ -39,6 +40,7 @@ static void init ()
   postpone_init ();
   rotor_init ();
   /* ! init menu after rotor */
+  menu_init ();
   power_init ();
 
   mode_set (MODE_MASTER);

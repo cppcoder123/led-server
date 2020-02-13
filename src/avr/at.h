@@ -25,4 +25,6 @@ void at_postpone (uint8_t id);
 
 void at_cancel (uint8_t id);
 
+uint8_t at_empty (uint8_t id);
+
 #endif

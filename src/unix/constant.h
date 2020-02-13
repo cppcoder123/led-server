@@ -55,11 +55,17 @@ enum {
   /* avr=>pi: rotary encoder related messages */
   /* payload: <rotor-id> <rotor-action> */
   /* where rotor actions are: clockwise, counter-clockwise and push */
-  MSG_ID_ROTOR,
+  /* MSG_ID_ROTOR, */
+
+  /* avr => pi resume info flow */
+  MSG_ID_RESUME,
 
   /*avr=>pi: see status below*/
   /*payload: original MSG_ID_* */
   MSG_ID_STATUS,
+
+  /* avr => pi, suspend info flow */
+  MSG_ID_SUSPEND,
 
   /*pi=>avr send time from OS to avr*/
   /*payload: <hours> <minutes>*/
@@ -113,12 +119,12 @@ enum {
   DEBUG_20,
 };
 
-enum {
-  ROTOR_1,
-  ROTOR_2,
-  ROTOR_CLOCKWISE,
-  ROTOR_COUNTER_CLOCKWISE,
-  ROTOR_PUSH,
-};
+/* enum { */
+/*   ROTOR_1, */
+/*   ROTOR_2, */
+/*   ROTOR_CLOCKWISE, */
+/*   ROTOR_COUNTER_CLOCKWISE, */
+/*   ROTOR_PUSH, */
+/* }; */
 
 #endif

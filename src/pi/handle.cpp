@@ -36,7 +36,7 @@ namespace led_d
       m_command_queue (nullptr),
       m_status_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_content (arg.subject_regexp_list),
-      m_menu (io_context, m_status_queue),
+      // m_menu (io_context, m_status_queue),
       m_render (arg.default_font),
       m_go (true)
   {
@@ -80,7 +80,7 @@ namespace led_d
   void handle_t::command_queue (command_queue_t &queue)
   {
     m_command_queue = &queue;
-    m_menu.command_queue (queue);
+    // m_menu.command_queue (queue);
   }
 
   void handle_t::notify ()
@@ -106,12 +106,13 @@ namespace led_d
     case command_id_t::MPC_PLAYLIST:
       {
         auto text = status->out ();
-        m_menu.track_add (text);
+        // m_menu.track_add (text);
         
         if ((text.empty () == true)
             && (status->value () != status_t::good ()))
           // don't keep error text
-          m_menu.track_clear ();
+          // m_menu.track_clear ();
+          ;
 
         // fixme: remove
         log_t::buffer_t buf;
@@ -121,10 +122,10 @@ namespace led_d
       }
       break;
     case command_id_t::MPC_CURRENT:
-      m_menu.current_track (status->out ());
+      // m_menu.current_track (status->out ());
       break;
     case command_id_t::VOLUME_GET:
-      m_menu.current_volume (status->out ());
+      // m_menu.current_volume (status->out ());
       break;
     case command_id_t::VOLUME_SET:
       // ignore
@@ -185,7 +186,7 @@ namespace led_d
       return;
     }
 
-    m_menu.rotor (id, action);
+    // m_menu.rotor (id, action);
   }
 
   void handle_t::mcu_status (const mcu_msg_t &msg)
@@ -332,7 +333,7 @@ namespace led_d
         log_t::error (buf);
         return true;
       }
-      m_menu.volume_range (low, high);
+      // m_menu.volume_range (low, high);
     }
 
     return false;

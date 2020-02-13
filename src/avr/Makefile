@@ -22,6 +22,7 @@ OBJECT_LIST = \
   font.o \
   heartbeat.o \
   invoke.o \
+  menu.o \
   mode.o \
   postpone.o \
   power.o \

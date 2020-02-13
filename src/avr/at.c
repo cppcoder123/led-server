@@ -75,3 +75,12 @@ void at_cancel (uint8_t id)
   if (empty () != 0)
     invoke_disable (INVOKE_ID_AT);
 }
+
+uint8_t at_empty (uint8_t id)
+{
+  if (id >= AT_MAX)
+    /* don't schedule with wrong id */
+    return 0;
+
+  return (callback[id] == 0) ? 1 : 0;
+}
