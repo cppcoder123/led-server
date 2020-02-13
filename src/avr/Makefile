@@ -7,6 +7,7 @@ TARGET_ELF = $(TARGET).elf
 
 #  sync.o
 OBJECT_LIST = \
+  at.o \
   avr.o \
   buf.o \
   buffer.o \

@@ -1,0 +1,67 @@
+/*
+ *
+ */
+
+#include "at.h"
+#include "invoke.h"
+
+#define INVOKE_DELAY 50         /* ~ 1 sec */
+
+static uint8_t current[AT_MAX];
+static uint8_t max[AT_MAX];
+static at_callback callback[AT_MAX];
+
+void at_init ()
+{
+  for (uint8_t i = 0; i < AT_MAX; ++i) {
+    current[i] = 0;
+    max[i] = 0;
+    callback[i] = 0;
+  }
+}
+
+static uint8_t empty ()
+{
+  for (uint8_t id = 0; id < AT_MAX; ++id)
+    if (callback[id] != 0)
+      return 0;
+
+  return 1;
+}
+
+static void verify ()
+{
+  for (uint8_t id = 0; id < AT_MAX; ++id) {
+    if (callback[id] == 0)
+      continue;
+    if (++current[id] >= max[id]) {
+      callback[id] ();
+      callback[id] = 0;
+      if (empty () != 0)
+        invoke_disable (INVOKE_ID_AT);
+    }
+  }
+}
+
+void at_schedule (uint8_t id, uint8_t delay, at_callback cb)
+{
+  if ((id >= AT_MAX) || (cb == 0))
+    return;
+
+  uint8_t it_was_empty = empty ();
+
+  current[id] = 0;
+  max[id] = delay;
+  callback[id] = cb;
+
+  if (it_was_empty != 0)
+    invoke_enable (INVOKE_ID_AT, INVOKE_DELAY, &verify);
+}
+
+void at_postpone (uint8_t id)
+{
+  if (id >= AT_MAX)
+    return;
+
+  current[id] = 0;
+}
