@@ -65,3 +65,13 @@ void at_postpone (uint8_t id)
 
   current[id] = 0;
 }
+
+void at_cancel (uint8_t id)
+{
+  if (id >= AT_MAX)
+    return;
+
+  callback[id] = 0;
+  if (empty () != 0)
+    invoke_disable (INVOKE_ID_AT);
+}

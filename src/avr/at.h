@@ -23,4 +23,6 @@ void at_schedule (uint8_t id, uint8_t delay, at_callback cb);
 
 void at_postpone (uint8_t id);
 
+void at_cancel (uint8_t id);
+
 #endif

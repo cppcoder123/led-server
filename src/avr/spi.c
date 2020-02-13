@@ -55,7 +55,7 @@ void spi_init ()
   flag = FLAG_WRITE_INTERRUPT;
   interrupt_stop ();
 
-  /*enable spi, and enable related interrupt*/
+  /*enable spi and enable related interrupt*/
   SPCR = (1 << SPIE) | (1 << SPE);
 }
 

@@ -4,6 +4,7 @@
 
 #include <avr/interrupt.h>
 
+#include "at.h"
 #include "buzz.h"
 #include "clock.h"
 #include "counter.h"
@@ -28,6 +29,7 @@ static void init ()
   /* invoke needs a counter, so init it now*/
   invoke_init ();
 
+  at_init ();
   buzz_init ();
   clock_init ();
   decode_init ();
@@ -36,6 +38,7 @@ static void init ()
   mode_init ();
   postpone_init ();
   rotor_init ();
+  /* ! init menu after rotor */
   power_init ();
 
   mode_set (MODE_MASTER);
