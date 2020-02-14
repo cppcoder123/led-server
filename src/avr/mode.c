@@ -31,7 +31,6 @@ static void stop_mode ()
     break;
   case MODE_MASTER:
     invoke_disable (INVOKE_ID_FLUSH);
-    invoke_disable (INVOKE_ID_CLOCK);
     break;
   case MODE_SLAVE:
     heartbeat_cancel ();
@@ -46,8 +45,7 @@ static void render_clock ()
 {
   uint8_t matrix[64];
   clock_render (matrix);
-  flush_stable_data (matrix);
-  flush_stable_display ();
+  flush_stable_display (matrix);
 }
 
 static void switch_to_master ()
@@ -60,12 +58,14 @@ static void start_mode ()
 {
   switch (current_mode) {
   case MODE_IDLE:
+    invoke_enable (INVOKE_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
     break;
   case MODE_MASTER:
     invoke_enable (INVOKE_ID_FLUSH, MASTER_DELAY, &render_clock);
     invoke_enable (INVOKE_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
     break;
   case MODE_SLAVE:
+    invoke_disable (INVOKE_ID_CLOCK);
     invoke_enable (INVOKE_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
     heartbeat_start (HB_DELAY, HB_MISS, &switch_to_master, &spi_interrupt_start);
     is_connected = 1;

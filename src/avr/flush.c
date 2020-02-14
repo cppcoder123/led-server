@@ -112,13 +112,10 @@ void flush_shift_buffer_clear ()
     buffer_clear (&shift_data);
 }
 
-void flush_stable_data (uint8_t *arr)
+void flush_stable_display (uint8_t *arr)
 {
   for (uint8_t i = 0; i < MIN_DATA_SIZE; ++i)
     stable_data[i] = arr[i];
-}
-
-void flush_stable_display ()
-{
+  
   dump (0);
 }

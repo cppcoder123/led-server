@@ -30,8 +30,6 @@ void flush_shift_buffer_clear ();
  */
 
 /* ! array size is 64  */
-void flush_stable_data (uint8_t *arr);
-
-void flush_stable_display ();
+void flush_stable_display (uint8_t *arr);
 
 #endif

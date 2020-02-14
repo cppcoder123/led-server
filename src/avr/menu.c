@@ -76,10 +76,10 @@ static void render ()
   switch (param) {
   case PARAM_POWER:
     render_power (data, &position);
-    return;
+    break;
   case PARAM_CANCEL:
     render_cancel (data, &position);
-    return;
+    break;
   case PARAM_TRACK:
     render_symbol (FONT_T, data, &position);
     render_symbol (FONT_r, data, &position);
@@ -96,30 +96,31 @@ static void render ()
     break;
   }
 
-  data[position++] = 0;
-
-  if (value < MIDDLE)
-    font_add_symbol (FONT_MINUS, data, &position, DATA_SIZE);
-  else
-    font_add_symbol (FONT_PLUS, data, &position, DATA_SIZE);
-
-  data[position++] = 0;
-
-  uint8_t info = (value < MIDDLE) ? (MIDDLE - value) : (value - MIDDLE);
-  uint8_t hundred = info / 100;
-  if (hundred > 0) {
-    font_add_symbol (hundred, data, &position, DATA_SIZE);
+  if ((param == PARAM_TRACK)
+      || (param == PARAM_VOLUME)) {
     data[position++] = 0;
-  }
-  uint8_t rest = (info % 100);
-  uint8_t ten = rest / 10;
-  if (ten > 0) {
-    font_add_symbol (ten, data, &position, DATA_SIZE);
+
+    if (value < MIDDLE)
+      render_symbol(FONT_MINUS, data, &position);
+    else
+      render_symbol (FONT_PLUS, data, &position);
+
     data[position++] = 0;
+    
+    uint8_t info = (value < MIDDLE) ? (MIDDLE - value) : (value - MIDDLE);
+    uint8_t hundred = info / 100;
+    if (hundred > 0)
+      render_symbol (hundred, data, &position);
+    uint8_t rest = (info % 100);
+    uint8_t ten = rest / 10;
+    if (ten > 0)
+      render_symbol (ten, data, &position);
+    uint8_t one = rest % 10;
+    if (one > 0)
+      render_symbol (one, data, &position);
   }
-  uint8_t one = rest % 10;
-  if (one > 0)
-    font_add_symbol (one, data, &position, DATA_SIZE);
+
+  flush_stable_display (data);
 }
 
 static void change_param (uint8_t action)
