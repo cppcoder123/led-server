@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+#define FLUSH_STABLE_SIZE 64
+
 void flush_init ();
 
 /*

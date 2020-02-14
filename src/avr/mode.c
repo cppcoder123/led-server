@@ -16,10 +16,12 @@
 #define HB_MISS 3		/* we can miss 3 heartbeats */
 
 static uint8_t current_mode = MODE_IDLE;
+static uint8_t is_connected = 0;
 
 void mode_init ()
 {
   current_mode = MODE_IDLE;
+  is_connected = 0;
 }
 
 static void stop_mode ()
@@ -51,6 +53,7 @@ static void render_clock ()
 static void switch_to_master ()
 {
   mode_set (MODE_MASTER);
+  is_connected = 0;
 }
 
 static void start_mode ()
@@ -65,6 +68,7 @@ static void start_mode ()
   case MODE_SLAVE:
     invoke_enable (INVOKE_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
     heartbeat_start (HB_DELAY, HB_MISS, &switch_to_master, &spi_interrupt_start);
+    is_connected = 1;
     break;
   default:
     break;
@@ -84,4 +88,9 @@ void mode_set (uint8_t new_mode)
 uint8_t mode_get ()
 {
   return current_mode;
+}
+
+uint8_t mode_is_connnected ()
+{
+  return is_connected;
 }

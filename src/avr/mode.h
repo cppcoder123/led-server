@@ -18,4 +18,6 @@ void mode_set (uint8_t new_mode);
 
 uint8_t mode_get ();
 
+uint8_t mode_is_connnected ();
+
 #endif
