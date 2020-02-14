@@ -17,7 +17,7 @@
 /* 5 seconds */
 #define MENU_DELAY 5
 
-#define PARAM_ID ROTOR_1
+#define PARAM_ID ROTOR_2
 
 #define MIDDLE 0x7F
 #define MAX 0xFF
@@ -34,7 +34,7 @@ enum {
 
 static uint8_t restore_mode = MODE_IDLE;
 
-static uint8_t param = 0;
+static uint8_t param = PARAM_POWER;
 static uint8_t value = MIDDLE;
 
 static void render_symbol (uint8_t symbol, uint8_t *data, uint8_t *position)
@@ -83,14 +83,10 @@ static void render ()
   case PARAM_TRACK:
     render_symbol (FONT_T, data, &position);
     render_symbol (FONT_r, data, &position);
-    render_symbol (FONT_a, data, &position);
-    render_symbol (FONT_c, data, &position);
-    render_symbol (FONT_k, data, &position);
     break;
   case PARAM_VOLUME:
     render_symbol (FONT_V, data, &position);
     render_symbol (FONT_o, data, &position);
-    render_symbol (FONT_l, data, &position);
     break;
   default:
     break;
@@ -113,12 +109,14 @@ static void render ()
       render_symbol (hundred, data, &position);
     uint8_t rest = (info % 100);
     uint8_t ten = rest / 10;
-    if (ten > 0)
+    if ((hundred > 0) || (ten > 0))
       render_symbol (ten, data, &position);
     uint8_t one = rest % 10;
-    if (one > 0)
-      render_symbol (one, data, &position);
+    render_symbol (one, data, &position);
   }
+
+  for (uint8_t i = position; i < DATA_SIZE; ++i)
+    data[i] = 0;
 
   flush_stable_display (data);
 }
@@ -174,6 +172,8 @@ static void start (uint8_t id, uint8_t action)
     return;
 
   if (at_empty (AT_MENU) != 0) {
+    param = PARAM_POWER;
+    value = MIDDLE;
     at_schedule (AT_MENU, MENU_DELAY, &stop);
     restore_mode = mode_get ();
     mode_set (MODE_IDLE);
@@ -193,4 +193,7 @@ void menu_init ()
 {
   rotor_register (&start);
   restore_mode = MODE_IDLE;
+
+  param = PARAM_POWER;
+  value = MIDDLE;
 }
