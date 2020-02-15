@@ -23,7 +23,6 @@ void flush_shift_drain_stop ();
 
 uint8_t flush_shift_buffer_space ();
 uint8_t flush_shift_buffer_size ();
-void flush_shift_buffer_clear ();
 
 /*
  * Stable rendering

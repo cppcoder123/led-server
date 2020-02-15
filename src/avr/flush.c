@@ -107,11 +107,6 @@ uint8_t flush_shift_buffer_size ()
   return buffer_size (&shift_data);
 }
 
-void flush_shift_buffer_clear ()
-{
-    buffer_clear (&shift_data);
-}
-
 void flush_stable_display (uint8_t *arr)
 {
   for (uint8_t i = 0; i < MIN_DATA_SIZE; ++i)

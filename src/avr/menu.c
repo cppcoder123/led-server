@@ -100,14 +100,29 @@ static void render ()
   flush_stable_display (data);
 }
 
+static void send_message_1 (uint8_t msg_id, uint8_t payload_1)
+{
+  if (mode_is_connnected () != 0)
+    encode_msg_1 (msg_id, SERIAL_ID_TO_IGNORE, payload_1);
+}
+
 static void change_param (uint8_t action)
 {
+  uint8_t old_param = param;
+
   if ((action == ROTOR_CLOCKWISE)
       && (param < PARAM_LAST))
     ++param;
   else if ((action == ROTOR_COUNTER_CLOCKWISE)
            && (param > 0))
     --param;
+
+  if ((old_param != param)
+      && ((param == PARAM_VOLUME)
+          || (param == PARAM_TRACK)))
+    send_message_1
+      (MSG_ID_PARAM_QUERY,
+       (param == PARAM_VOLUME) ? PARAMETER_VOLUME : PARAMETER_TRACK);
 
   render ();
 }
@@ -124,16 +139,22 @@ static void change_delta (uint8_t action)
   render ();
 }
 
-static void suspend ()
-{
-  if (mode_is_connnected () != 0)
-    encode_msg_0 (MSG_ID_SUSPEND, SERIAL_ID_TO_IGNORE);
-}
+/* static void suspend () */
+/* { */
+/*   if (mode_is_connnected () != 0) */
+/*     encode_msg_0 (MSG_ID_SUSPEND, SERIAL_ID_TO_IGNORE); */
+/* } */
 
-static void resume ()
+/* static void resume () */
+/* { */
+/*   if (mode_is_connnected () != 0) */
+/*     encode_msg_0 (MSG_ID_RESUME, SERIAL_ID_TO_IGNORE); */
+/* } */
+
+static void send_message_0 (uint8_t msg_id)
 {
   if (mode_is_connnected () != 0)
-    encode_msg_0 (MSG_ID_RESUME, SERIAL_ID_TO_IGNORE);
+    encode_msg_0 (msg_id, SERIAL_ID_TO_IGNORE);
 }
 
 static void stop ()
@@ -146,13 +167,17 @@ static void stop ()
     else
       encode_msg_0 (MSG_ID_POWEROFF, SERIAL_ID_TO_IGNORE);
     break;
+  case PARAM_TRACK:
+    break;
+  case PARAM_VOLUME:
+    break;
   default:
     break;
   }
 
   flush_shift_drain_stop ();
   mode_set (restore_mode);
-  resume ();
+  send_message_0 (MSG_ID_RESUME);
 }
 
 static void start (uint8_t id, uint8_t action)
@@ -166,7 +191,7 @@ static void start (uint8_t id, uint8_t action)
     at_schedule (AT_MENU, MENU_DELAY, &stop);
     restore_mode = mode_get ();
     mode_set (MODE_IDLE);
-    suspend ();
+    send_message_0 (MSG_ID_SUSPEND);
     flush_shift_drain_start ();
   } else {
     at_postpone (AT_MENU);
