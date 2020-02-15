@@ -47,12 +47,8 @@ namespace led_d
   void content_t::in (status_ptr_t status)
   {
     switch (status->id ()) {
-    case command_id_t::MENU_ADD:
-      m_top_info += status->out ();
-      break;
-    case command_id_t::MENU_SET:
-      // Note: it also sets empty value
-      m_top_info = status->out ();
+    case command_id_t::POWEROFF:
+      m_top_info = "Goodbye";
       break;
     case command_id_t::VOLUME_GET:
       // fixme: set current volume level

@@ -45,17 +45,19 @@ enum {
   /* MSG_ID_LED, */
   MSG_ID_LED_ARRAY,
 
-  /* avr=>pi: request data to display, 0 as payload */
-  MSG_ID_POLL,
+  /*avr=>pi, query param value*/
+  /*pi=>avr, param value*/
+  MSG_ID_PARAM_QUERY,
+
+  /*avr=>pi, set param value*/
+  MSG_ID_PARAM_SET,
+
+  /* avr=>pi, shutdown pi*/
+  MSG_ID_POWEROFF,
 
   /*pi=>avr: No response from avr is expected, SERIAL_ID_TO_IGNORE should be used*/
   /*aux message to enable spi slave (avr) to master (pi) transfer*/
   MSG_ID_QUERY,
-
-  /* avr=>pi: rotary encoder related messages */
-  /* payload: <rotor-id> <rotor-action> */
-  /* where rotor actions are: clockwise, counter-clockwise and push */
-  /* MSG_ID_ROTOR, */
 
   /* avr => pi resume info flow */
   MSG_ID_RESUME,
@@ -90,41 +92,13 @@ enum {
   DEBUG_CLOCK,
   DEBUG_DECODE,
   DEBUG_FLUSH,
-  DEBUG_ROTOR,
   DEBUG_SPI,
 };
 
-/* debug key */
+/* try to tune params */
 enum {
-  DEBUG_0,
-  DEBUG_1,
-  DEBUG_2,
-  DEBUG_3,
-  DEBUG_4,
-  DEBUG_5,
-  DEBUG_6,
-  DEBUG_7,
-  DEBUG_8,
-  DEBUG_9,
-  DEBUG_10,
-  DEBUG_11,
-  DEBUG_12,
-  DEBUG_13,
-  DEBUG_14,
-  DEBUG_15,
-  DEBUG_16,
-  DEBUG_17,
-  DEBUG_18,
-  DEBUG_19,
-  DEBUG_20,
+  PARAMETER_VOLUME,
+  PARAMETER_TRACK,
 };
-
-/* enum { */
-/*   ROTOR_1, */
-/*   ROTOR_2, */
-/*   ROTOR_CLOCKWISE, */
-/*   ROTOR_COUNTER_CLOCKWISE, */
-/*   ROTOR_PUSH, */
-/* }; */
 
 #endif

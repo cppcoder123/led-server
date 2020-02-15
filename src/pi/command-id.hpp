@@ -9,11 +9,10 @@
 namespace led_d
 {
   enum class command_id_t {
-    MENU_ADD,                 // 2 artificial commands (statuses)
-    MENU_SET,                 // to handle menu
-    MPC_PLAY,                 // mpc play
-    MPC_PLAYLIST,     // mpc playlist - show list of tracks/stations
-    MPC_CURRENT,      // current track
+    MPC_PLAY,           // mpc play
+    MPC_PLAYLIST,       // mpc playlist - show list of tracks/stations
+    MPC_CURRENT,        // current track
+    POWEROFF,           // self shutdown
     STREAM_CLOCK,
     STREAM_SYSTEM,
     STREAM_TRACK_NAME,
@@ -37,12 +36,6 @@ namespace led_d
   inline std::string command_id_name (command_id_t id)
   {
     switch (id) {
-    case command_id_t::MENU_ADD:
-      return "menu-add";
-      break;
-    case command_id_t::MENU_SET:
-      return "menu-set";
-      break;
     case command_id_t::MPC_PLAY:
       return "mpc-play";
       break;
@@ -51,6 +44,9 @@ namespace led_d
       break;
     case command_id_t::MPC_CURRENT:
       return "mpc-current";
+      break;
+    case command_id_t::POWEROFF:
+      return "poweroff";
       break;
     case command_id_t::STREAM_CLOCK:
       return "stream-clock";

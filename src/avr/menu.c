@@ -143,6 +143,8 @@ static void stop ()
   case PARAM_POWER:
     if (mode_is_connnected () == 0)
       power_on ();
+    else
+      encode_msg_0 (MSG_ID_POWEROFF, SERIAL_ID_TO_IGNORE);
     break;
   default:
     break;

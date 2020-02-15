@@ -23,6 +23,7 @@ namespace led_d
   //
   constexpr auto MPC_PLAY = "mpc play";
   constexpr auto MPC_PLAYLIST = "mpc playlist";
+  constexpr auto POWEROFF = "sudo poweroff";
   constexpr auto VOLUME_RANGE = "volume range";
   //
   constexpr auto MATRIX_MIN_SIZE = 64;
@@ -152,12 +153,9 @@ namespace led_d
     }
 
     switch (msg_id) {
-    case MSG_ID_POLL:
-      info_push ();
+    case MSG_ID_POWEROFF:
+      mcu_poweroff ();
       break;
-      // case MSG_ID_ROTOR:
-      //   mcu_rotor (msg);
-      // break;
     case MSG_ID_RESUME:
       mcu_resume ();
       break;
@@ -183,17 +181,11 @@ namespace led_d
     }
   }
 
-  // void handle_t::mcu_rotor (const mcu_msg_t &msg)
-  // {
-  //   uint8_t id = 0;
-  //   uint8_t action = 0;
-  //   if (mcu::decode::split_payload (msg, id, action) == false) {
-  //     log_t::error ("handle: Failed to decode rotor message");
-  //     return;
-  //   }
-
-  //   // m_menu.rotor (id, action);
-  // }
+  void handle_t::mcu_poweroff ()
+  {
+    command_issue (command_id_t::POWEROFF, POWEROFF,
+                   command_t::ten_seconds (), *m_command_queue);
+  }
 
   void handle_t::mcu_status (const mcu_msg_t &msg)
   {
@@ -319,13 +311,6 @@ namespace led_d
       log_t::info (buf);
     }
   }
-
-  // void handle_t::issue_command (command_id_t id,
-  //                               std::string text, command_t::timeout_t timeout)
-  // {
-  //   auto command = std::make_shared<command_t>(id, text, timeout);
-  //   m_command_queue->push (command);
-  // }
 
   bool handle_t::filter_system (const std::string &info)
   {
