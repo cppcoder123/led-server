@@ -90,7 +90,7 @@ static void render ()
       info = delta - MIDDLE;
     }
 
-    render_number (info, 0, data, &position);
+    render_number (info, RENDER_LEADING_DISABLE, data, &position);
   }
 
   for (uint8_t i = position; i < DATA_SIZE; ++i)

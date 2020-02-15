@@ -190,7 +190,7 @@ void clock_render(uint8_t *buffer)
 
   render_number (hour, 0, buffer, &position);
   render_symbol (FONT_COLON, buffer, &position);
-  render_number (minute, 1, buffer, &position);
+  render_number (minute, RENDER_LEADING_TEN, buffer, &position);
 
   /* add_number(hour, buffer, &position, 0); */
   /* font_add_symbol(FONT_COLON, buffer, &position, BUFFER_SIZE); */
@@ -202,7 +202,7 @@ void clock_render(uint8_t *buffer)
     render_symbol (FONT_AT, buffer, &position);
     render_number (alarm_hour, 0, buffer, &position);
     render_symbol (FONT_COLON, buffer, &position);
-    render_number (alarm_minute, 1, buffer, &position);
+    render_number (alarm_minute, RENDER_LEADING_TEN, buffer, &position);
     /* font_add_symbol(FONT_SPACE, buffer, &position, BUFFER_SIZE); */
     /* font_add_symbol(FONT_AT, buffer, &position, BUFFER_SIZE); */
     /* add_number(alarm_hour, buffer, &position, 0); */

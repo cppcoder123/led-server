@@ -26,11 +26,11 @@ void render_number (uint8_t num, uint8_t leading_zero,
                     uint8_t *buffer, uint8_t *position)
 {
   uint8_t hundred = num / 100;  /* 0, 1, 2 */
-  if ((leading_zero != 0) || (hundred != 0))
+  if ((leading_zero & RENDER_LEADING_HUNDRED) || (hundred != 0))
     render_symbol (hundred, buffer, position);
   uint8_t rest = num % 100;
   uint8_t ten = rest / 10;
-  if ((ten != 0) || (hundred != 0) || (leading_zero != 0))
+  if ((ten != 0) || (hundred != 0) || (leading_zero & RENDER_LEADING_TEN))
     render_symbol (ten, buffer, position);
   render_symbol (rest % 10, buffer, position);
 }
