@@ -8,13 +8,18 @@
 
 #define DATA_SIZE FLUSH_STABLE_SIZE
 
+void render_empty_column (uint8_t *buffer, uint8_t *position)
+{
+  if (*position < DATA_SIZE)
+    *(buffer + (*position)++) = 0;
+}
+
 void render_symbol (uint8_t sym, uint8_t *buffer, uint8_t *position)
 {
   if (font_add_symbol (sym, buffer, position, DATA_SIZE) == 0)
     return;
 
-  if (*position < DATA_SIZE)
-    *(buffer + (*position)++) = 0;
+  render_empty_column (buffer, position);
 }
 
 void render_number (uint8_t num, uint8_t leading_zero,

@@ -5,7 +5,9 @@
 #include "buzz.h"
 #include "clock.h"
 #include "debug.h"
+#include "flush.h"
 #include "font.h"
+#include "render.h"
 
 #define FIFTY_NINE 59
 #define TWENTY_THREE 23
@@ -17,7 +19,9 @@
 #define LONG_INDENT 22
 #define SHORT_INDENT 2
 
-#define BUFFER_SIZE 64
+#define BUFFER_SIZE FLUSH_STABLE_SIZE
+
+#define ALARM_SPACE 3
 
 static uint8_t second = 0;
 static uint8_t minute = 0;
@@ -111,92 +115,101 @@ void clock_alarm_disengage()
   buzz_stop();
 }
 
-static void add_digit(uint8_t digit, uint8_t *buffer, uint8_t *position)
-{
-  uint8_t symbol = FONT_MAX_SYMBOL;
+/* static void add_digit(uint8_t digit, uint8_t *buffer, uint8_t *position) */
+/* { */
+/*   uint8_t symbol = FONT_MAX_SYMBOL; */
 
-  switch(digit) {
-  case 0:
-    symbol = FONT_0;
-    break;
-  case 1:
-    symbol = FONT_1;
-    break;
-  case 2:
-    symbol = FONT_2;
-    break;
-  case 3:
-    symbol = FONT_3;
-    break;
-  case 4:
-    symbol = FONT_4;
-    break;
-  case 5:
-    symbol = FONT_5;
-    break;
-  case 6:
-    symbol = FONT_6;
-    break;
-  case 7:
-    symbol = FONT_7;
-    break;
-  case 8:
-    symbol = FONT_8;
-    break;
-  case 9:
-    symbol = FONT_9;
-    break;
-  default:
-    symbol = FONT_Y;
-    break;
-  }
+/*   switch(digit) { */
+/*   case 0: */
+/*     symbol = FONT_0; */
+/*     break; */
+/*   case 1: */
+/*     symbol = FONT_1; */
+/*     break; */
+/*   case 2: */
+/*     symbol = FONT_2; */
+/*     break; */
+/*   case 3: */
+/*     symbol = FONT_3; */
+/*     break; */
+/*   case 4: */
+/*     symbol = FONT_4; */
+/*     break; */
+/*   case 5: */
+/*     symbol = FONT_5; */
+/*     break; */
+/*   case 6: */
+/*     symbol = FONT_6; */
+/*     break; */
+/*   case 7: */
+/*     symbol = FONT_7; */
+/*     break; */
+/*   case 8: */
+/*     symbol = FONT_8; */
+/*     break; */
+/*   case 9: */
+/*     symbol = FONT_9; */
+/*     break; */
+/*   default: */
+/*     symbol = FONT_Y; */
+/*     break; */
+/*   } */
 
-  font_add_symbol(symbol, buffer, position, BUFFER_SIZE);
-}
+/*   font_add_symbol(symbol, buffer, position, BUFFER_SIZE); */
+/* } */
 
-static void add_number(uint8_t number, uint8_t *buffer,
-                       uint8_t *position, uint8_t leading_zero)
-{
-  /* number should be less than a hundred */
-  uint8_t tmp = number / TEN;
-  if (tmp >= TEN) {
-    font_add_symbol(FONT_X, buffer, position, BUFFER_SIZE);
-    font_add_symbol(FONT_X, buffer, position, BUFFER_SIZE);
-    return;
-  }
+/* static void add_number(uint8_t number, uint8_t *buffer, */
+/*                        uint8_t *position, uint8_t leading_zero) */
+/* { */
+/*   /\* number should be less than a hundred *\/ */
+/*   uint8_t tmp = number / TEN; */
+/*   if (tmp >= TEN) { */
+/*     font_add_symbol(FONT_X, buffer, position, BUFFER_SIZE); */
+/*     font_add_symbol(FONT_X, buffer, position, BUFFER_SIZE); */
+/*     return; */
+/*   } */
 
-  if ((tmp != 0)
-      || (leading_zero != 0)) {
-    add_digit(tmp, buffer, position);
-    /* small space between digits for better look */
-    *(buffer + (*position)++) = 0;
-  }
+/*   if ((tmp != 0) */
+/*       || (leading_zero != 0)) { */
+/*     add_digit(tmp, buffer, position); */
+/*     /\* small space between digits for better look *\/ */
+/*     *(buffer + (*position)++) = 0; */
+/*   } */
 
-  tmp = number % TEN;
-  add_digit(tmp, buffer, position);
-}
+/*   tmp = number % TEN; */
+/*   add_digit(tmp, buffer, position); */
+/* } */
 
 void clock_render(uint8_t *buffer)
 {
   uint8_t indent = (alarm_engaged == 0) ? LONG_INDENT : SHORT_INDENT;
-  if (hour < TEN)
-    ++indent;
 
   uint8_t position = 0;
   for (uint8_t i = 0; i < indent; ++i)
     buffer[position++] = 0;
 
-  add_number(hour, buffer, &position, 0);
-  font_add_symbol(FONT_COLON, buffer, &position, BUFFER_SIZE);
-  add_number(minute, buffer, &position, 1);
+  render_number (hour, 0, buffer, &position);
+  render_symbol (FONT_COLON, buffer, &position);
+  render_number (minute, 1, buffer, &position);
+
+  /* add_number(hour, buffer, &position, 0); */
+  /* font_add_symbol(FONT_COLON, buffer, &position, BUFFER_SIZE); */
+  /* add_number(minute, buffer, &position, 1); */
 
   if (alarm_engaged != 0) {
-    font_add_symbol(FONT_SPACE, buffer, &position, BUFFER_SIZE);
-    font_add_symbol(FONT_AT, buffer, &position, BUFFER_SIZE);
-    add_number(alarm_hour, buffer, &position, 0);
-    font_add_symbol(FONT_COLON, buffer, &position, BUFFER_SIZE);
-    add_number(alarm_minute, buffer, &position, 1);
+    for (uint8_t j = 0; j < ALARM_SPACE; ++j)
+      render_empty_column (buffer, &position);
+    render_symbol (FONT_AT, buffer, &position);
+    render_number (alarm_hour, 0, buffer, &position);
+    render_symbol (FONT_COLON, buffer, &position);
+    render_number (alarm_minute, 1, buffer, &position);
+    /* font_add_symbol(FONT_SPACE, buffer, &position, BUFFER_SIZE); */
+    /* font_add_symbol(FONT_AT, buffer, &position, BUFFER_SIZE); */
+    /* add_number(alarm_hour, buffer, &position, 0); */
+    /* font_add_symbol(FONT_COLON, buffer, &position, BUFFER_SIZE); */
+    /* add_number(alarm_minute, buffer, &position, 1); */
   }
+
 
   /* fill the tail with spaces */
   for (uint8_t j = position; j < BUFFER_SIZE; ++j)

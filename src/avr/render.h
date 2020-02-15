@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+void render_empty_column (uint8_t *buffer, uint8_t *position);
+
 void render_symbol (uint8_t sym, uint8_t *buffer, uint8_t *position);
 
 void render_number (uint8_t num, uint8_t leading_zero,
