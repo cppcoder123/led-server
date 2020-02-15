@@ -8,10 +8,11 @@
 
 #include "at.h"
 #include "encode.h"
-#include "flush.h"
 #include "font.h"
+#include "flush.h"
 #include "menu.h"
 #include "mode.h"
+#include "render.h"
 #include "rotor.h"
 
 /* 5 seconds */
@@ -37,34 +38,34 @@ static uint8_t restore_mode = MODE_IDLE;
 static uint8_t param = PARAM_POWER;
 static uint8_t value = MIDDLE;
 
-static void render_symbol (uint8_t symbol, uint8_t *data, uint8_t *position)
-{
-  font_add_symbol (symbol, data, position, DATA_SIZE);
+/* static void render_symbol (uint8_t symbol, uint8_t *data, uint8_t *position) */
+/* { */
+/*   font_add_symbol (symbol, data, position, DATA_SIZE); */
 
-  if (*position < DATA_SIZE)
-    *(data + (*position)++) = 0;
-}
+/*   if (*position < DATA_SIZE) */
+/*     *(data + (*position)++) = 0; */
+/* } */
 
-static void render_power (uint8_t *data, uint8_t *position)
-{
-  render_symbol (FONT_O, data, position);
-  if (mode_is_connnected () != 0) {
-    render_symbol (FONT_f, data, position);
-    render_symbol (FONT_f, data, position);
-  } else {
-    render_symbol (FONT_n, data, position);
-  }
-}
+/* static void render_power (uint8_t *data, uint8_t *position) */
+/* { */
+/*   render_symbol (FONT_O, data, position); */
+/*   if (mode_is_connnected () != 0) { */
+/*     render_symbol (FONT_f, data, position); */
+/*     render_symbol (FONT_f, data, position); */
+/*   } else { */
+/*     render_symbol (FONT_n, data, position); */
+/*   } */
+/* } */
 
-static void render_cancel (uint8_t *data, uint8_t *position)
-{
-  render_symbol (FONT_C, data, position);
-  render_symbol (FONT_a, data, position);
-  render_symbol (FONT_n, data, position);
-  render_symbol (FONT_c, data, position);
-  render_symbol (FONT_e, data, position);
-  render_symbol (FONT_l, data, position);
-}
+/* static void render_cancel (uint8_t *data, uint8_t *position) */
+/* { */
+/*   render_symbol (FONT_C, data, position); */
+/*   render_symbol (FONT_a, data, position); */
+/*   render_symbol (FONT_n, data, position); */
+/*   render_symbol (FONT_c, data, position); */
+/*   render_symbol (FONT_e, data, position); */
+/*   render_symbol (FONT_l, data, position); */
+/* } */
 
 static void render ()
 {
@@ -75,18 +76,32 @@ static void render ()
 
   switch (param) {
   case PARAM_POWER:
-    render_power (data, &position);
+    {
+      uint8_t on[] = {FONT_O, FONT_n};
+      uint8_t off[]  = {FONT_O, FONT_f, FONT_f};
+      if (mode_is_connnected () != 0)
+        render_word (off, sizeof (off) / sizeof (uint8_t), data, &position);
+      else
+        render_word (on, sizeof (on) / sizeof (uint8_t), data, &position);
+    }
     break;
   case PARAM_CANCEL:
-    render_cancel (data, &position);
+    {
+      uint8_t cancel[] = {FONT_C, FONT_a, FONT_n, FONT_c, FONT_e, FONT_l};
+      render_word (cancel, sizeof (cancel) / sizeof (uint8_t), data, &position);
+    }
     break;
   case PARAM_TRACK:
-    render_symbol (FONT_T, data, &position);
-    render_symbol (FONT_r, data, &position);
+    {
+      uint8_t track[] = {FONT_T, FONT_r};
+      render_word (track, sizeof (track) / sizeof (uint8_t), data, &position);
+    }
     break;
   case PARAM_VOLUME:
-    render_symbol (FONT_V, data, &position);
-    render_symbol (FONT_o, data, &position);
+    {
+      uint8_t vol[] = {FONT_V, FONT_o};
+      render_word (vol, sizeof (vol) / sizeof (uint8_t), data, &position);
+    }
     break;
   default:
     break;
@@ -94,25 +109,27 @@ static void render ()
 
   if ((param == PARAM_TRACK)
       || (param == PARAM_VOLUME)) {
-    data[position++] = 0;
 
-    if (value < MIDDLE)
+    uint8_t info = 0;
+    if (value < MIDDLE) {
       render_symbol(FONT_MINUS, data, &position);
-    else
+      info = MIDDLE - value;
+    } else {
       render_symbol (FONT_PLUS, data, &position);
+      info = value - MIDDLE;
+    }
 
-    data[position++] = 0;
+    /* -    uint8_t hundred = info / 100; */
+    /* -    if (hundred > 0) */
+    /* -      render_symbol (hundred, data, &position); */
+    /* -    uint8_t rest = (info % 100); */
+    /* -    uint8_t ten = rest / 10; */
+    /* -    if ((hundred > 0) || (ten > 0)) */
+    /* -      render_symbol (ten, data, &position); */
+    /* -    uint8_t one = rest % 10; */
+    /* -    render_symbol (one, data, &position); */
     
-    uint8_t info = (value < MIDDLE) ? (MIDDLE - value) : (value - MIDDLE);
-    uint8_t hundred = info / 100;
-    if (hundred > 0)
-      render_symbol (hundred, data, &position);
-    uint8_t rest = (info % 100);
-    uint8_t ten = rest / 10;
-    if ((hundred > 0) || (ten > 0))
-      render_symbol (ten, data, &position);
-    uint8_t one = rest % 10;
-    render_symbol (one, data, &position);
+    render_number (info, 0, data, &position);
   }
 
   for (uint8_t i = position; i < DATA_SIZE; ++i)
