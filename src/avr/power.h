@@ -7,8 +7,9 @@
 #ifndef POWER_H
 #define POWER_H
 
-#include <stdint.h>
-
 void power_init ();
+
+/* turn on pi */
+void power_on ();
 
 #endif
