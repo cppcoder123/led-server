@@ -10,7 +10,7 @@
 #define CONTROL_WIRE (1 << PORTE0)
 
 #define OFF_DELAY 10
-#define HOLD_DELAY 5
+#define HOLD_DELAY 60
 
 void power_init ()
 {
@@ -37,5 +37,6 @@ static void drop_voltage ()
 
 void power_on ()
 {
+  return;                       /* hardware problem */
   at_schedule (AT_POWER, OFF_DELAY, &drop_voltage);
 }

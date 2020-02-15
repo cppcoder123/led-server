@@ -12,6 +12,7 @@
 #include "flush.h"
 #include "menu.h"
 #include "mode.h"
+#include "power.h"
 #include "render.h"
 #include "rotor.h"
 
@@ -138,6 +139,14 @@ static void resume ()
 static void stop ()
 {
   /* fixme send new value*/
+  switch (param) {
+  case PARAM_POWER:
+    if (mode_is_connnected () == 0)
+      power_on ();
+    break;
+  default:
+    break;
+  }
 
   flush_shift_drain_stop ();
   mode_set (restore_mode);
