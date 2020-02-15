@@ -55,11 +55,6 @@ static uint8_t apply_mask (uint8_t old, uint8_t new,
           && ((new & new_mask) == new_mask)) ? 1 : 0;
 }
 
-/* static void send_msg (uint8_t rotor_id, uint8_t what) */
-/* { */
-/*   encode_msg_2 (MSG_ID_ROTOR, SERIAL_ID_TO_IGNORE, rotor_id, what); */
-/* } */
-
 void rotor_try ()
 {
   uint8_t src = 0;
