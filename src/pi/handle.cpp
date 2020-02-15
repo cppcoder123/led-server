@@ -155,8 +155,8 @@ namespace led_d
     case MSG_ID_POLL:
       info_push ();
       break;
-    case MSG_ID_ROTOR:
-      mcu_rotor (msg);
+    // case MSG_ID_ROTOR:
+    //   mcu_rotor (msg);
       break;
     case MSG_ID_STATUS:
       mcu_status (msg);
@@ -177,17 +177,17 @@ namespace led_d
     }
   }
 
-  void handle_t::mcu_rotor (const mcu_msg_t &msg)
-  {
-    uint8_t id = 0;
-    uint8_t action = 0;
-    if (mcu::decode::split_payload (msg, id, action) == false) {
-      log_t::error ("handle: Failed to decode rotor message");
-      return;
-    }
+  // void handle_t::mcu_rotor (const mcu_msg_t &msg)
+  // {
+  //   uint8_t id = 0;
+  //   uint8_t action = 0;
+  //   if (mcu::decode::split_payload (msg, id, action) == false) {
+  //     log_t::error ("handle: Failed to decode rotor message");
+  //     return;
+  //   }
 
-    // m_menu.rotor (id, action);
-  }
+  //   // m_menu.rotor (id, action);
+  // }
 
   void handle_t::mcu_status (const mcu_msg_t &msg)
   {
