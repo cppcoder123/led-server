@@ -9,12 +9,9 @@
 #include "font.h"
 #include "render.h"
 
-#define FIFTY_NINE 59
+/* it seems the clock is slower than needed */
+#define FIFTY_NINE 58
 #define TWENTY_THREE 23
-#define TEN 10
-
-#define MINUTE_CHANGED 1
-#define MINUTE_NOT_CHANGED 0
 
 #define LONG_INDENT 22
 #define SHORT_INDENT 2
@@ -61,23 +58,23 @@ static uint8_t advance_second()
 
   if (second < FIFTY_NINE) {
     ++second;
-    return MINUTE_NOT_CHANGED;
+    return 0;
   }
 
   second = 0;
   if (minute < FIFTY_NINE) {
     ++minute;
-    return MINUTE_CHANGED;
+    return 1;
   }
 
   minute = 0;
   if (hour < TWENTY_THREE) {
     ++hour;
-    return MINUTE_CHANGED;
+    return 1;
   }
 
   hour = 0;
-  return MINUTE_CHANGED;
+  return 1;
 }
 
 void clock_advance_second()
