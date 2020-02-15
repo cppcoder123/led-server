@@ -29,6 +29,8 @@
 #define PARAM_FLAG_VOLUME (1 << 0)
 #define PARAM_FLAG_TRACK (1 << 1)
 
+#define VALUE_SPACE 3
+
 enum {
   PARAM_POWER,                  /* 'On' or 'Off' */
   PARAM_TRACK,                  /* select radio station (or mp3) */
@@ -108,9 +110,12 @@ static void render ()
 
     render_number (info, RENDER_LEADING_DISABLE, data, &position);
 
-    if (param_value_valid (param) != 0)
+    if (param_value_valid (param) != 0) {
+      for (uint8_t i = 0; i < VALUE_SPACE; ++i)
+        render_empty_column (data, &position);
       render_number (param_value[param],
                      RENDER_LEADING_DISABLE, data, &position);
+    }
   }
 
   for (uint8_t i = position; i < DATA_SIZE; ++i)
@@ -238,6 +243,11 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value)
 
   param_flag |= (parameter == PARAMETER_VOLUME)
     ? PARAM_FLAG_VOLUME : PARAM_FLAG_TRACK;
+
+  at_postpone (AT_MENU);
+
+  if (id == param)
+    render ();
 
   return 1;
 }

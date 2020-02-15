@@ -97,7 +97,8 @@ namespace led_d
     if (status->value () != status_t::good ()) {
       log_t::buffer_t buf;
       buf << "handle: Bad status \"" << status->value ()
-          << "\" has arrived for command \"" << command_id_name (status->id ());
+          << "\" has arrived for command \"" << command_id_name (status->id ())
+          << "\"";
       log_t::error (buf);
       return;
     }
@@ -112,12 +113,6 @@ namespace led_d
         auto text = status->out ();
         // m_menu.track_add (text);
         
-        if ((text.empty () == true)
-            && (status->value () != status_t::good ()))
-          // don't keep error text
-          // m_menu.track_clear ();
-          ;
-
         // fixme: remove
         log_t::buffer_t buf;
         buf << "play-list: \"" << status->out () << "\"";
@@ -128,16 +123,16 @@ namespace led_d
     case command_id_t::MPC_CURRENT:
       {
         std::istringstream buf (status->out ());
-        uint8_t current = 0;
+        unsigned current = 0;
         buf >> current;
-        if (buf.fail ()) {
+        if ((buf.fail ()) || (current > 0xFF)) {
           log_t::error ("handle: Failed to convert track to number");
           return;
         }
         m_to_mcu_queue->push
-          (mcu::encode::join (mcu_id::get (), MSG_ID_PARAM_QUERY, current));
+          (mcu::encode::join (mcu_id::get (), MSG_ID_PARAM_QUERY,
+                              PARAMETER_TRACK, static_cast<uint8_t>(current)));
       }
-      // m_menu.current_track (status->out ());
       break;
     case command_id_t::VOLUME_GET:
       // m_menu.current_volume (status->out ());
@@ -148,12 +143,12 @@ namespace led_d
     default:
       if (status->value () == status_t::good ()) {
         m_content.in (status);
-      } else {
-        log_t::buffer_t buf;
-        buf << "Bad status \"" << status->value () << "\" arrived for command \""
-            << static_cast<int>(status->id ()) << "\"";
-        log_t::error (buf);
-      }
+      } // else {
+      //   log_t::buffer_t buf;
+      //   buf << "Bad status \"" << status->value () << "\" arrived for command \""
+      //       << static_cast<int>(status->id ()) << "\"";
+      //   log_t::error (buf);
+      // }
       break;
     }
   }
