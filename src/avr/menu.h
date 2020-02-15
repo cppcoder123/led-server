@@ -6,4 +6,7 @@
 
 void menu_init ();
 
+/* store parameter value */
+uint8_t menu_parameter_value (uint8_t parameter, uint8_t value);
+
 #endif

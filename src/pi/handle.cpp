@@ -23,8 +23,11 @@ namespace led_d
   //
   constexpr auto MPC_PLAY = "mpc play";
   constexpr auto MPC_PLAYLIST = "mpc playlist";
+  constexpr auto MPC_CURRENT = "mpc -f %position% current";
   constexpr auto POWEROFF = "sudo poweroff";
   constexpr auto VOLUME_RANGE = "volume range";
+  constexpr auto VOLUME_GET = "led-volume.sh get";
+  constexpr auto VOLUME_SET = "led-volume.sh set ";
   //
   constexpr auto MATRIX_MIN_SIZE = 64;
   //
@@ -123,6 +126,17 @@ namespace led_d
       }
       break;
     case command_id_t::MPC_CURRENT:
+      {
+        std::istringstream buf (status->out ());
+        uint8_t current = 0;
+        buf >> current;
+        if (buf.fail ()) {
+          log_t::error ("handle: Failed to convert track to number");
+          return;
+        }
+        m_to_mcu_queue->push
+          (mcu::encode::join (mcu_id::get (), MSG_ID_PARAM_QUERY, current));
+      }
       // m_menu.current_track (status->out ());
       break;
     case command_id_t::VOLUME_GET:
@@ -153,6 +167,9 @@ namespace led_d
     }
 
     switch (msg_id) {
+    case MSG_ID_PARAM_QUERY:
+      mcu_param_query (msg);
+      break;
     case MSG_ID_POWEROFF:
       mcu_poweroff ();
       break;
@@ -179,6 +196,27 @@ namespace led_d
       }
       break;
     }
+  }
+
+  void handle_t::mcu_param_query (const mcu_msg_t &msg)
+  {
+    uint8_t param = 0;
+    if (mcu::decode::split_payload (msg, param) == false) {
+      log_t::error ("handle: Failed to decode param-query message");
+      return;
+    }
+    if ((param != PARAMETER_VOLUME)
+        && (param != PARAMETER_TRACK)) {
+      log_t::error ("handle: Bad parameter in param-query message");
+      return;
+    }
+
+    if (param == PARAMETER_VOLUME)
+      command_issue (command_id_t::VOLUME_GET, VOLUME_GET,
+                     command_t::three_seconds (), *m_command_queue);
+    else
+      command_issue (command_id_t::MPC_CURRENT, MPC_CURRENT,
+                     command_t::three_seconds (), *m_command_queue);
   }
 
   void handle_t::mcu_poweroff ()

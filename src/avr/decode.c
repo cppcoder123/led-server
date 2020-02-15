@@ -12,6 +12,7 @@
 #include "encode.h"
 #include "flush.h"
 #include "heartbeat.h"
+#include "menu.h"
 #include "mode.h"
 #include "spi.h"
 
@@ -51,10 +52,17 @@ static void decode ()
       /* status = STATUS_SUCCESS; */
       encode_msg_2 (MSG_ID_STATUS, msg_serial, status, MSG_ID_LED_ARRAY);
       /*debug*/
-      uint8_t buf_size = flush_shift_buffer_size ();
-      if (buf_size <= 64)
-        debug_2 (DEBUG_DECODE, 77, buf_size, msg_size - 2);
+      /* uint8_t buf_size = flush_shift_buffer_size (); */
+      /* if (buf_size <= 64) */
+      /*   debug_2 (DEBUG_DECODE, 77, buf_size, msg_size - 2); */
       /*debug*/
+    }
+    break;
+  case MSG_ID_PARAM_QUERY:
+    {
+      status = (menu_parameter_value (in_buf[0], in_buf[1]) != 0)
+        ? STATUS_SUCCESS : STATUS_FAIL;
+      encode_msg_2 (MSG_ID_STATUS, msg_serial, status, msg_id);
     }
     break;
   case MSG_ID_QUERY:

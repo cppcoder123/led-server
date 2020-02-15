@@ -26,6 +26,9 @@
 
 #define DATA_SIZE FLUSH_STABLE_SIZE
 
+#define PARAM_FLAG_VOLUME (1 << 0)
+#define PARAM_FLAG_TRACK (1 << 1)
+
 enum {
   PARAM_POWER,                  /* 'On' or 'Off' */
   PARAM_TRACK,                  /* select radio station (or mp3) */
@@ -36,8 +39,21 @@ enum {
 
 static uint8_t restore_mode = MODE_IDLE;
 
-static uint8_t param = PARAM_POWER;
 static uint8_t delta = MIDDLE;
+static uint8_t param = PARAM_POWER;
+static uint8_t param_flag = 0;
+static uint8_t param_value[PARAM_LAST];
+
+static uint8_t param_value_valid (uint8_t param)
+{
+  if ((param != PARAM_TRACK)
+      && (param != PARAM_VOLUME))
+    return 0;
+
+  uint8_t mask = (param == PARAM_VOLUME) ? PARAM_FLAG_VOLUME : PARAM_FLAG_TRACK;
+
+  return (param_flag & mask) ? 1 : 0;
+}
 
 static void render ()
 {
@@ -81,7 +97,6 @@ static void render ()
 
   if ((param == PARAM_TRACK)
       || (param == PARAM_VOLUME)) {
-
     uint8_t info = 0;
     if (delta < MIDDLE) {
       render_symbol(FONT_MINUS, data, &position);
@@ -92,10 +107,14 @@ static void render ()
     }
 
     render_number (info, RENDER_LEADING_DISABLE, data, &position);
+
+    if (param_value_valid (param) != 0)
+      render_number (param_value[param],
+                     RENDER_LEADING_DISABLE, data, &position);
   }
 
   for (uint8_t i = position; i < DATA_SIZE; ++i)
-    data[i] = 0;
+    render_empty_column (data, &position);
 
   flush_stable_display (data);
 }
@@ -119,7 +138,8 @@ static void change_param (uint8_t action)
 
   if ((old_param != param)
       && ((param == PARAM_VOLUME)
-          || (param == PARAM_TRACK)))
+          || (param == PARAM_TRACK))
+      && (param_value_valid (param) == 0))
     send_message_1
       (MSG_ID_PARAM_QUERY,
        (param == PARAM_VOLUME) ? PARAMETER_VOLUME : PARAMETER_TRACK);
@@ -138,18 +158,6 @@ static void change_delta (uint8_t action)
 
   render ();
 }
-
-/* static void suspend () */
-/* { */
-/*   if (mode_is_connnected () != 0) */
-/*     encode_msg_0 (MSG_ID_SUSPEND, SERIAL_ID_TO_IGNORE); */
-/* } */
-
-/* static void resume () */
-/* { */
-/*   if (mode_is_connnected () != 0) */
-/*     encode_msg_0 (MSG_ID_RESUME, SERIAL_ID_TO_IGNORE); */
-/* } */
 
 static void send_message_0 (uint8_t msg_id)
 {
@@ -180,14 +188,22 @@ static void stop ()
   send_message_0 (MSG_ID_RESUME);
 }
 
+static void reset ()
+{
+  delta = MIDDLE;
+  param = PARAM_CANCEL;
+  param_flag = 0;
+  for (uint8_t i = 0; i < PARAM_LAST; ++i)
+    param_value[i] = 0;
+}
+
 static void start (uint8_t id, uint8_t action)
 {
   if (action == ROTOR_PUSH)
     return;
 
   if (at_empty (AT_MENU) != 0) {
-    param = PARAM_POWER;
-    delta = MIDDLE;
+    reset ();
     at_schedule (AT_MENU, MENU_DELAY, &stop);
     restore_mode = mode_get ();
     mode_set (MODE_IDLE);
@@ -208,6 +224,20 @@ void menu_init ()
   rotor_register (&start);
   restore_mode = MODE_IDLE;
 
-  param = PARAM_POWER;
-  delta = MIDDLE;
+  reset ();
+}
+
+uint8_t menu_parameter_value (uint8_t parameter, uint8_t value)
+{
+  if ((parameter != PARAMETER_VOLUME)
+      && (parameter != PARAMETER_TRACK))
+    return 0;
+
+  uint8_t id = (parameter == PARAMETER_VOLUME) ? PARAM_VOLUME : PARAM_TRACK;
+  param_value[id] = value;
+
+  param_flag |= (parameter == PARAMETER_VOLUME)
+    ? PARAM_FLAG_VOLUME : PARAM_FLAG_TRACK;
+
+  return 1;
 }
