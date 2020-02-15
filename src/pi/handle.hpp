@@ -53,8 +53,10 @@ namespace led_d
     void handle_mcu (mcu_msg_t &msg);
 
     // handle mcu messages
+    void mcu_resume ();
     void mcu_rotor (const mcu_msg_t &msg);
     void mcu_status (const mcu_msg_t &msg);
+    void mcu_suspend ();
     void mcu_version (const mcu_msg_t &msg);
 
     void info_push ();
@@ -74,7 +76,7 @@ namespace led_d
     status_queue_t m_status_queue;    // from bash
 
     content_t m_content;
-    // menu_t m_menu;
+    bool m_suspend;
     render_t m_render;
 
     std::atomic_bool m_go;

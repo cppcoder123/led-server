@@ -36,7 +36,7 @@ namespace led_d
       m_command_queue (nullptr),
       m_status_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_content (arg.subject_regexp_list),
-      // m_menu (io_context, m_status_queue),
+      m_suspend (false),
       m_render (arg.default_font),
       m_go (true)
   {
@@ -155,11 +155,17 @@ namespace led_d
     case MSG_ID_POLL:
       info_push ();
       break;
-    // case MSG_ID_ROTOR:
-    //   mcu_rotor (msg);
+      // case MSG_ID_ROTOR:
+      //   mcu_rotor (msg);
+      // break;
+    case MSG_ID_RESUME:
+      mcu_resume ();
       break;
     case MSG_ID_STATUS:
       mcu_status (msg);
+      break;
+    case MSG_ID_SUSPEND:
+      mcu_suspend ();
       break;
     case MSG_ID_VERSION:
       mcu_version (msg);
@@ -207,6 +213,17 @@ namespace led_d
       info_push ();
   }
 
+  void handle_t::mcu_suspend ()
+  {
+    m_suspend = true;
+  }
+
+  void handle_t::mcu_resume ()
+  {
+    m_suspend = false;
+    info_push ();
+  }
+
   void handle_t::mcu_version (const mcu_msg_t &msg)
   {
     uint8_t status = 0;
@@ -230,7 +247,8 @@ namespace led_d
 
   void handle_t::info_push ()
   {
-    if (m_to_mcu_queue->size<true>() >= QUEUE_SIZE_LIMIT)
+    if ((m_suspend == true)
+        || (m_to_mcu_queue->size<true>() >= QUEUE_SIZE_LIMIT))
       return;
 
     auto content_info = m_content.out ();
