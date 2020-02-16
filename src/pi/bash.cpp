@@ -8,7 +8,6 @@
 #include "unix/log.hpp"
 
 #include "bash.hpp"
-#include "command-issue.hpp"
 #include "popen.hpp"
 
 namespace led_d
@@ -28,12 +27,13 @@ namespace led_d
 
   void bash_t::start ()
   {
-    command_issue (command_id_t::STREAM_SYSTEM,
-                   system_command, command_t::infinity (), m_command_queue);
-    command_issue (command_id_t::STREAM_TRACK_NAME,
-                   track_name_command, command_t::infinity (), m_command_queue);
-    command_issue (command_id_t::STREAM_CLOCK,
-                   clock_command, command_t::infinity (), m_command_queue);
+    command_t::issue (command_id_t::STREAM_SYSTEM,
+                      system_command, command_t::infinity (), &m_command_queue);
+    command_t::issue
+      (command_id_t::STREAM_TRACK_NAME,
+       track_name_command, command_t::infinity (), &m_command_queue);
+    command_t::issue (command_id_t::STREAM_CLOCK,
+                      clock_command, command_t::infinity (), &m_command_queue);
 
     while (m_go.load () == true) {
       auto command = m_command_queue.pop<true>();

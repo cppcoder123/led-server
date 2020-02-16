@@ -42,6 +42,14 @@ namespace led_d
     static timeout_t three_seconds () {return 3;}
     static timeout_t ten_seconds () {return 10;}
 
+    template <typename queue_t>
+    static void issue (command_id_t id, std::string text,
+                       timeout_t timeout, queue_t queue)
+    {
+      auto command = std::make_shared<command_t>(id, text, timeout);
+      queue->push (command);
+    }
+
     void popen (popen_ptr_t popen_ptr);
     popen_ptr_t popen () const {return m_popen;}
 

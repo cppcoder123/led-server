@@ -8,7 +8,6 @@
 
 #include "unix/log.hpp"
 
-#include "command-issue.hpp"
 #include "handle.hpp"
 #include "matrix.hpp"
 #include "mcu-decode.hpp"
@@ -213,11 +212,11 @@ namespace led_d
     }
 
     if (param == PARAMETER_VOLUME)
-      command_issue (command_id_t::MPC_VOLUME_GET, MPC_VOLUME_GET,
-                     command_t::three_seconds (), *m_command_queue);
+      command_t::issue (command_id_t::MPC_VOLUME_GET, MPC_VOLUME_GET,
+                        command_t::three_seconds (), m_command_queue);
     else
-      command_issue (command_id_t::MPC_TRACK_GET, MPC_TRACK_GET,
-                     command_t::three_seconds (), *m_command_queue);
+      command_t::issue (command_id_t::MPC_TRACK_GET, MPC_TRACK_GET,
+                        command_t::three_seconds (), m_command_queue);
   }
 
   void handle_t::mcu_param_set (const mcu_msg_t &msg)
@@ -245,13 +244,14 @@ namespace led_d
       ? command_id_t::MPC_VOLUME_SET
       : command_id_t::MPC_TRACK_SET;
 
-    command_issue (cmd_id, cmd, command_t::three_seconds (), *m_command_queue);
+    command_t::issue (cmd_id, cmd,
+                      command_t::three_seconds (), m_command_queue);
   }
 
   void handle_t::mcu_poweroff ()
   {
-    command_issue (command_id_t::POWEROFF, POWEROFF,
-                   command_t::ten_seconds (), *m_command_queue);
+    command_t::issue (command_id_t::POWEROFF, POWEROFF,
+                      command_t::ten_seconds (), m_command_queue);
   }
 
   void handle_t::mcu_status (const mcu_msg_t &msg)
@@ -365,9 +365,9 @@ namespace led_d
       return false;
 
     if (prefix == MPC_PLAY_PREFIX) {
-      command_issue
+      command_t::issue
         (command_id_t::MPC_PLAY, MPC_PLAY,
-         command_t::three_seconds (), *m_command_queue);
+         command_t::three_seconds (), m_command_queue);
       return true;
     }
 
