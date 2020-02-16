@@ -83,7 +83,7 @@ static void render ()
     break;
   case PARAM_TRACK:
     {
-      uint8_t track[] = {FONT_T, FONT_r};
+      uint8_t track[] = {FONT_C, FONT_h};
       render_word (track, sizeof (track) / sizeof (uint8_t), data, &position);
     }
     break;
@@ -170,6 +170,19 @@ static void send_message_0 (uint8_t msg_id)
     encode_msg_0 (msg_id, SERIAL_ID_TO_IGNORE);
 }
 
+static void send_message_2 (uint8_t msg_id,
+                            uint8_t payload_1, uint8_t payload_2)
+{
+  if (mode_is_connnected () != 0)
+    encode_msg_2 (msg_id, SERIAL_ID_TO_IGNORE, payload_1, payload_2);
+}
+
+static uint8_t sum_fits (uint8_t a, uint8_t b)
+{
+  uint8_t a_complement = MAX - a;
+  return (a_complement >= b) ? 1 : 0;
+}
+
 static void stop ()
 {
   /* fixme send new value*/
@@ -181,6 +194,15 @@ static void stop ()
       encode_msg_0 (MSG_ID_POWEROFF, SERIAL_ID_TO_IGNORE);
     break;
   case PARAM_TRACK:
+    if (param_value_valid (PARAM_TRACK) != 0) {
+      uint8_t positive = (delta >= MIDDLE) ? 1 : 0;
+      uint8_t change = (positive != 0) ? (delta - MIDDLE) : (MIDDLE - delta);
+      uint8_t old_track = param_value[PARAM_TRACK];
+      uint8_t new_track = (positive != 0)
+        ? ((sum_fits (old_track, change) != 0) ? (old_track + change) : MAX)
+        : ((old_track > change) ? (old_track - change) : 0);
+      send_message_2 (MSG_ID_PARAM_SET, PARAMETER_TRACK, new_track);
+    }
     break;
   case PARAM_VOLUME:
     break;

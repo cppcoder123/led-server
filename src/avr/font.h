@@ -28,6 +28,7 @@ enum {
   FONT_c,
   FONT_e,
   FONT_f,
+  FONT_h,
   FONT_k,
   FONT_l,
   FONT_n,

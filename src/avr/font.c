@@ -133,6 +133,12 @@ static uint8_t fill_matrix(uint8_t matrix[], uint8_t symbol_id)
       needed_symbol = symbol;
       break;
     }
+  case FONT_h:
+    {
+      static const uint8_t symbol[] = {0x7F, 0x08, 0x04, 0x04, 0x78};
+      needed_symbol = symbol;
+      break;
+    }
   case FONT_k:
     {
       static const uint8_t symbol[] = {0x00, 0x7F, 0x10, 0x28, 0x44};
