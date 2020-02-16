@@ -50,13 +50,6 @@ namespace led_d
     case command_id_t::POWEROFF:
       m_top_info = "Goodbye";
       break;
-    case command_id_t::VOLUME_GET:
-      // fixme: set current volume level
-      break;
-    case command_id_t::MPC_PLAY:
-    case command_id_t::VOLUME_SET:
-      // just ignore, status already checked
-      break;
     case command_id_t::STREAM_SYSTEM:
       m_middle_info.push_back (status->out ());
       break;

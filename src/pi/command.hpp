@@ -30,7 +30,6 @@ namespace led_d
     ~command_t ();
 
     bool stream () const;
-    bool semi_stream () const;
     bool wrap () const;
 
     command_id_t id () const {return m_id;}

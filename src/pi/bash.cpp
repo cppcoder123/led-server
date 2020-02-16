@@ -109,17 +109,16 @@ namespace led_d
   {
     command->cancel_timeout ();
 
-    if (command->semi_stream () == false) {
-      log_t::buffer_t buf;
-      buf << "bash: Error during stream command \""
-        << static_cast<int>(command->id ())
-          << "\" handling";
-      log_t::error (buf);
-      erase (command);
-    } else {
-      // semi stream => we need the status
-      clot_error (command);
-    }
+    log_t::buffer_t buf;
+    buf << "bash: Error during stream command \""
+      << static_cast<int>(command->id ())
+        << "\" handling";
+    log_t::error (buf);
+    erase (command);
+    // } else {
+    //   // semi stream => we need the status
+    //   clot_error (command);
+    // }
   }
 
   void bash_t::clot_error (command_ptr_t command)
