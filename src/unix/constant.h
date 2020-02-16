@@ -94,6 +94,8 @@ enum {
 
 /* try to tune params */
 enum {
+  PARAMETER_POSITIVE,
+  PARAMETER_NEGATIVE,
   PARAMETER_VOLUME,
   PARAMETER_TRACK,
 };

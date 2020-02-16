@@ -170,11 +170,12 @@ static void send_message_0 (uint8_t msg_id)
     encode_msg_0 (msg_id, SERIAL_ID_TO_IGNORE);
 }
 
-static void send_message_2 (uint8_t msg_id,
-                            uint8_t payload_1, uint8_t payload_2)
+static void send_message_3 (uint8_t msg_id, uint8_t payload_1,
+                            uint8_t payload_2, uint8_t payload_3)
 {
   if (mode_is_connnected () != 0)
-    encode_msg_2 (msg_id, SERIAL_ID_TO_IGNORE, payload_1, payload_2);
+    encode_msg_3
+      (msg_id, SERIAL_ID_TO_IGNORE, payload_1, payload_2, payload_3);
 }
 
 static void stop ()
@@ -188,8 +189,14 @@ static void stop ()
       encode_msg_0 (MSG_ID_POWEROFF, SERIAL_ID_TO_IGNORE);
     break;
   case PARAM_TRACK:
-    if (param_value_valid (PARAM_TRACK) != 0)
-      send_message_2 (MSG_ID_PARAM_SET, PARAMETER_TRACK, delta);
+    if (param_value_valid (PARAM_TRACK) != 0) {
+      uint8_t positive = (delta >= MIDDLE)
+        ? PARAMETER_POSITIVE : PARAMETER_NEGATIVE;
+      uint8_t outbound_delta = (positive == PARAMETER_POSITIVE)
+        ? (delta - MIDDLE) : (MIDDLE - delta);
+      send_message_3
+        (MSG_ID_PARAM_SET, PARAMETER_TRACK, positive, outbound_delta);
+    }
     break;
   case PARAM_VOLUME:
     break;
