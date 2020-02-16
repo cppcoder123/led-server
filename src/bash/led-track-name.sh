@@ -2,41 +2,48 @@
 
 echo "pid: "$$
 
-# fixme
-# exit 0
 
 TRACK_NAME="No-track-name"
-#echo_track () {
-#    echo "mpd: "${TRACK_NAME}
-#}
+TRACK_POSITION="0"
+OLD_INFO=""
 
-echo $TRACK_NAME
+get_info () {
+    TRACK_NAME=`mpc current` >& /dev/null
+    if [ $? == 0 ]
+    then
+        TRACK_POSITION=`mpc -f %position% current` >& /dev/null
+    fi
+    if [ $? == 0 ]
+    then
+        TRACK_INFO=`echo "Channel "$TRACK_POSITION" "$TRACK_NAME`
+    fi
+}
+
+#echo_info () {
+#    echo $TRACK_INFO
+#    NEW_INFO=`echo "Channel "$TRACK_POSITION" "$TRACK_NAME`
+#    if [ "$NEW_INFO" != "$OLD_INFO" ]
+#    then
+#        echo $NEW_INFO
+#        OLD_INFO=$NEW_INFO
+#    fi
+#}
 
 GO_AHEAD=1
 
-#trap echo_track SIGUSR1
-#trap "echo ZZZ" SIGUSR1
 trap "GO_AHEAD=0" SIGUSR1
 
-NAME=`mpc current` >& /dev/null
-STATUS=$?
-if [ ${STATUS} == 0 ] && [ "${NAME}" != "" ]
-then
-    TRACK_NAME=${NAME}
-fi
-
-echo ${TRACK_NAME}
+OLD_INFO=""
 
 while [ "${GO_AHEAD}" == 1 ]
 do
-    NAME=`mpc current` >& /dev/null
-    STATUS=$?
-    if [ "${STATUS}" == 0 ]
+    get_info
+    if [ $? == 0 ]
     then
-        if [ "${NAME}" != "${TRACK_NAME}" ]
+        if [ "${OLD_INFO}" != "${TRACK_INFO}" ]
         then
-            TRACK_NAME=${NAME}
-            echo ${TRACK_NAME}
+            echo $TRACK_INFO
+            OLD_INFO=$TRACK_INFO
         fi
         mpc idle >& /dev/null
     else

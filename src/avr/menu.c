@@ -8,6 +8,7 @@
 #include "unix/constant.h"
 
 #include "at.h"
+#include "debug.h"
 #include "encode.h"
 #include "font.h"
 #include "flush.h"
@@ -179,6 +180,7 @@ static void send_param_change (uint8_t parameter)
     out_delta = (positive == PARAMETER_POSITIVE)
       ? (delta - MIDDLE) : (MIDDLE - delta);
   }
+  debug_3 (DEBUG_MENU, 55, parameter, positive, out_delta);
   if (mode_is_connnected () != 0)
     encode_msg_3
       (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, out_delta);

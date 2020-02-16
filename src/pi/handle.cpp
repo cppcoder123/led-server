@@ -22,11 +22,6 @@ namespace led_d
   constexpr auto QUEUE_SIZE_LIMIT = 3;
   //
   constexpr auto MPC_PLAY_PREFIX = "mpc play";
-  // constexpr auto MPC_PLAYLIST = "mpc playlist";
-  // constexpr auto MPC_CURRENT = "mpc -f %position% current";
-  // constexpr auto VOLUME_RANGE = "volume range";
-  // constexpr auto VOLUME_GET = "led-volume.sh get";
-  // constexpr auto VOLUME_SET = "led-volume.sh set ";
   constexpr auto MPC_PLAY = "led-mpc.sh play";
   constexpr auto MPC_TRACK_GET = "led-mpc.sh track-get";
   constexpr auto MPC_TRACK_SET = "led-mpc.sh track-set ";

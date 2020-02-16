@@ -97,15 +97,8 @@ then
    echo "mpc play: "
 fi
 
-echo "mpc playlist: "
-
-VOLUME_RANGE=`amixer -D bluealsa sget "FC:58:FA:0E:D5:3D - A2DP" | grep Limits 2> /dev/null | awk '{print $3 "-" $5}'`
-
-echo "volume range: "$VOLUME_RANGE
-
-# !!!
-# fixme volume set & get
-#
+#VOLUME_RANGE=`amixer -D bluealsa sget "FC:58:FA:0E:D5:3D - A2DP" | grep Limits 2> /dev/null | awk '{print $3 "-" $5}'`
+#echo "volume range: "$VOLUME_RANGE
 
 #
 # Hang here

@@ -89,6 +89,7 @@ enum {
   DEBUG_CLOCK,
   DEBUG_DECODE,
   DEBUG_FLUSH,
+  DEBUG_MENU,
   DEBUG_SPI,
 };
 
