@@ -144,13 +144,13 @@ static void render ()
     break;
   }
 
-  render_symbol (FONT_COLON, data, &position);
-
   uint8_t negate = (delta < MIDDLE) ? 1 : 0;
   uint8_t abs = (negate != 0) ? (MIDDLE - delta) : (delta - MIDDLE);
 
-  if (is_delta_needed () != 0)
+  if (is_delta_needed () != 0) {
+    render_symbol (FONT_COLON, data, &position);
     render_delta (negate, abs, data, &position);
+  }
   if (param_value_valid (param) != 0) {
     if (is_delta_needed () != 0)
       render_symbol (FONT_COLON, data, &position);
@@ -161,26 +161,6 @@ static void render ()
       render_destination (negate, abs, data, &position);
   }
     
-  /* } else if  (param == PARAM_VOLUME) { */
-  /*   uint8_t info = 0; */
-  /*   if (delta < MIDDLE) { */
-  /*     render_symbol(FONT_MINUS, data, &position); */
-  /*     info = MIDDLE - delta; */
-  /*   } else { */
-  /*     render_symbol (FONT_PLUS, data, &position); */
-  /*     info = delta - MIDDLE; */
-  /*   } */
-
-  /*   render_number (info, RENDER_LEADING_DISABLE, data, &position); */
-
-  /*   if (param_value_valid (param) != 0) { */
-  /*     for (uint8_t i = 0; i < VALUE_SPACE; ++i) */
-  /*       render_empty_column (data, &position); */
-  /*     render_number (param_value[param], */
-  /*                    RENDER_LEADING_DISABLE, data, &position); */
-  /*   } */
-  /* } */
-
   for (uint8_t i = position; i < DATA_SIZE; ++i)
     render_empty_column (data, &position);
 
