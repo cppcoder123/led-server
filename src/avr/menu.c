@@ -59,6 +59,50 @@ static uint8_t param_value_valid (uint8_t param)
   return (param_flag & mask) ? 1 : 0;
 }
 
+static uint8_t is_delta_needed ()
+{
+  return (param == PARAM_VOLUME) ? 1 : 0;
+}
+
+static uint8_t is_source_needed ()
+{
+  return (param == PARAM_VOLUME) ? 1 : 0;
+}
+
+static uint8_t is_destination_needed ()
+{
+  return (param == PARAM_TRACK) ? 1 : 0;
+}
+
+static void render_delta (uint8_t negative, uint8_t abs,
+                          uint8_t *data, uint8_t *position)
+{
+  if (negative != 0)
+    render_symbol (FONT_MINUS, data, position);
+  else
+    render_symbol (FONT_PLUS, data, position);
+
+  render_number (abs, RENDER_LEADING_DISABLE, data, position);
+}
+
+static uint8_t is_sum_fits (uint8_t a, uint8_t b)
+{
+  uint8_t a_ = MAX - a;
+  return (a_ >= b) ? 1 : 0;
+}
+
+static void render_destination (uint8_t negative, uint8_t abs,
+                                uint8_t *data, uint8_t *position)
+{
+  /* param_value should be valid ! */
+  uint8_t dst = (negative != 0)
+    ? ((param_value[param] > abs) ? (param_value[param] - abs) : 0)
+    : ((is_sum_fits (param_value[param], abs) != 0)
+       ? (param_value[param] + abs) : MAX);
+
+  render_number (dst, RENDER_LEADING_DISABLE, data, position);
+}
+
 static void render ()
 {
   uint8_t data[DATA_SIZE];
@@ -85,7 +129,8 @@ static void render ()
     break;
   case PARAM_TRACK:
     {
-      uint8_t track[] = {FONT_C, FONT_h};
+      uint8_t track[]
+        = {FONT_C, FONT_h, FONT_a, FONT_n, FONT_n, FONT_e, FONT_l};
       render_word (track, sizeof (track) / sizeof (uint8_t), data, &position);
     }
     break;
@@ -99,26 +144,40 @@ static void render ()
     break;
   }
 
-  if ((param == PARAM_TRACK)
-      || (param == PARAM_VOLUME)) {
-    uint8_t info = 0;
-    if (delta < MIDDLE) {
-      render_symbol(FONT_MINUS, data, &position);
-      info = MIDDLE - delta;
-    } else {
-      render_symbol (FONT_PLUS, data, &position);
-      info = delta - MIDDLE;
-    }
+  render_symbol (FONT_COLON, data, &position);
 
-    render_number (info, RENDER_LEADING_DISABLE, data, &position);
+  uint8_t negate = (delta < MIDDLE) ? 1 : 0;
+  uint8_t abs = (negate != 0) ? (MIDDLE - delta) : (delta - MIDDLE);
 
-    if (param_value_valid (param) != 0) {
-      for (uint8_t i = 0; i < VALUE_SPACE; ++i)
-        render_empty_column (data, &position);
-      render_number (param_value[param],
-                     RENDER_LEADING_DISABLE, data, &position);
-    }
+  if (is_delta_needed () != 0)
+    render_delta (negate, abs, data, &position);
+  if (param_value_valid (param) != 0) {
+      if  (is_source_needed () != 0)
+        render_number (param_value[param],
+                       RENDER_LEADING_DISABLE, data, &position);
+      else if (is_destination_needed () != 0)
+        render_destination (negate, abs, data, &position);
   }
+    
+  /* } else if  (param == PARAM_VOLUME) { */
+  /*   uint8_t info = 0; */
+  /*   if (delta < MIDDLE) { */
+  /*     render_symbol(FONT_MINUS, data, &position); */
+  /*     info = MIDDLE - delta; */
+  /*   } else { */
+  /*     render_symbol (FONT_PLUS, data, &position); */
+  /*     info = delta - MIDDLE; */
+  /*   } */
+
+  /*   render_number (info, RENDER_LEADING_DISABLE, data, &position); */
+
+  /*   if (param_value_valid (param) != 0) { */
+  /*     for (uint8_t i = 0; i < VALUE_SPACE; ++i) */
+  /*       render_empty_column (data, &position); */
+  /*     render_number (param_value[param], */
+  /*                    RENDER_LEADING_DISABLE, data, &position); */
+  /*   } */
+  /* } */
 
   for (uint8_t i = position; i < DATA_SIZE; ++i)
     render_empty_column (data, &position);
