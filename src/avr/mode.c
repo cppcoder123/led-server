@@ -9,7 +9,7 @@
 #include "spi.h"
 
 #define CLOCK_DELAY 50          /* 1 sec ? */
-#define CLOCK_RENDER_DELAY 250        /* 5 sec ? */
+#define CLOCK_RENDER_DELAY 250  /* 5 sec ? */
 #define SLAVE_DELAY 0           /* 0.02 sec */
 
 #define HB_DELAY 50     	/* 1 sec ? */
