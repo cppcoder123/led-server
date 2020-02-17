@@ -9,9 +9,9 @@
 void mode_init ();
 
 enum {
-  MODE_IDLE,
-  MODE_MASTER,
-  MODE_SLAVE,
+  MODE_MENU,
+  MODE_CLOCK,
+  MODE_RADIO,
 };
 
 void mode_set (uint8_t new_mode);

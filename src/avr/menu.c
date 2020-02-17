@@ -41,7 +41,7 @@ enum {
   PARAM_LAST = PARAM_CANCEL,    /* keep last */
 };
 
-static uint8_t restore_mode = MODE_IDLE;
+static uint8_t restore_mode = MODE_MENU;
 
 static uint8_t delta = MIDDLE;
 static uint8_t param = PARAM_POWER;
@@ -231,7 +231,7 @@ static void start (uint8_t id, uint8_t action)
     reset ();
     at_schedule (AT_MENU, MENU_DELAY, &stop);
     restore_mode = mode_get ();
-    mode_set (MODE_IDLE);
+    mode_set (MODE_MENU);
     send_message_0 (MSG_ID_SUSPEND);
     flush_shift_drain_start ();
   } else {
@@ -247,7 +247,7 @@ static void start (uint8_t id, uint8_t action)
 void menu_init ()
 {
   rotor_register (&start);
-  restore_mode = MODE_IDLE;
+  restore_mode = MODE_MENU;
 
   reset ();
 }

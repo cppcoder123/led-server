@@ -43,7 +43,7 @@ static void init ()
   menu_init ();
   power_init ();
 
-  mode_set (MODE_MASTER);
+  mode_set (MODE_CLOCK);
 
   sei ();
 }
