@@ -15,7 +15,7 @@ case $1 in
         echo $TRACK_ID
         ;;
     volume-get)
-        mpc volume | sed 's/volume: //; s/%//'
+        mpc volume | sed 's/volume://; s/%//'
         ;;
     track-set)
         max=`mpc playlist | wc -l`
