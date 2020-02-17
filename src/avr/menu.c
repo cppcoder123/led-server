@@ -130,7 +130,7 @@ static void render ()
   case PARAM_TRACK:
     {
       uint8_t track[]
-        = {FONT_C, FONT_h, FONT_a, FONT_n, FONT_n, FONT_e, FONT_l};
+        = {FONT_C, FONT_h, FONT_a, FONT_n, FONT_n};
       render_word (track, sizeof (track) / sizeof (uint8_t), data, &position);
     }
     break;
