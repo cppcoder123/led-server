@@ -152,11 +152,13 @@ static void render ()
   if (is_delta_needed () != 0)
     render_delta (negate, abs, data, &position);
   if (param_value_valid (param) != 0) {
-      if  (is_source_needed () != 0)
-        render_number (param_value[param],
-                       RENDER_LEADING_DISABLE, data, &position);
-      else if (is_destination_needed () != 0)
-        render_destination (negate, abs, data, &position);
+    if (is_delta_needed () != 0)
+      render_symbol (FONT_COLON, data, &position);
+    if  (is_source_needed () != 0)
+      render_number (param_value[param],
+                     RENDER_LEADING_DISABLE, data, &position);
+    else if (is_destination_needed () != 0)
+      render_destination (negate, abs, data, &position);
   }
     
   /* } else if  (param == PARAM_VOLUME) { */
