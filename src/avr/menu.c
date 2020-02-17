@@ -152,8 +152,7 @@ static void render ()
     render_delta (negate, abs, data, &position);
   }
   if (param_value_valid (param) != 0) {
-    if (is_delta_needed () != 0)
-      render_symbol (FONT_COLON, data, &position);
+    render_symbol (FONT_COLON, data, &position);
     if  (is_source_needed () != 0)
       render_number (param_value[param],
                      RENDER_LEADING_DISABLE, data, &position);
