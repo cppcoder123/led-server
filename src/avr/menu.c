@@ -230,7 +230,6 @@ static void render ()
   if (is_delta_needed () != 0) {
     render_symbol (FONT_COLON, data, &position);
     render_delta (negate, abs, data, &position);
-    /* debug_2 (DEBUG_MENU, 33, negate, abs); */
   }
   if (param_value_valid (param) != 0) {
     render_symbol (FONT_COLON, data, &position);
@@ -284,7 +283,6 @@ static void query_param ()
     {
       uint8_t hour, min;
       clock_alarm_get (&hour, &min);
-      debug_2 (DEBUG_MENU, 99, hour, min);
       param_value[PARAM_ALARM_H] = hour;
       param_value[PARAM_ALARM_M] = min;
       uint8_t engaged = clock_alarm_engage_get ();
@@ -343,7 +341,6 @@ static void send_param_change (uint8_t parameter)
     out_delta = (positive == PARAMETER_POSITIVE)
       ? (delta - MIDDLE) : (MIDDLE - delta);
   }
-  /* debug_3 (DEBUG_MENU, 55, parameter, positive, out_delta); */
   encode_msg_3
     (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, out_delta);
 }
@@ -411,14 +408,9 @@ static void stop ()
   case PARAM_ALARM_H:
     if (param_value_valid (param) != 0) {
       uint8_t new_hour = update_hour (param_value[PARAM_ALARM_H]);
-      debug_1 (DEBUG_MENU, 11, new_hour);
       clock_alarm_set (new_hour, param_value[PARAM_ALARM_M]);
-      /* debug */
-      uint8_t a1, a2;
-      clock_alarm_get (&a1, &a2);
-      debug_2 (DEBUG_MENU, 222, a1, a2);
-      /* debug */
     }
+    break;
   case PARAM_ALARM_M:
     if (param_value_valid (param) != 0) {
       uint8_t new_min = update_minute (param_value[PARAM_ALARM_M]);
