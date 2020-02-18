@@ -10,8 +10,8 @@
 #include "render.h"
 
 /* it seems the clock is slower than needed */
-#define FIFTY_NINE 58
-#define TWENTY_THREE 23
+/* #define FIFTY_NINE 58 */
+/* #define TWENTY_THREE 23 */
 
 #define LONG_INDENT 22
 #define SHORT_INDENT 2
@@ -56,19 +56,19 @@ static uint8_t advance_second()
 {
   /* debug_3 (15, 7, hour, minute, second); */
 
-  if (second < FIFTY_NINE) {
+  if (second < CLOCK_SECOND_MAX) {
     ++second;
     return 0;
   }
 
   second = 0;
-  if (minute < FIFTY_NINE) {
+  if (minute < CLOCK_MINUTE_MAX) {
     ++minute;
     return 1;
   }
 
   minute = 0;
-  if (hour < TWENTY_THREE) {
+  if (hour < CLOCK_HOUR_MAX) {
     ++hour;
     return 1;
   }
@@ -92,8 +92,8 @@ void clock_advance_second()
 
 uint8_t clock_alarm_engage(uint8_t a_hour, uint8_t a_minute)
 {
-  if ((a_hour > TWENTY_THREE)
-      || (a_minute > FIFTY_NINE))
+  if ((a_hour > CLOCK_HOUR_MAX)
+      || (a_minute > CLOCK_MINUTE_MAX))
     return 0;
 
   alarm_engaged = 1;
@@ -110,6 +110,13 @@ void clock_alarm_disengage()
   alarm_minute = 0;
 
   buzz_stop();
+}
+
+void clock_alarm_get (uint8_t *engaged, uint8_t *a_hour, uint8_t *a_min)
+{
+  *engaged = alarm_engaged;
+  *a_hour = alarm_hour;
+  *a_min = alarm_minute;
 }
 
 void clock_render(uint8_t *buffer)

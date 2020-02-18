@@ -8,6 +8,7 @@
 #include "unix/constant.h"
 
 #include "at.h"
+#include "clock.h"
 #include "debug.h"
 #include "encode.h"
 #include "font.h"
@@ -30,13 +31,22 @@
 
 #define PARAM_FLAG_VOLUME (1 << 0)
 #define PARAM_FLAG_TRACK (1 << 1)
+#define PARAM_FLAG_CLOCK (1 << 2)
+#define PARAM_FLAG_ALARM (1 << 3)
 
 #define VALUE_SPACE 3
+
+#define ALARM_HOUR_MAX 24
+#define ALARM_MIN_MAX 58
 
 enum {
   PARAM_POWER,                  /* 'On' or 'Off' */
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
+  PARAM_CLOCK_H,
+  PARAM_CLOCK_M,
+  PARAM_ALARM_H,
+  PARAM_ALARM_M,
   PARAM_CANCEL,                 /* cancel param change */
   PARAM_LAST = PARAM_CANCEL,    /* keep last */
 };
@@ -50,11 +60,34 @@ static uint8_t param_value[PARAM_LAST];
 
 static uint8_t param_value_valid (uint8_t param)
 {
-  if ((param != PARAM_TRACK)
-      && (param != PARAM_VOLUME))
+  if ((param == PARAM_POWER)
+      || (param == PARAM_CANCEL))
     return 0;
+  if ((param == PARAM_CLOCK_H)
+      || (param == PARAM_CLOCK_M)
+      || (param == PARAM_ALARM_H)
+      || (param == PARAM_ALARM_M))
+    return 1;
 
-  uint8_t mask = (param == PARAM_VOLUME) ? PARAM_FLAG_VOLUME : PARAM_FLAG_TRACK;
+  uint8_t mask = 0;
+  switch (param) {
+  case PARAM_VOLUME:
+    mask = PARAM_FLAG_VOLUME;
+    break;
+  case PARAM_TRACK:
+    mask = PARAM_FLAG_TRACK;
+    break;
+  case PARAM_CLOCK_H:
+  case PARAM_CLOCK_M:
+    mask = PARAM_FLAG_CLOCK;
+    break;
+  case PARAM_ALARM_H:
+  case PARAM_ALARM_M:
+    mask = PARAM_FLAG_ALARM;
+    break;
+  default:
+    break;
+  }
 
   return (param_flag & mask) ? 1 : 0;
 }
@@ -71,7 +104,11 @@ static uint8_t is_source_needed ()
 
 static uint8_t is_destination_needed ()
 {
-  return (param == PARAM_TRACK) ? 1 : 0;
+  return ((param == PARAM_TRACK)
+          || (param == PARAM_CLOCK_H)
+          || (param == PARAM_CLOCK_M)
+          || (param == PARAM_ALARM_H)
+          || (param == PARAM_ALARM_M)) ? 1 : 0;
 }
 
 static void render_delta (uint8_t negative, uint8_t abs,
@@ -172,6 +209,43 @@ static void send_message_1 (uint8_t msg_id, uint8_t payload_1)
     encode_msg_1 (msg_id, SERIAL_ID_TO_IGNORE, payload_1);
 }
 
+static void query_param ()
+{
+  switch (param) {
+  case PARAM_TRACK:
+    send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_VOLUME);
+    break;
+  case PARAM_VOLUME:
+    send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_TRACK);
+    break;
+  case PARAM_CLOCK_H:
+  case PARAM_CLOCK_M:
+    {
+      uint8_t hour, min;
+      clock_get (&hour, &min);
+      param_value[PARAM_CLOCK_H] = hour;
+      param_value[PARAM_CLOCK_M] = min;
+      param_flag |= PARAM_FLAG_CLOCK;
+    }
+    break;
+  case PARAM_ALARM_H:
+  case PARAM_ALARM_M:
+    {
+      uint8_t engaged, hour, min;
+      clock_alarm_get (&engaged, &hour, &min);
+      param_value[PARAM_ALARM_H] = hour;
+      param_value[PARAM_ALARM_M] = min;
+      param_flag |= PARAM_FLAG_ALARM;
+    }
+    break;
+  default:
+    break;
+  }
+  send_message_1
+    (MSG_ID_PARAM_QUERY,
+     (param == PARAM_VOLUME) ? PARAMETER_VOLUME : PARAMETER_TRACK);
+}
+
 static void change_param (uint8_t action)
 {
   uint8_t old_param = param;
@@ -187,9 +261,7 @@ static void change_param (uint8_t action)
       && ((param == PARAM_VOLUME)
           || (param == PARAM_TRACK))
       && (param_value_valid (param) == 0))
-    send_message_1
-      (MSG_ID_PARAM_QUERY,
-       (param == PARAM_VOLUME) ? PARAMETER_VOLUME : PARAMETER_TRACK);
+    query_param ();
 
   render ();
 }
@@ -226,6 +298,12 @@ static void send_param_change (uint8_t parameter)
       (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, out_delta);
 }
 
+static uint8_t alarm_valid ()
+{
+  return ((param_value[PARAM_ALARM_H] <= ALARM_HOUR_MAX)
+          && (param_value[PARAM_ALARM_M] <= ALARM_MIN_MAX)) ? 1 : 0;
+}
+
 static void stop ()
 {
   /* fixme send new value*/
@@ -243,6 +321,21 @@ static void stop ()
   case PARAM_VOLUME:
     if (param_value_valid (PARAM_VOLUME) != 0)
       send_param_change (PARAMETER_VOLUME);
+    break;
+  case PARAM_CLOCK_H:
+  case PARAM_CLOCK_M:
+    if (param_value_valid (param) != 0)
+      clock_set (param_value[PARAM_CLOCK_H], param_value[PARAM_CLOCK_M]);
+    break;
+  case PARAM_ALARM_H:
+  case PARAM_ALARM_M:
+    if (param_value_valid (param) != 0) {
+      if (alarm_valid () != 0)
+        clock_alarm_engage
+          (param_value[PARAM_ALARM_H], param_value[PARAM_ALARM_M]);
+      else
+        clock_alarm_disengage ();
+    }
     break;
   default:
     break;
