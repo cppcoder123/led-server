@@ -2,8 +2,8 @@
  *
  */
 
-#ifndef FONT_H
-#define FONT_H
+#ifndef FONT_HEADER_H
+#define FONT_HEADER_H
 
 #include <stdint.h>
 
@@ -20,6 +20,8 @@ enum {
   FONT_9,
   FONT_A,
   FONT_C,
+  FONT_E,
+  FONT_H,
   FONT_M,
   FONT_O,
   FONT_T,
@@ -33,6 +35,7 @@ enum {
   FONT_h,
   FONT_k,
   FONT_l,
+  FONT_m,
   FONT_n,
   FONT_o,
   FONT_r,

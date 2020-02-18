@@ -90,38 +90,40 @@ void clock_advance_second()
     buzz_start();
 }
 
-uint8_t clock_alarm_engage(uint8_t a_hour, uint8_t a_minute)
+uint8_t clock_alarm_set (uint8_t a_hour, uint8_t a_minute)
 {
   if ((a_hour > CLOCK_HOUR_MAX)
       || (a_minute > CLOCK_MINUTE_MAX))
     return 0;
 
-  alarm_engaged = 1;
   alarm_hour = a_hour;
   alarm_minute = a_minute;
 
   return 1;
 }
 
-void clock_alarm_disengage()
+void clock_alarm_get (uint8_t *a_hour, uint8_t *a_min)
 {
-  alarm_engaged = 0;
-  alarm_hour = 0;
-  alarm_minute = 0;
-
-  buzz_stop();
-}
-
-void clock_alarm_get (uint8_t *engaged, uint8_t *a_hour, uint8_t *a_min)
-{
-  *engaged = alarm_engaged;
   *a_hour = alarm_hour;
   *a_min = alarm_minute;
 }
 
+void clock_alarm_engage_set(uint8_t engage)
+{
+  alarm_engaged = (engage == 0) ? 0 : 1;
+
+  if (alarm_engaged == 0)
+    buzz_stop ();
+}
+
+uint8_t clock_alarm_engage_get ()
+{
+  return alarm_engaged;
+}
+  
 void clock_render(uint8_t *buffer)
 {
-  uint8_t indent = (alarm_engaged == 0) ? LONG_INDENT : SHORT_INDENT;
+  uint8_t indent = (alarm_engaged == 0) ? LONG_INDENT : 0;
 
   uint8_t position = 0;
   for (uint8_t i = 0; i < indent; ++i)
@@ -134,7 +136,7 @@ void clock_render(uint8_t *buffer)
   if (alarm_engaged != 0) {
     for (uint8_t j = 0; j < ALARM_SPACE; ++j)
       render_empty_column (buffer, &position);
-    render_symbol (FONT_AT, buffer, &position);
+    /* render_symbol (FONT_AT, buffer, &position); */
     render_number (alarm_hour, 0, buffer, &position);
     render_symbol (FONT_COLON, buffer, &position);
     render_number (alarm_minute, RENDER_LEADING_TEN, buffer, &position);

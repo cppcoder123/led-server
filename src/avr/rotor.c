@@ -77,10 +77,10 @@ void rotor_try ()
 
   if (apply_mask
       (toggled_bits, new_toggled_bits, MASK_ROTOR_2_A, MASK_ROTOR_2_BOTH) != 0)
-    callback (ROTOR_2, ROTOR_CLOCKWISE);
+    callback (ROTOR_2, ROTOR_COUNTER_CLOCKWISE);
   if (apply_mask
       (toggled_bits, new_toggled_bits, MASK_ROTOR_2_B, MASK_ROTOR_2_BOTH) != 0)
-    callback (ROTOR_2, ROTOR_COUNTER_CLOCKWISE);
+    callback (ROTOR_2, ROTOR_CLOCKWISE);
   if (new_toggled_bits & MASK_ROTOR_2_PUSH)
     callback (ROTOR_2, ROTOR_PUSH);
 

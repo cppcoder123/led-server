@@ -29,10 +29,12 @@
 
 #define DATA_SIZE FLUSH_STABLE_SIZE
 
-#define PARAM_FLAG_VOLUME (1 << 0)
-#define PARAM_FLAG_TRACK (1 << 1)
-#define PARAM_FLAG_CLOCK (1 << 2)
-#define PARAM_FLAG_ALARM (1 << 3)
+#define PARAM_FLAG_CLOCK (1 << 0)
+#define PARAM_FLAG_ALARM (1 << 1)
+#define PARAM_FLAG_VOLUME (1 << 2)
+#define PARAM_FLAG_TRACK (1 << 3)
+#define PARAM_FLAG_VOLUME_SENT (1 << 4)
+#define PARAM_FLAG_TRACK_SENT (1 << 5)
 
 #define VALUE_SPACE 3
 
@@ -40,15 +42,16 @@
 #define ALARM_MIN_MAX 58
 
 enum {
-  PARAM_POWER,                  /* 'On' or 'Off' */
+  PARAM_CANCEL,                 /* cancel param change */
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
   PARAM_CLOCK_H,
   PARAM_CLOCK_M,
   PARAM_ALARM_H,
   PARAM_ALARM_M,
-  PARAM_CANCEL,                 /* cancel param change */
-  PARAM_LAST = PARAM_CANCEL,    /* keep last */
+  PARAM_ALARM_E,
+  PARAM_POWER,                  /* 'On' or 'Off' */
+  PARAM_LAST = PARAM_POWER,     /* keep last */
 };
 
 static uint8_t restore_mode = MODE_MENU;
@@ -66,7 +69,8 @@ static uint8_t param_value_valid (uint8_t param)
   if ((param == PARAM_CLOCK_H)
       || (param == PARAM_CLOCK_M)
       || (param == PARAM_ALARM_H)
-      || (param == PARAM_ALARM_M))
+      || (param == PARAM_ALARM_M)
+      || (param == PARAM_ALARM_E))
     return 1;
 
   uint8_t mask = 0;
@@ -83,6 +87,7 @@ static uint8_t param_value_valid (uint8_t param)
     break;
   case PARAM_ALARM_H:
   case PARAM_ALARM_M:
+  case PARAM_ALARM_E:
     mask = PARAM_FLAG_ALARM;
     break;
   default:
@@ -108,7 +113,8 @@ static uint8_t is_destination_needed ()
           || (param == PARAM_CLOCK_H)
           || (param == PARAM_CLOCK_M)
           || (param == PARAM_ALARM_H)
-          || (param == PARAM_ALARM_M)) ? 1 : 0;
+          || (param == PARAM_ALARM_M)
+          || (param == PARAM_ALARM_E)) ? 1 : 0;
 }
 
 static void render_delta (uint8_t negative, uint8_t abs,
@@ -138,6 +144,12 @@ static void render_destination (uint8_t negative, uint8_t abs,
        ? (param_value[param] + abs) : MAX);
 
   render_number (dst, RENDER_LEADING_DISABLE, data, position);
+}
+
+static void split_delta (uint8_t *negate, uint8_t *abs)
+{
+  *negate = (delta < MIDDLE) ? 1 : 0;
+  *abs = (*negate != 0) ? (MIDDLE - delta) : (delta - MIDDLE);
 }
 
 static void render ()
@@ -179,25 +191,36 @@ static void render ()
     break;
   case PARAM_CLOCK_H:
     {
-      uint8_t tag[] = {FONT_C, FONT_MINUS, FONT_H};
+      uint8_t tag[]
+        = {FONT_C, FONT_l, FONT_o, FONT_c, FONT_k, FONT_MINUS, FONT_H};
       render_word (tag, sizeof (tag) / sizeof (uint8_t), data, &position);
     }
     break;
   case PARAM_CLOCK_M:
     {
-      uint8_t tag[] = {FONT_C, FONT_MINUS, FONT_M};
+      uint8_t tag[] =
+        {FONT_C, FONT_l, FONT_o, FONT_c, FONT_k, FONT_MINUS, FONT_M};
       render_word (tag, sizeof (tag) / sizeof (uint8_t), data, &position);
     }
     break;
   case PARAM_ALARM_H:
     {
-      uint8_t tag[] = {FONT_A, FONT_MINUS, FONT_H};
+      uint8_t tag[] =
+        {FONT_A, FONT_l, FONT_a, FONT_r, FONT_m, FONT_MINUS, FONT_H};
       render_word (tag, sizeof (tag) / sizeof (uint8_t), data, &position);
     }
     break;
   case PARAM_ALARM_M:
     {
-      uint8_t tag[] = {FONT_A, FONT_MINUS, FONT_M};
+      uint8_t tag[] =
+        {FONT_A, FONT_l, FONT_a, FONT_r, FONT_m, FONT_MINUS, FONT_M};
+      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, &position);
+    }
+    break;
+  case PARAM_ALARM_E:
+    {
+      uint8_t tag[] =
+        {FONT_A, FONT_l, FONT_a, FONT_r, FONT_m, FONT_MINUS, FONT_E};
       render_word (tag, sizeof (tag) / sizeof (uint8_t), data, &position);
     }
     break;
@@ -205,12 +228,15 @@ static void render ()
     break;
   }
 
-  uint8_t negate = (delta < MIDDLE) ? 1 : 0;
-  uint8_t abs = (negate != 0) ? (MIDDLE - delta) : (delta - MIDDLE);
+  uint8_t negate, abs;
+  /* negate = (delta < MIDDLE) ? 1 : 0; */
+  /* abs = (negate != 0) ? (MIDDLE - delta) : (delta - MIDDLE); */
+  split_delta (&negate, &abs);
 
   if (is_delta_needed () != 0) {
     render_symbol (FONT_COLON, data, &position);
     render_delta (negate, abs, data, &position);
+    /* debug_2 (DEBUG_MENU, 33, negate, abs); */
   }
   if (param_value_valid (param) != 0) {
     render_symbol (FONT_COLON, data, &position);
@@ -237,10 +263,16 @@ static void query_param ()
 {
   switch (param) {
   case PARAM_TRACK:
-    send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_VOLUME);
+    if ((param_flag & PARAM_FLAG_TRACK_SENT) == 0) {
+      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_VOLUME);
+      param_flag |= PARAM_FLAG_TRACK_SENT;
+    }
     break;
   case PARAM_VOLUME:
-    send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_TRACK);
+    if ((param_flag & PARAM_FLAG_VOLUME_SENT) == 0) {
+      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_TRACK);
+      param_flag |= PARAM_FLAG_VOLUME_SENT;
+    }
     break;
   case PARAM_CLOCK_H:
   case PARAM_CLOCK_M:
@@ -254,20 +286,21 @@ static void query_param ()
     break;
   case PARAM_ALARM_H:
   case PARAM_ALARM_M:
+  case PARAM_ALARM_E:
     {
-      uint8_t engaged, hour, min;
-      clock_alarm_get (&engaged, &hour, &min);
+      uint8_t hour, min;
+      clock_alarm_get (&hour, &min);
+      debug_2 (DEBUG_MENU, 99, hour, min);
       param_value[PARAM_ALARM_H] = hour;
       param_value[PARAM_ALARM_M] = min;
+      uint8_t engaged = clock_alarm_engage_get ();
+      param_value[PARAM_ALARM_E] = engaged;
       param_flag |= PARAM_FLAG_ALARM;
     }
     break;
   default:
     break;
   }
-  send_message_1
-    (MSG_ID_PARAM_QUERY,
-     (param == PARAM_VOLUME) ? PARAMETER_VOLUME : PARAMETER_TRACK);
 }
 
 static void change_param (uint8_t action)
@@ -281,10 +314,7 @@ static void change_param (uint8_t action)
            && (param > 0))
     --param;
 
-  if ((old_param != param)
-      && ((param == PARAM_VOLUME)
-          || (param == PARAM_TRACK))
-      && (param_value_valid (param) == 0))
+  if (old_param != param)
     query_param ();
 
   render ();
@@ -322,10 +352,40 @@ static void send_param_change (uint8_t parameter)
       (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, out_delta);
 }
 
-static uint8_t alarm_valid ()
+/* static uint8_t alarm_valid () */
+/* { */
+/*   return ((param_value[PARAM_ALARM_H] <= ALARM_HOUR_MAX) */
+/*           && (param_value[PARAM_ALARM_M] <= ALARM_MIN_MAX)) ? 1 : 0; */
+/* } */
+
+static uint8_t update_hour (uint8_t old)
 {
-  return ((param_value[PARAM_ALARM_H] <= ALARM_HOUR_MAX)
-          && (param_value[PARAM_ALARM_M] <= ALARM_MIN_MAX)) ? 1 : 0;
+  uint8_t negate, abs;
+  split_delta (&negate, &abs);
+
+  if (negate != 0)
+    return (abs > old) ? 0 : old - abs;
+
+  if (is_sum_fits (old, abs) == 0)
+    return CLOCK_HOUR_MAX;
+
+  uint8_t sum = old + abs;
+  return (sum > CLOCK_HOUR_MAX) ? CLOCK_HOUR_MAX : sum;
+}
+
+static uint8_t update_min (uint8_t old)
+{
+  uint8_t negate, abs;
+  split_delta (&negate, &abs);
+
+  if (negate != 0)
+    return (abs > old) ? 0 : old - abs;
+
+  if (is_sum_fits (old, abs) == 0)
+    return CLOCK_MINUTE_MAX;
+
+  uint8_t sum = old + abs;
+  return (sum > CLOCK_MINUTE_MAX) ? CLOCK_MINUTE_MAX : sum;
 }
 
 static void stop ()
@@ -347,19 +407,37 @@ static void stop ()
       send_param_change (PARAMETER_VOLUME);
     break;
   case PARAM_CLOCK_H:
+    if (param_value_valid (param) != 0) {
+      uint8_t new_hour = update_hour (param_value[PARAM_CLOCK_H]);
+      clock_set (new_hour, param_value[PARAM_CLOCK_M]);
+    }
+    break;
   case PARAM_CLOCK_M:
-    if (param_value_valid (param) != 0)
-      clock_set (param_value[PARAM_CLOCK_H], param_value[PARAM_CLOCK_M]);
+    if (param_value_valid (param) != 0) {
+      uint8_t new_min = update_min (param_value[PARAM_CLOCK_M]);
+      clock_set (param_value[PARAM_CLOCK_H], new_min);
+    }
     break;
   case PARAM_ALARM_H:
+    if (param_value_valid (param) != 0) {
+      uint8_t new_hour = update_hour (param_value[PARAM_ALARM_H]);
+      debug_1 (DEBUG_MENU, 11, new_hour);
+      clock_alarm_set (new_hour, param_value[PARAM_ALARM_M]);
+      /* debug */
+      uint8_t a1, a2;
+      clock_alarm_get (&a1, &a2);
+      debug_2 (DEBUG_MENU, 222, a1, a2);
+      /* debug */
+    }
   case PARAM_ALARM_M:
     if (param_value_valid (param) != 0) {
-      if (alarm_valid () != 0)
-        clock_alarm_engage
-          (param_value[PARAM_ALARM_H], param_value[PARAM_ALARM_M]);
-      else
-        clock_alarm_disengage ();
+      uint8_t new_min = update_min (param_value[PARAM_ALARM_M]);
+      clock_alarm_set (param_value[PARAM_ALARM_H], new_min);
     }
+    break;
+  case PARAM_ALARM_E:
+    if (param_value_valid (param) != 0)
+      clock_alarm_engage_set ((delta > MIDDLE) ? 1 : 0);
     break;
   default:
     break;

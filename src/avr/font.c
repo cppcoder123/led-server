@@ -75,7 +75,7 @@ static uint8_t fill_matrix(uint8_t matrix[], uint8_t symbol_id)
     }
   case FONT_A:
     {
-      static const uint8_t symbol[] = {0x3E, 0x41, 0x41, 0x41, 0x22};
+      static const uint8_t symbol[] = {0x7E, 0x11, 0x11, 0x11, 0x7E};
       needed_symbol = symbol;
       break;
     }
@@ -85,10 +85,21 @@ static uint8_t fill_matrix(uint8_t matrix[], uint8_t symbol_id)
       needed_symbol = symbol;
       break;
     }
+  case FONT_E:
+    {
+      static const uint8_t symbol[] = {0x7F, 0x49, 0x49, 0x49, 0x41};
+      needed_symbol = symbol;
+      break;
+    }
+  case FONT_H:
+    {
+      static const uint8_t symbol[] = {0x7F, 0x08, 0x08, 0x08, 0x7F};
+      needed_symbol = symbol;
+      break;
+    }
   case FONT_M:
     {
-      static const uint8_t symbol[] =
-        {0x63, 0x77, 0x7F, 0x7F, 0x6B, 0x63, 0x63, 0x00};
+      static const uint8_t symbol[] = {0x7F, 0x02, 0x04, 0x02, 0x7F};
       needed_symbol = symbol;
       break;
     }
@@ -161,6 +172,12 @@ static uint8_t fill_matrix(uint8_t matrix[], uint8_t symbol_id)
   case FONT_l:
     {
       static const uint8_t symbol[] = {0x00, 0x41, 0x7F, 0x40, 0x00};
+      needed_symbol = symbol;
+      break;
+    }
+  case FONT_m:
+    {
+      static const uint8_t symbol[] = {0x7C, 0x04, 0x18, 0x04, 0x78};
       needed_symbol = symbol;
       break;
     }
