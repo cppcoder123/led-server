@@ -177,6 +177,30 @@ static void render ()
       render_word (vol, sizeof (vol) / sizeof (uint8_t), data, &position);
     }
     break;
+  case PARAM_CLOCK_H:
+    {
+      uint8_t tag[] = {FONT_C, FONT_MINUS, FONT_H};
+      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, &position);
+    }
+    break;
+  case PARAM_CLOCK_M:
+    {
+      uint8_t tag[] = {FONT_C, FONT_MINUS, FONT_M};
+      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, &position);
+    }
+    break;
+  case PARAM_ALARM_H:
+    {
+      uint8_t tag[] = {FONT_A, FONT_MINUS, FONT_H};
+      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, &position);
+    }
+    break;
+  case PARAM_ALARM_M:
+    {
+      uint8_t tag[] = {FONT_A, FONT_MINUS, FONT_M};
+      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, &position);
+    }
+    break;
   default:
     break;
   }
