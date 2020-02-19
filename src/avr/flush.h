@@ -8,6 +8,8 @@
 
 #define FLUSH_STABLE_SIZE 64
 
+#define FLUSH_BRIGHTNESS_MAX 15
+
 void flush_init ();
 
 /*
@@ -30,5 +32,11 @@ uint8_t flush_shift_buffer_size ();
 
 /* ! array size is 64  */
 void flush_stable_display (uint8_t *arr);
+
+/*
+ * Brightness
+ */
+void flush_brightness_get (uint8_t *brightness);
+void flush_brightness_set (uint8_t brightness);
 
 #endif

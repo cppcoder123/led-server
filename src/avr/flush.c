@@ -25,6 +25,8 @@ static struct display_t display_left;
 
 static uint8_t drain;
 
+static uint8_t brightness;
+
 void flush_init ()
 {
   /*fixme*/
@@ -34,6 +36,9 @@ void flush_init ()
 
   display_init (&display_left, PORTA0, PORTA2, PORTA4);
   display_init (&display_right, PORTA1, PORTA3, PORTA5);
+
+  brightness = FLUSH_BRIGHTNESS_MAX;
+  flush_brightness_set (brightness);
 
   drain = 0;
 }
@@ -113,4 +118,19 @@ void flush_stable_display (uint8_t *arr)
     stable_data[i] = arr[i];
   
   dump (0);
+}
+
+void flush_brightness_get (uint8_t *b_ness)
+{
+  *b_ness = brightness;
+}
+
+void flush_brightness_set (uint8_t b_ness)
+{
+  if (b_ness > FLUSH_BRIGHTNESS_MAX)
+    return;
+
+  brightness = b_ness;
+  display_brightness (&display_left, brightness);
+  display_brightness (&display_right, brightness);
 }

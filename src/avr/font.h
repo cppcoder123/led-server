@@ -19,6 +19,7 @@ enum {
   FONT_8,
   FONT_9,
   FONT_A,
+  FONT_B,
   FONT_C,
   FONT_D,
   FONT_E,
