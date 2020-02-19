@@ -56,7 +56,7 @@ static const uint8_t param_change_array[] =
   {PARAM_CANCEL, PARAM_VOLUME, PARAM_TRACK,
    PARAM_ALARM_ENABLE, PARAM_ALARM_DISABLE,
    PARAM_ALARM_H, PARAM_ALARM_M,
-   PARAM_CLOCK_H, PARAM_CLOCK_M};
+   PARAM_CLOCK_H, PARAM_CLOCK_M, PARAM_POWER};
 
 static uint8_t restore_mode = MODE_MENU;
 
