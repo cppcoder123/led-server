@@ -306,7 +306,7 @@ static void query_param ()
     {
       uint8_t brightness = 0;
       flush_brightness_get (&brightness);
-      debug_1 (DEBUG_MENU, 22, brightness);
+      /* debug_1 (DEBUG_MENU, 22, brightness); */
       param_value[PARAM_BRIGHTNESS] = brightness;
       param_flag |= PARAM_FLAG_BRIGNHTNESS;
     }
@@ -451,7 +451,7 @@ static void stop ()
       uint8_t new = get_destination (negate, abs, param_value[PARAM_BRIGHTNESS]);
       if (new > FLUSH_BRIGHTNESS_MAX)
         new = FLUSH_BRIGHTNESS_MAX;
-      debug_1 (DEBUG_MENU, 44, new);
+      /* debug_1 (DEBUG_MENU, 44, new); */
       flush_brightness_set (new);
     }
     break;
