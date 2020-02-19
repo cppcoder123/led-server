@@ -62,7 +62,7 @@ static void decode ()
     {
       status = (menu_parameter_value (in_buf[0], in_buf[1]) != 0)
         ? STATUS_SUCCESS : STATUS_FAIL;
-      debug_2 (DEBUG_DECODE, 88, in_buf[0], in_buf[1]);
+      debug_3 (DEBUG_DECODE, 88, in_buf[0], in_buf[1], status);
       encode_msg_2 (MSG_ID_STATUS, msg_serial, status, msg_id);
     }
     break;

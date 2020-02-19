@@ -25,7 +25,7 @@ static struct display_t display_left;
 
 static uint8_t drain;
 
-static uint8_t brightness;
+static volatile uint8_t brightness;
 
 void flush_init ()
 {

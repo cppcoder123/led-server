@@ -42,11 +42,11 @@
 enum {
   PARAM_ALARM_H,
   PARAM_ALARM_M,
+  PARAM_BRIGHTNESS,
   PARAM_CLOCK_H,
   PARAM_CLOCK_M,
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
-  PARAM_BRIGHTNESS,
   PARAM_ALARM_ENABLE,
   PARAM_VALUE_MAX = PARAM_ALARM_ENABLE,
   PARAM_ALARM_DISABLE,
@@ -137,14 +137,21 @@ static uint8_t is_sum_fits (uint8_t a, uint8_t b)
   return (a_ >= b) ? 1 : 0;
 }
 
+static uint8_t get_destination (uint8_t negate, uint8_t abs, uint8_t old)
+{
+  return (negate != 0) ? ((old > abs) ? (old - abs) : 0)
+    : ((is_sum_fits (old, abs) != 0) ? (old + abs) : MAX);
+}
+
 static void render_destination (uint8_t negative, uint8_t abs,
                                 uint8_t *data, uint8_t *position)
 {
   /* param_value should be valid ! */
-  uint8_t dst = (negative != 0)
-    ? ((param_value[param] > abs) ? (param_value[param] - abs) : 0)
-    : ((is_sum_fits (param_value[param], abs) != 0)
-       ? (param_value[param] + abs) : MAX);
+  uint8_t dst = get_destination (negative, abs, param_value[param]);
+  /* uint8_t dst = (negative != 0) */
+  /*   ? ((param_value[param] > abs) ? (param_value[param] - abs) : 0) */
+  /*   : ((is_sum_fits (param_value[param], abs) != 0) */
+  /*      ? (param_value[param] + abs) : MAX); */
 
   render_number (dst, RENDER_LEADING_DISABLE, data, position);
 }
@@ -299,6 +306,7 @@ static void query_param ()
     {
       uint8_t brightness = 0;
       flush_brightness_get (&brightness);
+      debug_1 (DEBUG_MENU, 22, brightness);
       param_value[PARAM_BRIGHTNESS] = brightness;
       param_flag |= PARAM_FLAG_BRIGNHTNESS;
     }
@@ -315,13 +323,13 @@ static void query_param ()
     break;
   case PARAM_TRACK:
     if ((param_flag & PARAM_FLAG_TRACK_SENT) == 0) {
-      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_VOLUME);
+      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_TRACK);
       param_flag |= PARAM_FLAG_TRACK_SENT;
     }
     break;
   case PARAM_VOLUME:
     if ((param_flag & PARAM_FLAG_VOLUME_SENT) == 0) {
-      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_TRACK);
+      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_VOLUME);
       param_flag |= PARAM_FLAG_VOLUME_SENT;
     }
     break;
@@ -399,14 +407,9 @@ static uint8_t update_hour (uint8_t old)
   uint8_t negate, abs;
   split_delta (&negate, &abs);
 
-  if (negate != 0)
-    return (abs > old) ? 0 : old - abs;
+  uint8_t dst = get_destination (negate, abs, old);
 
-  if (is_sum_fits (old, abs) == 0)
-    return CLOCK_HOUR_MAX;
-
-  uint8_t sum = old + abs;
-  return (sum > CLOCK_HOUR_MAX) ? CLOCK_HOUR_MAX : sum;
+  return (dst > CLOCK_HOUR_MAX) ? CLOCK_HOUR_MAX : dst;
 }
 
 static uint8_t update_minute (uint8_t old)
@@ -414,14 +417,9 @@ static uint8_t update_minute (uint8_t old)
   uint8_t negate, abs;
   split_delta (&negate, &abs);
 
-  if (negate != 0)
-    return (abs > old) ? 0 : old - abs;
+  uint8_t dst = get_destination (negate, abs, old);
 
-  if (is_sum_fits (old, abs) == 0)
-    return CLOCK_MINUTE_MAX;
-
-  uint8_t sum = old + abs;
-  return (sum > CLOCK_MINUTE_MAX) ? CLOCK_MINUTE_MAX : sum;
+  return (dst > CLOCK_MINUTE_MAX) ? CLOCK_MINUTE_MAX : dst;
 }
 
 static void stop ()
@@ -450,12 +448,10 @@ static void stop ()
     if (param_value_valid (param) != 0) {
       uint8_t negate, abs;
       split_delta (&negate, &abs);
-      uint8_t old = param_value[PARAM_BRIGHTNESS];
-      uint8_t new = (negate != 0)
-        ? ((abs <= new) ? (new - abs) : 0)
-        : (((is_sum_fits (old, abs) != 0)
-            && ((old + abs) < FLUSH_BRIGHTNESS_MAX))
-           ? old + abs : FLUSH_BRIGHTNESS_MAX);
+      uint8_t new = get_destination (negate, abs, param_value[PARAM_BRIGHTNESS]);
+      if (new > FLUSH_BRIGHTNESS_MAX)
+        new = FLUSH_BRIGHTNESS_MAX;
+      debug_1 (DEBUG_MENU, 44, new);
       flush_brightness_set (new);
     }
     break;
