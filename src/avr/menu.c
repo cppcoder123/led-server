@@ -39,24 +39,31 @@
 #define VALUE_SPACE 3
 
 enum {
-  PARAM_CANCEL,                 /* cancel param change */
-  PARAM_TRACK,                  /* select radio station (or mp3) */
-  PARAM_VOLUME,                 /* tune volume */
-  PARAM_CLOCK_H,
-  PARAM_CLOCK_M,
   PARAM_ALARM_H,
   PARAM_ALARM_M,
-  PARAM_ALARM_E,
+  PARAM_CLOCK_H,
+  PARAM_CLOCK_M,
+  PARAM_TRACK,                  /* select radio station (or mp3) */
+  PARAM_VOLUME,                 /* tune volume */
+  PARAM_ALARM_ENABLE,
+  PARAM_VALUE_MAX = PARAM_ALARM_ENABLE,
+  PARAM_ALARM_DISABLE,
+  PARAM_CANCEL,                 /* cancel param change */
   PARAM_POWER,                  /* 'On' or 'Off' */
-  PARAM_LAST = PARAM_POWER,     /* keep last */
 };
+
+static const uint8_t param_change_array[] =
+  {PARAM_CANCEL, PARAM_VOLUME, PARAM_TRACK,
+   PARAM_ALARM_ENABLE, PARAM_ALARM_DISABLE,
+   PARAM_ALARM_H, PARAM_ALARM_M,
+   PARAM_CLOCK_H, PARAM_CLOCK_M};
 
 static uint8_t restore_mode = MODE_MENU;
 
 static uint8_t delta = MIDDLE;
 static uint8_t param = PARAM_POWER;
 static uint8_t param_flag = 0;
-static uint8_t param_value[PARAM_LAST];
+static uint8_t param_value[PARAM_VALUE_MAX];
 
 static uint8_t param_value_valid (uint8_t param)
 {
@@ -78,7 +85,6 @@ static uint8_t param_value_valid (uint8_t param)
     break;
   case PARAM_ALARM_H:
   case PARAM_ALARM_M:
-  case PARAM_ALARM_E:
     mask = PARAM_FLAG_ALARM;
     break;
   default:
@@ -104,8 +110,7 @@ static uint8_t is_destination_needed ()
           || (param == PARAM_CLOCK_H)
           || (param == PARAM_CLOCK_M)
           || (param == PARAM_ALARM_H)
-          || (param == PARAM_ALARM_M)
-          || (param == PARAM_ALARM_E)) ? 1 : 0;
+          || (param == PARAM_ALARM_M)) ? 1 : 0;
 }
 
 static void render_delta (uint8_t negative, uint8_t abs,
@@ -203,10 +208,18 @@ static void render_label (uint8_t *data, uint8_t *position)
       render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
     }
     break;
-  case PARAM_ALARM_E:
+  case PARAM_ALARM_ENABLE:
     {
       uint8_t tag[] =
-        {FONT_A, FONT_l, FONT_MINUS, FONT_E, FONT_n};
+        {FONT_A, FONT_l, FONT_MINUS, FONT_E, FONT_n, FONT_a, FONT_b, FONT_l, FONT_e};
+      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+    }
+    break;
+  case PARAM_ALARM_DISABLE:
+    {
+      uint8_t tag[] =
+        {FONT_A, FONT_l, FONT_MINUS, FONT_D, FONT_i,
+         FONT_s, FONT_a, FONT_b, FONT_l, FONT_e};
       render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
     }
     break;
@@ -279,14 +292,12 @@ static void query_param ()
     break;
   case PARAM_ALARM_H:
   case PARAM_ALARM_M:
-  case PARAM_ALARM_E:
     {
       uint8_t hour, min;
       clock_alarm_get (&hour, &min);
+      /* debug_2 (DEBUG_MENU, 99, hour, min); */
       param_value[PARAM_ALARM_H] = hour;
       param_value[PARAM_ALARM_M] = min;
-      uint8_t engaged = clock_alarm_engage_get ();
-      param_value[PARAM_ALARM_E] = engaged;
       param_flag |= PARAM_FLAG_ALARM;
     }
     break;
@@ -298,13 +309,22 @@ static void query_param ()
 static void change_param (uint8_t action)
 {
   uint8_t old_param = param;
+  const uint8_t length = sizeof (param_change_array) / sizeof (uint8_t);
+  const uint8_t max_id = length - 1;
+
+  uint8_t id = 0;
+  for (id = 0; id < length; ++id)
+    if (param == param_change_array[id])
+      break;
 
   if ((action == ROTOR_CLOCKWISE)
-      && (param < PARAM_LAST))
-    ++param;
+      && (id < max_id))
+    ++id;
   else if ((action == ROTOR_COUNTER_CLOCKWISE)
-           && (param > 0))
+           && (id > 0))
     --param;
+
+  param = param_change_array[id];
 
   if (old_param != param)
     query_param ();
@@ -417,9 +437,11 @@ static void stop ()
       clock_alarm_set (param_value[PARAM_ALARM_H], new_min);
     }
     break;
-  case PARAM_ALARM_E:
-    if (param_value_valid (param) != 0)
-      clock_alarm_engage_set ((delta > MIDDLE) ? 1 : 0);
+  case PARAM_ALARM_ENABLE:
+    clock_alarm_engage_set (1);
+    break;
+  case PARAM_ALARM_DISABLE:
+    clock_alarm_engage_set (0);
     break;
   default:
     break;
@@ -433,9 +455,9 @@ static void stop ()
 static void reset ()
 {
   delta = MIDDLE;
-  param = PARAM_CANCEL;
+  param = param_change_array[0];
   param_flag = 0;
-  for (uint8_t i = 0; i < PARAM_LAST; ++i)
+  for (uint8_t i = 0; i < PARAM_VALUE_MAX; ++i)
     param_value[i] = 0;
 }
 
