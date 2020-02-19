@@ -317,12 +317,17 @@ static void change_param (uint8_t action)
     if (param == param_change_array[id])
       break;
 
-  if ((action == ROTOR_CLOCKWISE)
-      && (id < max_id))
-    ++id;
-  else if ((action == ROTOR_COUNTER_CLOCKWISE)
-           && (id > 0))
-    --param;
+  if (action == ROTOR_CLOCKWISE) {
+    if (id < max_id)
+      ++id;
+    else
+      id = 0;
+  } else if (action == ROTOR_COUNTER_CLOCKWISE) {
+    if (id > 0)
+      --id;
+    else
+      id = max_id;
+  }
 
   param = param_change_array[id];
 
