@@ -47,11 +47,12 @@ enum {
   PARAM_CLOCK_M,
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
-  PARAM_ALARM_DISABLE,
-  PARAM_VALUE_MAX = PARAM_ALARM_DISABLE,
-  PARAM_ALARM_ENABLE,
   PARAM_CANCEL,                 /* cancel param change */
+  PARAM_VALUE_MAX = PARAM_CANCEL,
+  PARAM_ALARM_DISABLE,
+  PARAM_ALARM_ENABLE,
   PARAM_POWER,                  /* 'On' or 'Off' */
+  PARAM_REBOOT,                 /* reboot pi */
 };
 
 static const uint8_t param_change_array[] =
@@ -59,7 +60,7 @@ static const uint8_t param_change_array[] =
    PARAM_ALARM_ENABLE, PARAM_ALARM_DISABLE,
    PARAM_ALARM_H, PARAM_ALARM_M,
    PARAM_CLOCK_H, PARAM_CLOCK_M,
-   PARAM_BRIGHTNESS, PARAM_POWER};
+   PARAM_BRIGHTNESS, PARAM_POWER, PARAM_REBOOT};
 
 static uint8_t restore_mode = MODE_MENU;
 static uint8_t delta = MIDDLE;
@@ -235,6 +236,12 @@ static void render_label (uint8_t *data, uint8_t *position)
         render_word (on, sizeof (on) / sizeof (uint8_t), data, position);
     }
     break;
+  case PARAM_REBOOT:
+    {
+      uint8_t tag[] = {FONT_R, FONT_e, FONT_b, FONT_o, FONT_o, FONT_t};
+      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+    }
+    break;
   case PARAM_TRACK:
     {
       uint8_t track[]
@@ -363,6 +370,8 @@ static void change_param (uint8_t action)
       id = max_id;
   }
 
+  /* reset delta if we changing parameter */
+  delta = MIDDLE;
   param = param_change_array[id];
 
   if (value_is_valid (param) == 0)
@@ -373,17 +382,36 @@ static void change_param (uint8_t action)
 
 static void change_delta (uint8_t action)
 {
-  uint8_t tmp = delta;
+  uint8_t backup_delta = delta;
 
   if ((action == ROTOR_CLOCKWISE)
-      && (tmp < MAX))
-    ++tmp;
+      && (delta < MAX))
+    ++delta;
   else if ((action == ROTOR_COUNTER_CLOCKWISE)
-           && (tmp > 0))
-    --tmp;
+           && (delta > 0))
+    --delta;
 
-  if (value_is_allowed(tmp) != 0)
-    delta = tmp;
+  if (value_is_valid (param) == 0)
+    return;
+
+  uint8_t negate, abs;
+  split_delta (&negate, &abs);
+
+  uint8_t delta_valid = 1;
+  if (negate != 0) {
+    /* check low limit */
+    if ((abs > param_value[param])
+        || ((param_value[param] - abs) < param_min[param]))
+      delta_valid = 0;
+  } else {
+    /* check high limit */
+    if ((is_sum_fits (abs, param_value[param]) == 0)
+        || ((param_value[param] + abs) > param_max[param]))
+      delta_valid = 0;
+  }
+
+  if (delta_valid == 0)
+    delta = backup_delta;
 
   render ();
 }
@@ -461,6 +489,11 @@ static void stop ()
       power_on ();
     else
       encode_msg_0 (MSG_ID_POWEROFF, SERIAL_ID_TO_IGNORE);
+    break;
+  case PARAM_REBOOT:
+    if (mode_is_connnected () != 0)
+      encode_msg_0 (MSG_ID_REBOOT, SERIAL_ID_TO_IGNORE);
+    debug_0 (DEBUG_MENU, 123);
     break;
   case PARAM_TRACK:
     send_param_change (PARAMETER_TRACK);

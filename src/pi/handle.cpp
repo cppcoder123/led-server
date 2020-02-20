@@ -160,8 +160,13 @@ namespace led_d
     case command_id_t::MPC_VOLUME_GET:
       {
         uint8_t value = 0, min = 0, max = 0;
-        if (split_info (status->out (), value, min, max) == false)
+        if (split_info (status->out (), value, min, max) == false) {
+          log_t::buffer_t buf;
+          buf << "handle:: Failed to split \"" << status->out ()
+              << "\" into value-min-max";
+          log_t::error (buf);
           return;
+        }
         uint8_t param = (status->id () == command_id_t::MPC_VOLUME_GET)
           ? PARAMETER_VOLUME : PARAMETER_TRACK;
         m_to_mcu_queue->push
@@ -197,6 +202,9 @@ namespace led_d
       break;
     case MSG_ID_POWEROFF:
       mcu_poweroff ();
+      break;
+    case MSG_ID_REBOOT:
+      mcu_reboot ();
       break;
     case MSG_ID_RESUME:
       mcu_resume ();
@@ -300,6 +308,12 @@ namespace led_d
   void handle_t::mcu_suspend ()
   {
     m_suspend = true;
+  }
+
+  void handle_t::mcu_reboot ()
+  {
+    command_t::issue (command_t::REBOOT, REBOOT,
+                      command_t::ten_seconds (), m_command_queue);
   }
 
   void handle_t::mcu_resume ()

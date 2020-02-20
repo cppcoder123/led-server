@@ -56,6 +56,9 @@ enum {
   /*aux message to enable spi slave (avr) to master (pi) transfer*/
   MSG_ID_QUERY,
 
+  /*avr=>pi: Reboot pi*/
+  MSG_ID_REBOOT,
+
   /* avr => pi resume info flow */
   MSG_ID_RESUME,
 
