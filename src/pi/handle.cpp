@@ -55,6 +55,31 @@ namespace led_d
       unsigned tmp = src;
       return std::to_string (tmp);
     }
+
+    bool split_to_uint8 (const std::string &src, std::size_t &pos, uint8_t &dst)
+    {
+      constexpr auto info_delimiter = '-';
+      auto new_pos = src.find (info_delimiter, pos);
+
+      if (new_pos == std::string::npos) {
+        auto tmp = src.substr (pos);
+        pos = new_pos;
+        return to_uint8 (tmp, dst);
+      }
+
+      auto tmp = src.substr (pos, new_pos - pos);
+      pos = new_pos + 1;
+      return to_uint8 (tmp, dst);
+    }
+
+    bool split_info (const std::string &src,
+                     uint8_t &value, uint8_t &min, uint8_t &max)
+    {
+      std::size_t pos = 0;
+      return ((split_to_uint8 (src, pos, value) == false)
+              || (split_to_uint8 (src, pos, min) == false)
+              || (split_to_uint8 (src, pos, max) == false)) ? false : true;
+    }
   }
 
   handle_t::handle_t (asio::io_context &io_context, const arg_t &arg)
@@ -134,14 +159,14 @@ namespace led_d
     case command_id_t::MPC_TRACK_GET:
     case command_id_t::MPC_VOLUME_GET:
       {
-        uint8_t value = 0;
-        if (to_uint8 (status->out (), value) == false)
+        uint8_t value = 0, min = 0, max = 0;
+        if (split_info (status->out (), value, min, max) == false)
           return;
         uint8_t param = (status->id () == command_id_t::MPC_VOLUME_GET)
           ? PARAMETER_VOLUME : PARAMETER_TRACK;
         m_to_mcu_queue->push
           (mcu::encode::join
-           (mcu_id::get (), MSG_ID_PARAM_QUERY, param, value));
+           (mcu_id::get (), MSG_ID_PARAM_QUERY, param, value, min, max));
       }
       break;
     case command_id_t::MPC_TRACK_SET:

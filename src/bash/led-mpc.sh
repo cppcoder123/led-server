@@ -6,16 +6,28 @@ get_track_id () {
     TRACK_ID=`mpc -f %position% current`
 }
 
+get_track_num ()
+{
+    TRACK_NUM=`mpc playlist | wc -l`
+}
+
 case $1 in
     play)
         mpc play
         ;;
     track-get)
         get_track_id
-        echo $TRACK_ID
+        get_track_num
+        if [ -z "$TRACK_ID" ]
+        then
+            echo "0-0-0"
+        else
+            echo $TRACK_ID"-"1"-"$TRACK_NUM
+        fi
         ;;
     volume-get)
-        mpc volume | sed 's/volume://; s/%//'
+        VOLUME_LEVEL=`mpc volume | sed 's/volume://; s/%//'`
+        echo $VOLUME_LEVEL"-"0"-"100
         ;;
     track-set)
         max=`mpc playlist | wc -l`

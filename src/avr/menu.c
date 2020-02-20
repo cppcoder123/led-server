@@ -66,8 +66,10 @@ static uint8_t delta = MIDDLE;
 static uint8_t param = PARAM_POWER;
 static uint8_t param_flag = 0;
 static uint8_t param_value[PARAM_VALUE_MAX];
+static uint8_t param_min[PARAM_VALUE_MAX];
+static uint8_t param_max[PARAM_VALUE_MAX];
 
-static uint8_t param_value_valid (uint8_t param)
+static uint8_t value_is_valid (uint8_t param)
 {
   if (param >= PARAM_VALUE_MAX)
     return 1;
@@ -96,6 +98,15 @@ static uint8_t param_value_valid (uint8_t param)
   }
 
   return (param_flag & mask) ? 1 : 0;
+}
+
+static uint8_t value_is_allowed (uint8_t new)
+{
+  if (value_is_valid (param) == 0)
+    return 1;
+
+  return ((new >= param_min[param]) && (new <= param_max[param]))
+    ? 1 : 0;
 }
 
 static uint8_t is_delta_needed ()
@@ -258,7 +269,7 @@ static void render ()
     render_symbol (FONT_COLON, data, &position);
     render_delta (negate, abs, data, &position);
   }
-  if (param_value_valid (param) != 0) {
+  if (value_is_valid (param) != 0) {
     if (is_source_needed () != 0) {
       render_symbol (FONT_COLON, data, &position);
       render_number (param_value[param],
@@ -354,7 +365,7 @@ static void change_param (uint8_t action)
 
   param = param_change_array[id];
 
-  if (param_value_valid (param) == 0)
+  if (value_is_valid (param) == 0)
     query_param ();
 
   render ();
@@ -362,12 +373,17 @@ static void change_param (uint8_t action)
 
 static void change_delta (uint8_t action)
 {
+  uint8_t tmp = delta;
+
   if ((action == ROTOR_CLOCKWISE)
-      && (delta < MAX))
-    ++delta;
+      && (tmp < MAX))
+    ++tmp;
   else if ((action == ROTOR_COUNTER_CLOCKWISE)
-           && (delta > 0))
-    --delta;
+           && (tmp > 0))
+    --tmp;
+
+  if (value_is_allowed(tmp) != 0)
+    delta = tmp;
 
   render ();
 }
@@ -406,7 +422,7 @@ static uint8_t apply_delta_max (uint8_t old, uint8_t max_value)
 static void stop ()
 {
   /* fixme send new value*/
-  if (param_value_valid (param) == 0)
+  if (value_is_valid (param) == 0)
     return;
 
   switch (param) {
@@ -497,10 +513,19 @@ void menu_init ()
   rotor_register (&start);
   restore_mode = MODE_MENU;
 
+  param_min[PARAM_ALARM_H] = param_min[PARAM_CLOCK_H] = 0;
+  param_min[PARAM_BRIGHTNESS] = 0;
+  param_min[PARAM_ALARM_M] = param_min[PARAM_CLOCK_M] = 0;
+
+  param_max[PARAM_ALARM_H] = param_max[PARAM_CLOCK_H] = CLOCK_HOUR_MAX;
+  param_max[PARAM_BRIGHTNESS] = 0xF;
+  param_max[PARAM_ALARM_M] = param_max[PARAM_CLOCK_M] = CLOCK_MINUTE_MAX;
+
   reset ();
 }
 
-uint8_t menu_parameter_value (uint8_t parameter, uint8_t value)
+uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
+                              uint8_t min, uint8_t max)
 {
   if ((parameter != PARAMETER_VOLUME)
       && (parameter != PARAMETER_TRACK))
@@ -508,14 +533,21 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value)
 
   uint8_t id = (parameter == PARAMETER_VOLUME) ? PARAM_VOLUME : PARAM_TRACK;
   param_value[id] = value;
+  param_min[id] = min;
+  param_max[id] = max;
 
   param_flag |= (parameter == PARAMETER_VOLUME)
     ? PARAM_FLAG_VOLUME : PARAM_FLAG_TRACK;
 
   at_postpone (AT_MENU);
 
-  if (id == param)
+  if (id == param) {
+    uint8_t dst = apply_delta_max (value, MAX);
+    if (value_is_allowed (dst) == 0)
+      delta = MIDDLE;
+
     render ();
+  }
 
   return 1;
 }
