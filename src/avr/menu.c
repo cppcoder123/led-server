@@ -70,9 +70,8 @@ static uint8_t param_value[PARAM_VALUE_MAX];
 
 static uint8_t param_value_valid (uint8_t param)
 {
-  if ((param == PARAM_POWER)
-      || (param == PARAM_CANCEL))
-    return 0;
+  if (param >= PARAM_VALUE_MAX)
+    return 1;
 
   uint8_t mask = 0;
   switch (param) {
@@ -146,12 +145,7 @@ static uint8_t get_destination (uint8_t negate, uint8_t abs, uint8_t old)
 static void render_destination (uint8_t negative, uint8_t abs,
                                 uint8_t *data, uint8_t *position)
 {
-  /* param_value should be valid ! */
   uint8_t dst = get_destination (negative, abs, param_value[param]);
-  /* uint8_t dst = (negative != 0) */
-  /*   ? ((param_value[param] > abs) ? (param_value[param] - abs) : 0) */
-  /*   : ((is_sum_fits (param_value[param], abs) != 0) */
-  /*      ? (param_value[param] + abs) : MAX); */
 
   render_number (dst, RENDER_LEADING_DISABLE, data, position);
 }
@@ -402,29 +396,22 @@ static void send_param_change (uint8_t parameter)
     (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, out_delta);
 }
 
-static uint8_t update_hour (uint8_t old)
+static uint8_t apply_delta_max (uint8_t old, uint8_t max_value)
 {
   uint8_t negate, abs;
   split_delta (&negate, &abs);
 
   uint8_t dst = get_destination (negate, abs, old);
 
-  return (dst > CLOCK_HOUR_MAX) ? CLOCK_HOUR_MAX : dst;
-}
-
-static uint8_t update_minute (uint8_t old)
-{
-  uint8_t negate, abs;
-  split_delta (&negate, &abs);
-
-  uint8_t dst = get_destination (negate, abs, old);
-
-  return (dst > CLOCK_MINUTE_MAX) ? CLOCK_MINUTE_MAX : dst;
+  return (dst > max_value) ? max_value : dst;
 }
 
 static void stop ()
 {
   /* fixme send new value*/
+  if (param_value_valid (param) == 0)
+    return;
+
   switch (param) {
   case PARAM_ALARM_DISABLE:
     clock_alarm_engage_set (0);
@@ -433,39 +420,28 @@ static void stop ()
     clock_alarm_engage_set (1);
     break;
   case PARAM_ALARM_H:
-    if (param_value_valid (param) != 0) {
-      uint8_t new_hour = update_hour (param_value[PARAM_ALARM_H]);
-      clock_alarm_set (new_hour, param_value[PARAM_ALARM_M]);
-    }
+    clock_alarm_set
+      (apply_delta_max (param_value[PARAM_ALARM_H], CLOCK_HOUR_MAX),
+       param_value[PARAM_ALARM_M]);
     break;
   case PARAM_ALARM_M:
-    if (param_value_valid (param) != 0) {
-      uint8_t new_min = update_minute (param_value[PARAM_ALARM_M]);
-      clock_alarm_set (param_value[PARAM_ALARM_H], new_min);
-    }
+    clock_alarm_set
+      (param_value[PARAM_ALARM_H],
+       apply_delta_max (param_value[PARAM_ALARM_M], CLOCK_MINUTE_MAX));
     break;
   case PARAM_BRIGHTNESS:
-    if (param_value_valid (param) != 0) {
-      uint8_t negate, abs;
-      split_delta (&negate, &abs);
-      uint8_t new = get_destination (negate, abs, param_value[PARAM_BRIGHTNESS]);
-      if (new > FLUSH_BRIGHTNESS_MAX)
-        new = FLUSH_BRIGHTNESS_MAX;
-      /* debug_1 (DEBUG_MENU, 44, new); */
-      flush_brightness_set (new);
-    }
+      flush_brightness_set
+        (apply_delta_max (param_value[PARAM_BRIGHTNESS], FLUSH_BRIGHTNESS_MAX));
     break;
   case PARAM_CLOCK_H:
-    if (param_value_valid (param) != 0) {
-      uint8_t new_hour = update_hour (param_value[PARAM_CLOCK_H]);
-      clock_set (new_hour, param_value[PARAM_CLOCK_M]);
-    }
+    clock_set
+      (apply_delta_max (param_value[PARAM_CLOCK_H], CLOCK_HOUR_MAX),
+       param_value[PARAM_CLOCK_M]);
     break;
   case PARAM_CLOCK_M:
-    if (param_value_valid (param) != 0) {
-      uint8_t new_min = update_minute (param_value[PARAM_CLOCK_M]);
-      clock_set (param_value[PARAM_CLOCK_H], new_min);
-    }
+    clock_set
+      (param_value[PARAM_CLOCK_H],
+       apply_delta_max (param_value[PARAM_CLOCK_M], CLOCK_MINUTE_MAX));
     break;
   case PARAM_POWER:
     if (mode_is_connnected () == 0)
@@ -474,12 +450,10 @@ static void stop ()
       encode_msg_0 (MSG_ID_POWEROFF, SERIAL_ID_TO_IGNORE);
     break;
   case PARAM_TRACK:
-    if (param_value_valid (PARAM_TRACK) != 0)
-      send_param_change (PARAMETER_TRACK);
+    send_param_change (PARAMETER_TRACK);
     break;
   case PARAM_VOLUME:
-    if (param_value_valid (PARAM_VOLUME) != 0)
-      send_param_change (PARAMETER_VOLUME);
+    send_param_change (PARAMETER_VOLUME);
     break;
   default:
     break;
