@@ -191,7 +191,7 @@ static void render_label (uint8_t *data, uint8_t *position)
   case PARAM_BRIGHTNESS:
     {
       uint8_t tag[] =
-        {FONT_B, FONT_r, FONT_i, FONT_MINUS, FONT_e, FONT_s, FONT_s};
+        {FONT_B, FONT_r, FONT_i, FONT_g, FONT_h, FONT_MINUS, FONT_s};
       render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
     }
     break;
