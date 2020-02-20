@@ -56,6 +56,7 @@ namespace led_d
     void mcu_param_query (const mcu_msg_t &msg);
     void mcu_param_set (const mcu_msg_t &msg);
     void mcu_poweroff ();
+    void mcu_reboot ();
     void mcu_resume ();
     void mcu_rotor (const mcu_msg_t &msg);
     void mcu_status (const mcu_msg_t &msg);

@@ -15,6 +15,7 @@ namespace led_d
     MPC_VOLUME_GET,
     MPC_VOLUME_SET,
     POWEROFF,           // self shutdown
+    REBOOT,             // self reboot
     STREAM_CLOCK,
     STREAM_SYSTEM,
     STREAM_TRACK_NAME,
@@ -47,6 +48,9 @@ namespace led_d
       break;
     case command_id_t::POWEROFF:
       return "poweroff";
+      break;
+    case command_id_t::REBOOT:
+      return "reboot";
       break;
     case command_id_t::STREAM_CLOCK:
       return "stream-clock";

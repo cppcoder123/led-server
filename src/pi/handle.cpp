@@ -28,6 +28,7 @@ namespace led_d
   constexpr auto MPC_VOLUME_SET = "led-mpc.sh volume-set ";
   //
   constexpr auto POWEROFF = "sudo poweroff";
+  constexpr auto REBOOT = "sudo reboot";
   //
   const std::regex system_regex ("\\s*([^:]+):(.*)");
   const std::regex volume_regex ("\\s*(\\d+)-(\\d+)\\s*");
@@ -312,7 +313,7 @@ namespace led_d
 
   void handle_t::mcu_reboot ()
   {
-    command_t::issue (command_t::REBOOT, REBOOT,
+    command_t::issue (command_id_t::REBOOT, REBOOT,
                       command_t::ten_seconds (), m_command_queue);
   }
 
