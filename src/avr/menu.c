@@ -47,9 +47,9 @@ enum {
   PARAM_CLOCK_M,
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
-  PARAM_ALARM_ENABLE,
-  PARAM_VALUE_MAX = PARAM_ALARM_ENABLE,
   PARAM_ALARM_DISABLE,
+  PARAM_VALUE_MAX = PARAM_ALARM_DISABLE,
+  PARAM_ALARM_ENABLE,
   PARAM_CANCEL,                 /* cancel param change */
   PARAM_POWER,                  /* 'On' or 'Off' */
 };
@@ -62,7 +62,6 @@ static const uint8_t param_change_array[] =
    PARAM_BRIGHTNESS, PARAM_POWER};
 
 static uint8_t restore_mode = MODE_MENU;
-
 static uint8_t delta = MIDDLE;
 static uint8_t param = PARAM_POWER;
 static uint8_t param_flag = 0;
@@ -334,12 +333,10 @@ static void query_param ()
 
 static void change_param (uint8_t action)
 {
-  uint8_t old_param = param;
-  const uint8_t length = sizeof (param_change_array) / sizeof (uint8_t);
-  const uint8_t max_id = length - 1;
+  const uint8_t max_id = sizeof (param_change_array) / sizeof (uint8_t) - 1;
 
   uint8_t id = 0;
-  for (id = 0; id < length; ++id)
+  for (id = 0; id <= max_id; ++id)
     if (param == param_change_array[id])
       break;
 
@@ -357,7 +354,7 @@ static void change_param (uint8_t action)
 
   param = param_change_array[id];
 
-  if (old_param != param)
+  if (param_value_valid (param) == 0)
     query_param ();
 
   render ();
