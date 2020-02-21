@@ -36,7 +36,7 @@
 #define PARAM_FLAG_VOLUME_SENT (1 << 5)
 #define PARAM_FLAG_TRACK_SENT (1 << 6)
 
-#define VALUE_SPACE 3
+#define CHUNK_MAX 3
 
 enum {
   PARAM_ALARM_H,
@@ -68,6 +68,7 @@ static uint8_t param_flag = 0;
 static uint8_t param_value[PARAM_VALUE_MAX];
 static uint8_t param_min[PARAM_VALUE_MAX];
 static uint8_t param_max[PARAM_VALUE_MAX];
+static uint8_t chunk = 0;
 
 static uint8_t value_is_valid ()
 {
@@ -369,6 +370,7 @@ static void change_param (uint8_t action)
   /* reset delta if we changing parameter */
   delta = MIDDLE;
   param = param_change_array[id];
+  chunk = 0;
 
   if (value_is_valid () == 0)
     query_param ();
@@ -381,11 +383,21 @@ static void change_delta (uint8_t action)
   uint8_t backup_delta = delta;
 
   if ((action == ROTOR_CLOCKWISE)
-      && (delta < MAX))
+      && (++chunk >= CHUNK_MAX)
+      && (delta < MAX)) {
+    chunk = 0;
     ++delta;
-  else if ((action == ROTOR_COUNTER_CLOCKWISE)
-           && (delta > 0))
-    --delta;
+  } else if (action == ROTOR_COUNTER_CLOCKWISE) {
+    if (chunk == 0) {
+      chunk = CHUNK_MAX;
+      if (delta > 0)
+        --delta;
+    } else
+      --chunk;
+  }
+
+  if (delta == backup_delta)
+    return;
 
   if (value_is_valid () == 0)
     return;
@@ -525,6 +537,8 @@ void menu_init ()
   param_max[PARAM_ALARM_H] = param_max[PARAM_CLOCK_H] = CLOCK_HOUR_MAX;
   param_max[PARAM_BRIGHTNESS] = 0xF;
   param_max[PARAM_ALARM_M] = param_max[PARAM_CLOCK_M] = CLOCK_MINUTE_MAX;
+
+  chunk = 0;
 
   reset ();
 }
