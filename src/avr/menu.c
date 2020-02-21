@@ -101,15 +101,6 @@ static uint8_t value_is_valid (uint8_t param)
   return (param_flag & mask) ? 1 : 0;
 }
 
-static uint8_t value_is_allowed (uint8_t new)
-{
-  if (value_is_valid (param) == 0)
-    return 1;
-
-  return ((new >= param_min[param]) && (new <= param_max[param]))
-    ? 1 : 0;
-}
-
 static uint8_t is_delta_needed ()
 {
   return (param == PARAM_VOLUME) ? 1 : 0;
@@ -555,6 +546,15 @@ void menu_init ()
   param_max[PARAM_ALARM_M] = param_max[PARAM_CLOCK_M] = CLOCK_MINUTE_MAX;
 
   reset ();
+}
+
+static uint8_t value_is_allowed (uint8_t new)
+{
+  if (value_is_valid (param) == 0)
+    return 1;
+
+  return ((new >= param_min[param]) && (new <= param_max[param]))
+    ? 1 : 0;
 }
 
 uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,

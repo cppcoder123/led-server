@@ -5,8 +5,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#include "buf.h"
 #include "counter.h"
-
 
 #define MAX_ID COUNTER_5
 
@@ -18,10 +18,10 @@
 /* either set "|=" or clear "&= ~" */
 typedef void (*reg_access) (uint8_t/*counter-id*/, uint8_t/*value*/);
 
-/* static uint8_t prescaler[ARRAY_SIZE]; */
-
 static counter_handle overflow[ARRAY_SIZE];
 static counter_handle compare_a[ARRAY_SIZE];
+
+static volatile struct buf_t handle_queue;
 
 void counter_init ()
 {
@@ -30,6 +30,8 @@ void counter_init ()
     overflow[i] = 0;
     compare_a[i] = 0;
   }
+
+  buf_init (&handle_queue);
 }
 
 static uint8_t eight_bits (uint8_t id)
@@ -221,7 +223,8 @@ void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun)
 {
   if ((id > MAX_ID)
       || ((int_type != COUNTER_INTERRUPT_OVERFLOW)
-          && (int_type != COUNTER_INTERRUPT_COMPARE_A)))
+          && (int_type != COUNTER_INTERRUPT_COMPARE_A))
+      || (fun == 0))
     return;
 
   counter_handle *array = overflow;
@@ -339,146 +342,92 @@ void counter_get (uint8_t id, uint8_t *low, uint8_t *high)
   }
 }
 
-ISR(TIMER0_OVF_vect)
+static void interrupt_routine (uint8_t is_compare_a, uint8_t counter_id)
 {
-  counter_handle handle = overflow[COUNTER_0];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
+  counter_handle *array = overflow;
+  if (is_compare_a != 0) {
+    array = compare_a;
+    counter_id += ARRAY_SIZE;
   }
 
-  handle();
+  if (*(array + counter_id) != 0)
+    buf_byte_fill (&handle_queue, counter_id);
+}
+
+ISR(TIMER0_OVF_vect)
+{
+  interrupt_routine (0, COUNTER_0);
 }
 
 ISR(TIMER1_OVF_vect)
 {
-  counter_handle handle = overflow[COUNTER_1];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (0, COUNTER_1);
 }
 
 ISR(TIMER2_OVF_vect)
 {
-  counter_handle handle = overflow[COUNTER_2];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (0, COUNTER_2);
 }
 
 ISR(TIMER3_OVF_vect)
 {
-  counter_handle handle = overflow[COUNTER_3];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (0, COUNTER_3);
 }
 
 ISR(TIMER4_OVF_vect)
 {
-  counter_handle handle = overflow[COUNTER_4];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (0, COUNTER_4);
 }
 
 ISR(TIMER5_OVF_vect)
 {
-  counter_handle handle = overflow[COUNTER_5];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (0, COUNTER_5);
 }
 
 ISR(TIMER0_COMPA_vect)
 {
-  counter_handle handle = compare_a[COUNTER_0];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (1, COUNTER_0);
 }
 
 ISR(TIMER1_COMPA_vect)
 {
-  counter_handle handle = compare_a[COUNTER_1];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (1, COUNTER_1);
 }
 
 ISR(TIMER2_COMPA_vect)
 {
-  counter_handle handle = compare_a[COUNTER_2];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (1, COUNTER_2);
 }
 
 ISR(TIMER3_COMPA_vect)
 {
-  counter_handle handle = compare_a[COUNTER_3];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (1, COUNTER_3);
 }
 
 ISR(TIMER4_COMPA_vect)
 {
-  counter_handle handle = compare_a[COUNTER_4];
-
-  if (handle == 0) {
-    /*send err msg*/
-    return;
-  }
-
-  handle();
+  interrupt_routine (1, COUNTER_4);
 }
 
 ISR(TIMER5_COMPA_vect)
 {
-  counter_handle handle = compare_a[COUNTER_5];
+  interrupt_routine (1, COUNTER_5);
+}
 
-  if (handle == 0) {
-    /*send err msg*/
+void counter_try ()
+{
+  uint8_t id = 0;
+  if (buf_byte_drain (&handle_queue, &id) == 0)
     return;
+
+  counter_handle *array = overflow;
+  if (id >= ARRAY_SIZE) {
+    array = compare_a;
+    id -= ARRAY_SIZE;
   }
 
-  handle();
+  counter_handle fun = *(array + id);
+  /* tripple check ? */
+  if (fun != 0)
+    fun ();
 }

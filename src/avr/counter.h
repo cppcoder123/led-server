@@ -52,4 +52,7 @@ void counter_set_compare_a (uint8_t id, uint8_t low, uint8_t high);
 void counter_set (uint8_t id, uint8_t low, uint8_t high);
 void counter_get (uint8_t id, uint8_t *low, uint8_t *high);
 
+/* perform tasks scheduled by interrupts */
+void counter_try ();
+
 #endif
