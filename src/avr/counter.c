@@ -7,6 +7,7 @@
 
 #include "buf.h"
 #include "counter.h"
+#include "debug.h"
 
 #define MAX_ID COUNTER_5
 
@@ -344,14 +345,10 @@ void counter_get (uint8_t id, uint8_t *low, uint8_t *high)
 
 static void interrupt_routine (uint8_t is_compare_a, uint8_t counter_id)
 {
-  counter_handle *array = overflow;
-  if (is_compare_a != 0) {
-    array = compare_a;
-    counter_id += ARRAY_SIZE;
-  }
+   if (is_compare_a != 0)
+     counter_id += ARRAY_SIZE;
 
-  if (*(array + counter_id) != 0)
-    buf_byte_fill (&handle_queue, counter_id);
+  buf_byte_fill (&handle_queue, counter_id);
 }
 
 ISR(TIMER0_OVF_vect)
@@ -427,7 +424,6 @@ void counter_try ()
   }
 
   counter_handle fun = *(array + id);
-  /* tripple check ? */
-  if (fun != 0)
-    fun ();
+  /* if (fun != 0) --- it doesn't work ---*/
+  fun ();
 }

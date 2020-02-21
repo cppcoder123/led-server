@@ -6,7 +6,7 @@
 #include "counter.h"
 #include "invoke.h"
 
-#define INVOKE_COUNTER COUNTER_2
+#define INVOKE_COUNTER COUNTER_3
 #define INVOKE_PRESCALER COUNTER_PRESCALER_1024
 
 /*low-78, high-0 => 50 Hz*/
