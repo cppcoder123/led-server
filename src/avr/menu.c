@@ -3,7 +3,6 @@
  */
 
 #include <stdint.h>
-#include <util/atomic.h>
 
 #include "unix/constant.h"
 
@@ -70,7 +69,7 @@ static uint8_t param_value[PARAM_VALUE_MAX];
 static uint8_t param_min[PARAM_VALUE_MAX];
 static uint8_t param_max[PARAM_VALUE_MAX];
 
-static uint8_t value_is_valid (uint8_t param)
+static uint8_t value_is_valid ()
 {
   if (param >= PARAM_VALUE_MAX)
     return 1;
@@ -121,13 +120,13 @@ static uint8_t is_destination_needed ()
           || (param == PARAM_BRIGHTNESS)) ? 1 : 0;
 }
 
-static void render_delta (uint8_t negative, uint8_t abs,
+static void render_delta (uint8_t positive, uint8_t abs,
                           uint8_t *data, uint8_t *position)
 {
-  if (negative != 0)
-    render_symbol (FONT_MINUS, data, position);
-  else
+  if (positive != 0)
     render_symbol (FONT_PLUS, data, position);
+  else
+    render_symbol (FONT_MINUS, data, position);
 
   render_number (abs, RENDER_LEADING_DISABLE, data, position);
 }
@@ -138,24 +137,30 @@ static uint8_t is_sum_fits (uint8_t a, uint8_t b)
   return (a_ >= b) ? 1 : 0;
 }
 
-static uint8_t get_destination (uint8_t negate, uint8_t abs, uint8_t old)
+static uint8_t delta_abs (uint8_t *positive)
 {
-  return (negate != 0) ? ((old > abs) ? (old - abs) : 0)
-    : ((is_sum_fits (old, abs) != 0) ? (old + abs) : MAX);
+  *positive = (delta >= MIDDLE) ? 1 : 0;
+  return (*positive != 0) ? (MIDDLE - delta) : (delta - MIDDLE);
 }
 
-static void render_destination (uint8_t negative, uint8_t abs,
-                                uint8_t *data, uint8_t *position)
+static uint8_t value_derive ()
 {
-  uint8_t dst = get_destination (negative, abs, param_value[param]);
+  if (value_is_valid () == 0)
+    return 0;
 
-  render_number (dst, RENDER_LEADING_DISABLE, data, position);
-}
+  uint8_t positive, abs = delta_abs (&positive);
 
-static void split_delta (uint8_t *negate, uint8_t *abs)
-{
-  *negate = (delta < MIDDLE) ? 1 : 0;
-  *abs = (*negate != 0) ? (MIDDLE - delta) : (delta - MIDDLE);
+  uint8_t old = param_value[param];
+  uint8_t raw =  (positive != 0)
+    ? ((is_sum_fits (old, abs) != 0) ? (old + abs) : MAX)
+    : ((old > abs) ? (old - abs) : 0);
+
+  if (raw < param_min[param])
+    return param_min[param];
+  if (raw > param_max[param])
+    return param_max[param];
+
+  return raw;
 }
 
 static void render_label (uint8_t *data, uint8_t *position)
@@ -260,21 +265,21 @@ static void render ()
 
   render_label (data, &position);
 
-  uint8_t negate, abs;
-  split_delta (&negate, &abs);
+  uint8_t positive, abs = delta_abs (&positive);
 
   if (is_delta_needed () != 0) {
     render_symbol (FONT_COLON, data, &position);
-    render_delta (negate, abs, data, &position);
+    render_delta (positive, abs, data, &position);
   }
-  if (value_is_valid (param) != 0) {
+  if (value_is_valid () != 0) {
     if (is_source_needed () != 0) {
       render_symbol (FONT_COLON, data, &position);
       render_number (param_value[param],
                      RENDER_LEADING_DISABLE, data, &position);
     } else if (is_destination_needed () != 0) {
       render_symbol (FONT_COLON, data, &position);
-      render_destination (negate, abs, data, &position);
+      uint8_t dst = value_derive ();
+      render_number (dst, RENDER_LEADING_DISABLE, data, &position);
     }
   }
 
@@ -365,7 +370,7 @@ static void change_param (uint8_t action)
   delta = MIDDLE;
   param = param_change_array[id];
 
-  if (value_is_valid (param) == 0)
+  if (value_is_valid () == 0)
     query_param ();
 
   render ();
@@ -382,22 +387,21 @@ static void change_delta (uint8_t action)
            && (delta > 0))
     --delta;
 
-  if (value_is_valid (param) == 0)
+  if (value_is_valid () == 0)
     return;
 
-  uint8_t negate, abs;
-  split_delta (&negate, &abs);
+  uint8_t positive, abs = delta_abs (&positive);
 
   uint8_t delta_valid = 1;
-  if (negate != 0) {
-    /* check low limit */
-    if ((abs > param_value[param])
-        || ((param_value[param] - abs) < param_min[param]))
-      delta_valid = 0;
-  } else {
+  if (positive != 0) {
     /* check high limit */
     if ((is_sum_fits (abs, param_value[param]) == 0)
         || ((param_value[param] + abs) > param_max[param]))
+      delta_valid = 0;
+  } else {
+    /* check low limit */
+    if ((abs > param_value[param])
+        || ((param_value[param] - abs) < param_min[param]))
       delta_valid = 0;
   }
 
@@ -418,30 +422,16 @@ static void send_param_change (uint8_t parameter)
   if (mode_is_connnected () == 0)
     return;
 
-  uint8_t positive = 0, out_delta = 0;
-  ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
-    positive = (delta >= MIDDLE) ? PARAMETER_POSITIVE : PARAMETER_NEGATIVE;
-    out_delta = (positive == PARAMETER_POSITIVE)
-      ? (delta - MIDDLE) : (MIDDLE - delta);
-  }
+  uint8_t positive, abs = delta_abs (&positive);
+
   encode_msg_3
-    (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, out_delta);
-}
-
-static uint8_t apply_delta_max (uint8_t old, uint8_t max_value)
-{
-  uint8_t negate, abs;
-  split_delta (&negate, &abs);
-
-  uint8_t dst = get_destination (negate, abs, old);
-
-  return (dst > max_value) ? max_value : dst;
+    (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, abs);
 }
 
 static void stop ()
 {
   /* fixme send new value*/
-  if (value_is_valid (param) == 0)
+  if (value_is_valid () == 0)
     return;
 
   switch (param) {
@@ -452,39 +442,30 @@ static void stop ()
     clock_alarm_engage_set (1);
     break;
   case PARAM_ALARM_H:
-    clock_alarm_set
-      (apply_delta_max (param_value[PARAM_ALARM_H], CLOCK_HOUR_MAX),
-       param_value[PARAM_ALARM_M]);
+    clock_alarm_set (value_derive (), param_value[PARAM_ALARM_M]);
     break;
   case PARAM_ALARM_M:
     clock_alarm_set
-      (param_value[PARAM_ALARM_H],
-       apply_delta_max (param_value[PARAM_ALARM_M], CLOCK_MINUTE_MAX));
+      (param_value[PARAM_ALARM_H], value_derive ());
     break;
   case PARAM_BRIGHTNESS:
-      flush_brightness_set
-        (apply_delta_max (param_value[PARAM_BRIGHTNESS], FLUSH_BRIGHTNESS_MAX));
+      flush_brightness_set (value_derive ());
     break;
   case PARAM_CLOCK_H:
-    clock_set
-      (apply_delta_max (param_value[PARAM_CLOCK_H], CLOCK_HOUR_MAX),
-       param_value[PARAM_CLOCK_M]);
+    clock_set (value_derive (), param_value[PARAM_CLOCK_M]);
     break;
   case PARAM_CLOCK_M:
-    clock_set
-      (param_value[PARAM_CLOCK_H],
-       apply_delta_max (param_value[PARAM_CLOCK_M], CLOCK_MINUTE_MAX));
+    clock_set (param_value[PARAM_CLOCK_H], value_derive ());
     break;
   case PARAM_POWER:
     if (mode_is_connnected () == 0)
       power_on ();
     else
-      encode_msg_0 (MSG_ID_POWEROFF, SERIAL_ID_TO_IGNORE);
+      send_message_0 (MSG_ID_POWEROFF);
     break;
   case PARAM_REBOOT:
-    if (mode_is_connnected () != 0)
-      encode_msg_0 (MSG_ID_REBOOT, SERIAL_ID_TO_IGNORE);
-    debug_0 (DEBUG_MENU, 123);
+    send_message_0 (MSG_ID_REBOOT);
+    /* debug_0 (DEBUG_MENU, 123); */
     break;
   case PARAM_TRACK:
     send_param_change (PARAMETER_TRACK);
@@ -548,15 +529,6 @@ void menu_init ()
   reset ();
 }
 
-static uint8_t value_is_allowed (uint8_t new)
-{
-  if (value_is_valid (param) == 0)
-    return 1;
-
-  return ((new >= param_min[param]) && (new <= param_max[param]))
-    ? 1 : 0;
-}
-
 uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
                               uint8_t min, uint8_t max)
 {
@@ -575,8 +547,9 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
   at_postpone (AT_MENU);
 
   if (id == param) {
-    uint8_t dst = apply_delta_max (value, MAX);
-    if (value_is_allowed (dst) == 0)
+    uint8_t new_value = value_derive ();
+    if ((new_value < param_min[id])
+        || (new_value > param_max[id]))
       delta = MIDDLE;
 
     render ();
