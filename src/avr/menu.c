@@ -140,7 +140,7 @@ static uint8_t is_sum_fits (uint8_t a, uint8_t b)
 static uint8_t delta_abs (uint8_t *positive)
 {
   *positive = (delta >= MIDDLE) ? 1 : 0;
-  return (*positive != 0) ? (MIDDLE - delta) : (delta - MIDDLE);
+  return (*positive != 0) ? (delta - MIDDLE) : (MIDDLE - delta);
 }
 
 static uint8_t value_derive ()
