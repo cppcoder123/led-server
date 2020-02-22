@@ -460,22 +460,21 @@ static void change_param_set (uint8_t new_param)
 static uint8_t change_something (uint8_t old, uint8_t action,
                                  uint8_t min, uint8_t max)
 {
-  uint8_t new = old;
-
   /* debug_2 (DEBUG_MENU, 88, new, chunk); */
 
-  if ((action == ROTOR_CLOCKWISE)
-      && (++chunk >= CHUNK_MAX)
-      && (new < max)) {
-    chunk = CHUNK_MIN;
-    ++new;
-  } else if ((action == ROTOR_COUNTER_CLOCKWISE)
-             && (--chunk <= CHUNK_MIN)
-             && (new > min)) {
-    chunk = CHUNK_MAX;
-    --new;
-  }
+  if (++chunk < CHUNK_MAX)
+    return old;
 
+  uint8_t new = old;
+
+  if ((action == ROTOR_CLOCKWISE)
+      && (new < max))
+    ++new;
+  else if ((action == ROTOR_COUNTER_CLOCKWISE)
+           && (new > min))
+    --new;
+
+  chunk = CHUNK_MIN;
   /* debug_2 (DEBUG_MENU, 99, new, chunk); */
 
   return new;
