@@ -526,7 +526,7 @@ static void reset ()
 
 static void start (uint8_t id, uint8_t action)
 {
-  debug_2 (DEBUG_MENU, 111, id, action);
+  /* debug_2 (DEBUG_MENU, 111, id, action); */
 
   if (at_empty (AT_MENU) != 0) {
     /* debug_0 (DEBUG_MENU, 11); */
