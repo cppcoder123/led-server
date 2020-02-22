@@ -16,23 +16,23 @@
 /* 1 sec for bouncing */
 #define BOUNCE_DELAY 1
 
-#define MASK_ROTOR_1_A (1 << 3)
-#define MASK_ROTOR_1_B (1 << 5)
-#define MASK_ROTOR_1_BOTH (MASK_ROTOR_1_A | MASK_ROTOR_1_B)
-#define MASK_ROTOR_1_PUSH (1 << 7)
+#define MASK_ROTOR_0_A (1 << 3)
+#define MASK_ROTOR_0_B (1 << 5)
+#define MASK_ROTOR_0_BOTH (MASK_ROTOR_0_A | MASK_ROTOR_0_B)
+#define MASK_ROTOR_0_PUSH (1 << 7)
 
-#define MASK_ROTOR_2_A (1 << 2)
-#define MASK_ROTOR_2_B (1 << 4)
-#define MASK_ROTOR_2_BOTH (MASK_ROTOR_2_A | MASK_ROTOR_2_B)
-#define MASK_ROTOR_2_PUSH (1 << 6)
+#define MASK_ROTOR_1_A (1 << 2)
+#define MASK_ROTOR_1_B (1 << 4)
+#define MASK_ROTOR_1_BOTH (MASK_ROTOR_1_A | MASK_ROTOR_1_B)
+#define MASK_ROTOR_1_PUSH (1 << 6)
 
 /*
  * It looks that turn buttons are bounce protected by hardware,
  * but push button doesn't.
  * So, try to implement software debouncing.
  */
-#define BOUNCE_1 (1 << 0)
-#define BOUNCE_2 (1 << 1)
+#define BOUNCE_0 (1 << 0)
+#define BOUNCE_1 (1 << 1)
 
 static volatile struct buf_t event_buf;
 static uint8_t toggled_bits = 0;
@@ -74,27 +74,27 @@ static uint8_t apply_mask (uint8_t old, uint8_t new,
 
 static void bounce_clear_1 ()
 {
-  bounce &= ~BOUNCE_1;
+  bounce &= ~BOUNCE_0;
 }
 
 static void bounce_clear_2 ()
 {
-  bounce &= ~BOUNCE_2;
+  bounce &= ~BOUNCE_1;
 }
 
 static void debounce (uint8_t id)
 {
-  uint8_t mask = (id == ROTOR_1) ? BOUNCE_1 : BOUNCE_2;
+  uint8_t mask = (id == ROTOR_0) ? BOUNCE_0 : BOUNCE_1;
 
   if ((bounce & mask) != 0)
     return;
 
   bounce |= mask;
 
-  if (id == ROTOR_1)
-    at_schedule (AT_BOUNCE_1, BOUNCE_DELAY, &bounce_clear_1);
+  if (id == ROTOR_0)
+    at_schedule (AT_BOUNCE_0, BOUNCE_DELAY, &bounce_clear_1);
   else
-    at_schedule (AT_BOUNCE_2, BOUNCE_DELAY, &bounce_clear_2);
+    at_schedule (AT_BOUNCE_1, BOUNCE_DELAY, &bounce_clear_2);
 
   callback (id, ROTOR_PUSH);
 }
@@ -111,22 +111,22 @@ void rotor_try ()
   /* debug_1 (DEBUG_ROTOR, DEBUG_11, new_toggled_bits); */
 
   if (apply_mask
-      (toggled_bits, new_toggled_bits, MASK_ROTOR_1_A, MASK_ROTOR_1_BOTH) != 0)
-    callback (ROTOR_1, ROTOR_CLOCKWISE);
+      (toggled_bits, new_toggled_bits, MASK_ROTOR_0_A, MASK_ROTOR_0_BOTH) != 0)
+    callback (ROTOR_0, ROTOR_CLOCKWISE);
   if (apply_mask
-      (toggled_bits, new_toggled_bits, MASK_ROTOR_1_B, MASK_ROTOR_1_BOTH) != 0)
-    callback (ROTOR_1, ROTOR_COUNTER_CLOCKWISE);
-  if (new_toggled_bits & MASK_ROTOR_1_PUSH)
-    debounce (ROTOR_1);
+      (toggled_bits, new_toggled_bits, MASK_ROTOR_0_B, MASK_ROTOR_0_BOTH) != 0)
+    callback (ROTOR_0, ROTOR_COUNTER_CLOCKWISE);
+  if (new_toggled_bits & MASK_ROTOR_0_PUSH)
+    debounce (ROTOR_0);
 
   if (apply_mask
-      (toggled_bits, new_toggled_bits, MASK_ROTOR_2_A, MASK_ROTOR_2_BOTH) != 0)
-    callback (ROTOR_2, ROTOR_COUNTER_CLOCKWISE);
+      (toggled_bits, new_toggled_bits, MASK_ROTOR_1_A, MASK_ROTOR_1_BOTH) != 0)
+    callback (ROTOR_1, ROTOR_COUNTER_CLOCKWISE);
   if (apply_mask
-      (toggled_bits, new_toggled_bits, MASK_ROTOR_2_B, MASK_ROTOR_2_BOTH) != 0)
-    callback (ROTOR_2, ROTOR_CLOCKWISE);
-  if (new_toggled_bits & MASK_ROTOR_2_PUSH)
-    debounce (ROTOR_2);
+      (toggled_bits, new_toggled_bits, MASK_ROTOR_1_B, MASK_ROTOR_1_BOTH) != 0)
+    callback (ROTOR_1, ROTOR_CLOCKWISE);
+  if (new_toggled_bits & MASK_ROTOR_1_PUSH)
+    debounce (ROTOR_1);
 
   toggled_bits = new_toggled_bits;
 }

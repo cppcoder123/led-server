@@ -11,8 +11,8 @@ void at_init ();
 
 enum {
   AT_MENU,
+  AT_BOUNCE_0,
   AT_BOUNCE_1,
-  AT_BOUNCE_2,
   /* AT_POWER, */
   AT_MAX,                       /* keep it last */
 };

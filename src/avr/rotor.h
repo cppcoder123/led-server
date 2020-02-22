@@ -10,14 +10,11 @@ void rotor_init ();
 
 void rotor_try ();
 
-/* id */
 enum {
+  /* knob ids */
+  ROTOR_0,
   ROTOR_1,
-  ROTOR_2,
-};
-
-/* action */
-enum {
+  /* actions */
   ROTOR_CLOCKWISE,
   ROTOR_COUNTER_CLOCKWISE,
   ROTOR_PUSH,

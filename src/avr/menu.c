@@ -22,7 +22,7 @@
 #define MENU_DELAY 5
 
 /* left knob */
-#define PARAM_ROTOR ROTOR_2
+#define PARAM_ROTOR ROTOR_1
 #define VOLUME_ROTOR PARAM_ROTOR
 
 /* total led matrix size */
@@ -549,7 +549,7 @@ static void reset ()
 /* start menu handling */
 static void start (uint8_t id, uint8_t action)
 {
-  /* debug_2 (DEBUG_MENU, 111, id, action); */
+  debug_2 (DEBUG_MENU, 111, id, action);
 
   if (at_empty (AT_MENU) != 0) {
     /* debug_0 (DEBUG_MENU, 11); */
