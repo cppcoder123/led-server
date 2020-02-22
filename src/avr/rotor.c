@@ -6,13 +6,15 @@
 #include <avr/io.h>
 #include <stdint.h>
 
+#include "at.h"
 #include "buf.h"
 #include "debug.h"
-#include "invoke.h"
 #include "rotor.h"
 
 /* no more than 2 presses per second */
-#define BOUNCE_DELAY 20
+/* #define BOUNCE_DELAY 20 */
+/* 1 sec for bouncing */
+#define BOUNCE_DELAY 1
 
 #define MASK_ROTOR_1_A (1 << 3)
 #define MASK_ROTOR_1_B (1 << 5)
@@ -42,18 +44,13 @@ static void dummy_callback (uint8_t id, uint8_t action)
 {
 }
 
-static void bounce_clear ()
-{
-  bounce = 0;
-}
-
 void rotor_init ()
 {
   buf_init (&event_buf);
   toggled_bits = 0;
   bounce = 0;
   callback = &dummy_callback;
-  invoke_enable (INVOKE_ID_ROTOR, BOUNCE_DELAY, &bounce_clear);
+  /* invoke_enable (INVOKE_ID_ROTOR, BOUNCE_DELAY, &bounce_clear); */
 
   /* enable 3-rd series of pin change interrupts */
   PCICR |= (1 << PCIE2);
@@ -75,13 +72,30 @@ static uint8_t apply_mask (uint8_t old, uint8_t new,
           && ((new & new_mask) == new_mask)) ? 1 : 0;
 }
 
+static void bounce_clear_1 ()
+{
+  bounce &= ~BOUNCE_1;
+}
+
+static void bounce_clear_2 ()
+{
+  bounce &= ~BOUNCE_2;
+}
+
 static void debounce (uint8_t id)
 {
   uint8_t mask = (id == ROTOR_1) ? BOUNCE_1 : BOUNCE_2;
+
   if ((bounce & mask) != 0)
     return;
 
   bounce |= mask;
+
+  if (id == ROTOR_1)
+    at_schedule (AT_BOUNCE_1, BOUNCE_DELAY, &bounce_clear_1);
+  else
+    at_schedule (AT_BOUNCE_2, BOUNCE_DELAY, &bounce_clear_2);
+
   callback (id, ROTOR_PUSH);
 }
 
