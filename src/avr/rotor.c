@@ -11,10 +11,16 @@
 #include "debug.h"
 #include "rotor.h"
 
-/* no more than 2 presses per second */
-/* #define BOUNCE_DELAY 20 */
-/* 1 sec for bouncing */
-#define BOUNCE_DELAY 1
+/*
+ * 2 sec for bouncing
+ *
+ * Actually bouncing should be around 0.05-0.1 sec
+ * but 'at' resolution is 1 second and
+ * with 1 second it doesn't work well.
+ * Perhaps 1 second is not enough because it is min avalaible value.
+ * So, max rate is aprox 1 push per 2 seconds.
+ */
+#define BOUNCE_DELAY 2
 
 #define MASK_ROTOR_0_A (1 << 3)
 #define MASK_ROTOR_0_B (1 << 5)
@@ -72,12 +78,12 @@ static uint8_t apply_mask (uint8_t old, uint8_t new,
           && ((new & new_mask) == new_mask)) ? 1 : 0;
 }
 
-static void bounce_clear_1 ()
+static void bounce_clear_0 ()
 {
   bounce &= ~BOUNCE_0;
 }
 
-static void bounce_clear_2 ()
+static void bounce_clear_1 ()
 {
   bounce &= ~BOUNCE_1;
 }
@@ -92,9 +98,9 @@ static void debounce (uint8_t id)
   bounce |= mask;
 
   if (id == ROTOR_0)
-    at_schedule (AT_BOUNCE_0, BOUNCE_DELAY, &bounce_clear_1);
+    at_schedule (AT_BOUNCE_0, BOUNCE_DELAY, &bounce_clear_0);
   else
-    at_schedule (AT_BOUNCE_1, BOUNCE_DELAY, &bounce_clear_2);
+    at_schedule (AT_BOUNCE_1, BOUNCE_DELAY, &bounce_clear_1);
 
   callback (id, ROTOR_PUSH);
 }
