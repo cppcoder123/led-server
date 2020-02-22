@@ -26,6 +26,7 @@ enum {
   INVOKE_ID_MAX,                /* Keep last */
 };
 
+/* factor is 0.02 sec */
 uint8_t invoke_enable (uint8_t id,
                        uint8_t factor, invoke_callback callback);
 uint8_t invoke_disable (uint8_t id);
