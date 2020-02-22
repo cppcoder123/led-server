@@ -371,6 +371,17 @@ static void reset_delta ()
   chunk = CHUNK_MIDDLE;
 }
 
+static void param_set (uint8_t new_param)
+{
+  param = new_param;
+  reset_delta ();
+
+  if (value_is_valid () == 0)
+    value_query ();
+
+  render ();
+}
+
 static void change_param (uint8_t action)
 {
   const uint8_t max_id = sizeof (param_change_array) / sizeof (uint8_t) - 1;
@@ -392,14 +403,7 @@ static void change_param (uint8_t action)
       id = max_id;
   }
 
-  /* reset delta if we changing parameter */
-  reset_delta ();
-  param = param_change_array[id];
-
-  if (value_is_valid () == 0)
-    value_query ();
-
-  render ();
+  param_set (param_change_array[id]);
 }
 
 static void change_delta (uint8_t action)
@@ -522,7 +526,10 @@ static void reset ()
 
 static void start (uint8_t id, uint8_t action)
 {
+  debug_2 (DEBUG_MENU, 111, id, action);
+
   if (at_empty (AT_MENU) != 0) {
+    /* debug_0 (DEBUG_MENU, 11); */
     reset ();
     way = (action == ROTOR_PUSH) ? WAY_COMPLEX : WAY_SIMPLE;
     backup_mode = mode_get ();
@@ -533,7 +540,10 @@ static void start (uint8_t id, uint8_t action)
     return;
   }
 
+  /* debug_0 (DEBUG_MENU, 22); */
+
   if (action == ROTOR_PUSH) {
+    /* debug_0 (DEBUG_MENU, 33); */
     at_cancel (AT_MENU);
     stop ();
     return;
@@ -542,11 +552,10 @@ static void start (uint8_t id, uint8_t action)
   at_postpone (AT_MENU);
 
   if (way == WAY_SIMPLE) {
+    /* debug_0 (DEBUG_MENU, 44); */
     uint8_t new_param = (id == VOLUME_ROTOR) ? PARAM_VOLUME : PARAM_TRACK;
-    if (new_param != param) {
-      reset_delta ();
-      param = new_param;
-    }
+    if (new_param != param)
+      param_set (new_param);
     change_delta (action);
     return;
   }

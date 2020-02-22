@@ -22,6 +22,7 @@ enum {
   INVOKE_ID_CLOCK,
   INVOKE_ID_FLUSH,
   INVOKE_ID_HEARTBEAT,
+  INVOKE_ID_ROTOR,
   INVOKE_ID_MAX,                /* Keep last */
 };
 
