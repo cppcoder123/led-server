@@ -83,12 +83,18 @@ static uint8_t param_min[PARAM_VALUE_MAX];
 static uint8_t param_value[PARAM_VALUE_MAX];
 static uint8_t way = WAY_UNKNOWN;
 
+/*
+ * General purpose functions
+ */
 static uint8_t is_sum_fits (uint8_t a, uint8_t b)
 {
   uint8_t a_ = 0xFF - a;
   return (a_ >= b) ? 1 : 0;
 }
 
+/*
+ * Delta related
+ */
 static uint8_t delta_abs (uint8_t *positive)
 {
   *positive = (delta >= DELTA_MIDDLE) ? 1 : 0;
@@ -101,6 +107,9 @@ static void delta_reset ()
   chunk = CHUNK_MIDDLE;
 }
 
+/*
+ * Send
+ */
 static void send_message_0 (uint8_t msg_id)
 {
   if (mode_is_connnected () != 0)
@@ -124,6 +133,9 @@ static void send_param_change (uint8_t parameter)
     (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, abs);
 }
 
+/*
+ * Value
+ */
 static uint8_t value_is_valid ()
 {
   if (param >= PARAM_VALUE_MAX)
@@ -271,6 +283,9 @@ static void value_update ()
     }
 }
 
+/*
+ * Render
+ */
 static uint8_t render_delta_needed ()
 {
   return (param == PARAM_VOLUME) ? 1 : 0;
@@ -428,6 +443,9 @@ static void render ()
   flush_stable_display (data);
 }
 
+/*
+ * Change (param or its value)
+ */
 static void change_param_set (uint8_t new_param)
 {
   param = new_param;
@@ -506,6 +524,7 @@ static void change_delta (uint8_t action)
   render ();
 }
 
+/* exit from menu handling */
 static void stop ()
 {
   if (value_is_valid () != 0)
@@ -516,6 +535,7 @@ static void stop ()
   send_message_0 (MSG_ID_RESUME);
 }
 
+/* reset state before starting menu handling */
 static void reset ()
 {
   delta_reset ();
@@ -526,6 +546,7 @@ static void reset ()
   way = WAY_UNKNOWN;
 }
 
+/* start menu handling */
 static void start (uint8_t id, uint8_t action)
 {
   /* debug_2 (DEBUG_MENU, 111, id, action); */
