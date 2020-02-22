@@ -104,7 +104,7 @@ static uint8_t delta_abs (uint8_t *positive)
 static void delta_reset ()
 {
   delta = DELTA_MIDDLE;
-  chunk = CHUNK_MIDDLE;
+  /* chunk = CHUNK_MIDDLE; */
 }
 
 /*
@@ -457,6 +457,30 @@ static void change_param_set (uint8_t new_param)
   render ();
 }
 
+static uint8_t change_something (uint8_t old, uint8_t action,
+                                 uint8_t min, uint8_t max)
+{
+  uint8_t new = old;
+
+  /* debug_2 (DEBUG_MENU, 88, new, chunk); */
+
+  if ((action == ROTOR_CLOCKWISE)
+      && (++chunk >= CHUNK_MAX)
+      && (new < max)) {
+    chunk = CHUNK_MIN;
+    ++new;
+  } else if ((action == ROTOR_COUNTER_CLOCKWISE)
+             && (--chunk <= CHUNK_MIN)
+             && (new > min)) {
+    chunk = CHUNK_MAX;
+    --new;
+  }
+
+  /* debug_2 (DEBUG_MENU, 99, new, chunk); */
+
+  return new;
+}
+
 static void change_param (uint8_t action)
 {
   const uint8_t max_id = sizeof (param_change_array) / sizeof (uint8_t) - 1;
@@ -466,36 +490,17 @@ static void change_param (uint8_t action)
     if (param == param_change_array[id])
       break;
 
-  if (action == ROTOR_CLOCKWISE) {
-    if (id < max_id)
-      ++id;
-    else
-      id = 0;
-  } else if (action == ROTOR_COUNTER_CLOCKWISE) {
-    if (id > 0)
-      --id;
-    else
-      id = max_id;
-  }
+  uint8_t new_id = change_something (id, action, 0, max_id);
 
-  change_param_set (param_change_array[id]);
+  if (new_id != id)
+    change_param_set (param_change_array[new_id]);
 }
 
 static void change_delta (uint8_t action)
 {
   uint8_t backup_delta = delta;
 
-  if ((action == ROTOR_CLOCKWISE)
-      && (++chunk >= CHUNK_MAX)
-      && (delta < DELTA_MAX)) {
-    chunk = CHUNK_MIN;
-    ++delta;
-  } else if ((action == ROTOR_COUNTER_CLOCKWISE)
-             && (--chunk <= CHUNK_MIN)
-             && (delta > DELTA_MIN)) {
-    chunk = CHUNK_MAX;
-    --delta;
-  }
+  delta = change_something (delta, action, DELTA_MIN, DELTA_MAX);
 
   if (delta == backup_delta)
     return;

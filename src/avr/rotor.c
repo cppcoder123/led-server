@@ -27,8 +27,8 @@
 #define MASK_ROTOR_0_BOTH (MASK_ROTOR_0_A | MASK_ROTOR_0_B)
 #define MASK_ROTOR_0_PUSH (1 << 7)
 
-#define MASK_ROTOR_1_A (1 << 2)
-#define MASK_ROTOR_1_B (1 << 4)
+#define MASK_ROTOR_1_A (1 << 4)
+#define MASK_ROTOR_1_B (1 << 2)
 #define MASK_ROTOR_1_BOTH (MASK_ROTOR_1_A | MASK_ROTOR_1_B)
 #define MASK_ROTOR_1_PUSH (1 << 6)
 
@@ -122,7 +122,8 @@ static void handle_event (uint8_t event, uint8_t id)
     callback (id, ROTOR_CLOCKWISE);
   if (apply_mask (old_event, event, mask_b, mask_both) != 0)
     callback (id, ROTOR_COUNTER_CLOCKWISE);
-  if (event & mask_push)
+  if (((old_event & mask_push) == 0)
+      && ((event & mask_push) == mask_push))
     debounce (id);
 }
 
