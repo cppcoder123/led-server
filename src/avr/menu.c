@@ -21,11 +21,11 @@
 /* 5 seconds */
 #define MENU_DELAY 5
 
-#define PARAM_ID ROTOR_2
+/* left knob */
+#define PARAM_ROTOR ROTOR_2
+#define VOLUME_ROTOR PARAM_ROTOR
 
-#define MIDDLE 0x7F
-#define MAX 0xFF
-
+/* total led matrix size */
 #define DATA_SIZE FLUSH_STABLE_SIZE
 
 #define PARAM_FLAG_ALARM (1 << 0)
@@ -36,7 +36,14 @@
 #define PARAM_FLAG_VOLUME_SENT (1 << 5)
 #define PARAM_FLAG_TRACK_SENT (1 << 6)
 
-#define CHUNK_MAX 3
+#define DELTA_MIN 0
+#define DELTA_MIDDLE 0x7F
+#define DELTA_MAX 0xFF
+
+/* chunk min should be more than zero */
+#define CHUNK_MIN 11
+#define CHUNK_MAX 14
+#define CHUNK_MIDDLE ((CHUNK_MIN + CHUNK_MAX) / 2) 
 
 enum {
   PARAM_ALARM_H,
@@ -54,21 +61,27 @@ enum {
   PARAM_REBOOT,                 /* reboot pi */
 };
 
+enum {
+  WAY_UNKNOWN,                  /* initial value */
+  WAY_SIMPLE,                   /* channel & volume */
+  WAY_COMPLEX,                  /* the rest of params */
+};
+
 static const uint8_t param_change_array[] =
-  {PARAM_CANCEL, PARAM_VOLUME, PARAM_TRACK,
-   PARAM_ALARM_ENABLE, PARAM_ALARM_DISABLE,
+  {PARAM_CANCEL, PARAM_ALARM_ENABLE, PARAM_ALARM_DISABLE,
    PARAM_ALARM_H, PARAM_ALARM_M,
    PARAM_CLOCK_H, PARAM_CLOCK_M,
    PARAM_BRIGHTNESS, PARAM_POWER, PARAM_REBOOT};
 
-static uint8_t restore_mode = MODE_MENU;
-static uint8_t delta = MIDDLE;
+static uint8_t backup_mode = MODE_MENU;
+static uint8_t chunk = CHUNK_MIDDLE;
+static uint8_t delta = DELTA_MIDDLE;
 static uint8_t param = PARAM_POWER;
 static uint8_t param_flag = 0;
-static uint8_t param_value[PARAM_VALUE_MAX];
-static uint8_t param_min[PARAM_VALUE_MAX];
 static uint8_t param_max[PARAM_VALUE_MAX];
-static uint8_t chunk = 0;
+static uint8_t param_min[PARAM_VALUE_MAX];
+static uint8_t param_value[PARAM_VALUE_MAX];
+static uint8_t way = WAY_UNKNOWN;
 
 static uint8_t value_is_valid ()
 {
@@ -134,14 +147,14 @@ static void render_delta (uint8_t positive, uint8_t abs,
 
 static uint8_t is_sum_fits (uint8_t a, uint8_t b)
 {
-  uint8_t a_ = MAX - a;
+  uint8_t a_ = 0xFF - a;
   return (a_ >= b) ? 1 : 0;
 }
 
 static uint8_t delta_abs (uint8_t *positive)
 {
-  *positive = (delta >= MIDDLE) ? 1 : 0;
-  return (*positive != 0) ? (delta - MIDDLE) : (MIDDLE - delta);
+  *positive = (delta >= DELTA_MIDDLE) ? 1 : 0;
+  return (*positive != 0) ? (delta - DELTA_MIDDLE) : (DELTA_MIDDLE - delta);
 }
 
 static uint8_t value_derive ()
@@ -153,7 +166,7 @@ static uint8_t value_derive ()
 
   uint8_t old = param_value[param];
   uint8_t raw =  (positive != 0)
-    ? ((is_sum_fits (old, abs) != 0) ? (old + abs) : MAX)
+    ? ((is_sum_fits (old, abs) != 0) ? (old + abs) : 0xFF)
     : ((old > abs) ? (old - abs) : 0);
 
   if (raw < param_min[param])
@@ -290,13 +303,19 @@ static void render ()
   flush_stable_display (data);
 }
 
+static void send_message_0 (uint8_t msg_id)
+{
+  if (mode_is_connnected () != 0)
+    encode_msg_0 (msg_id, SERIAL_ID_TO_IGNORE);
+}
+
 static void send_message_1 (uint8_t msg_id, uint8_t payload_1)
 {
   if (mode_is_connnected () != 0)
     encode_msg_1 (msg_id, SERIAL_ID_TO_IGNORE, payload_1);
 }
 
-static void query_param ()
+static void value_query ()
 {
   switch (param) {
   case PARAM_ALARM_H:
@@ -346,6 +365,12 @@ static void query_param ()
   }
 }
 
+static void reset_delta ()
+{
+  delta = DELTA_MIDDLE;
+  chunk = CHUNK_MIDDLE;
+}
+
 static void change_param (uint8_t action)
 {
   const uint8_t max_id = sizeof (param_change_array) / sizeof (uint8_t) - 1;
@@ -368,12 +393,11 @@ static void change_param (uint8_t action)
   }
 
   /* reset delta if we changing parameter */
-  delta = MIDDLE;
+  reset_delta ();
   param = param_change_array[id];
-  chunk = 0;
 
   if (value_is_valid () == 0)
-    query_param ();
+    value_query ();
 
   render ();
 }
@@ -384,16 +408,14 @@ static void change_delta (uint8_t action)
 
   if ((action == ROTOR_CLOCKWISE)
       && (++chunk >= CHUNK_MAX)
-      && (delta < MAX)) {
-    chunk = 0;
+      && (delta < DELTA_MAX)) {
+    chunk = CHUNK_MIN;
     ++delta;
-  } else if (action == ROTOR_COUNTER_CLOCKWISE) {
-    if (chunk == 0) {
-      chunk = CHUNK_MAX;
-      if (delta > 0)
-        --delta;
-    } else
-      --chunk;
+  } else if ((action == ROTOR_COUNTER_CLOCKWISE)
+             && (--chunk <= CHUNK_MIN)
+             && (delta > DELTA_MIN)) {
+    chunk = CHUNK_MAX;
+    --delta;
   }
 
   if (delta == backup_delta)
@@ -421,12 +443,6 @@ static void change_delta (uint8_t action)
     delta = backup_delta;
 
   render ();
-}
-
-static void send_message_0 (uint8_t msg_id)
-{
-  if (mode_is_connnected () != 0)
-    encode_msg_0 (msg_id, SERIAL_ID_TO_IGNORE);
 }
 
 static void send_param_change (uint8_t parameter)
@@ -490,45 +506,82 @@ static void stop ()
   }
 
   flush_shift_drain_stop ();
-  mode_set (restore_mode);
+  mode_set (backup_mode);
   send_message_0 (MSG_ID_RESUME);
 }
 
 static void reset ()
 {
-  delta = MIDDLE;
+  reset_delta ();
   param = param_change_array[0];
   param_flag = 0;
   for (uint8_t i = 0; i < PARAM_VALUE_MAX; ++i)
     param_value[i] = 0;
+  way = WAY_UNKNOWN;
 }
 
 static void start (uint8_t id, uint8_t action)
 {
-  if (action == ROTOR_PUSH)
-    return;
-
   if (at_empty (AT_MENU) != 0) {
     reset ();
-    at_schedule (AT_MENU, MENU_DELAY, &stop);
-    restore_mode = mode_get ();
+    way = (action == ROTOR_PUSH) ? WAY_COMPLEX : WAY_SIMPLE;
+    backup_mode = mode_get ();
     mode_set (MODE_MENU);
     send_message_0 (MSG_ID_SUSPEND);
     flush_shift_drain_start ();
-  } else {
-    at_postpone (AT_MENU);
+    at_schedule (AT_MENU, MENU_DELAY, &stop);
+    return;
   }
 
-  if (id == PARAM_ID)
+  if (action == ROTOR_PUSH) {
+    at_cancel (AT_MENU);
+    stop ();
+    return;
+  }
+
+  at_postpone (AT_MENU);
+
+  if (way == WAY_SIMPLE) {
+    uint8_t new_param = (id == VOLUME_ROTOR) ? PARAM_VOLUME : PARAM_TRACK;
+    if (new_param != param) {
+      reset_delta ();
+      param = new_param;
+    }
+    change_delta (action);
+    return;
+  }
+
+  /* here we should have complex way */
+  if (id == PARAM_ROTOR)
     change_param (action);
   else
     change_delta (action);
 }
 
+/*   if (action == ROTOR_PUSH) */
+/*     return; */
+
+/*   if (at_empty (AT_MENU) != 0) { */
+/*     reset (); */
+/*     at_schedule (AT_MENU, MENU_DELAY, &stop); */
+/*     backup_mode = mode_get (); */
+/*     mode_set (MODE_MENU); */
+/*     send_message_0 (MSG_ID_SUSPEND); */
+/*     flush_shift_drain_start (); */
+/*   } else { */
+/*     at_postpone (AT_MENU); */
+/*   } */
+
+/*   if (id == PARAM_ROTOR) */
+/*     change_param (action); */
+/*   else */
+/*     change_delta (action); */
+/* } */
+
 void menu_init ()
 {
   rotor_register (&start);
-  restore_mode = MODE_MENU;
+  backup_mode = MODE_MENU;
 
   param_min[PARAM_ALARM_H] = param_min[PARAM_CLOCK_H] = 0;
   param_min[PARAM_BRIGHTNESS] = 0;
@@ -537,8 +590,6 @@ void menu_init ()
   param_max[PARAM_ALARM_H] = param_max[PARAM_CLOCK_H] = CLOCK_HOUR_MAX;
   param_max[PARAM_BRIGHTNESS] = 0xF;
   param_max[PARAM_ALARM_M] = param_max[PARAM_CLOCK_M] = CLOCK_MINUTE_MAX;
-
-  chunk = 0;
 
   reset ();
 }
@@ -564,7 +615,7 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
     uint8_t new_value = value_derive ();
     if ((new_value < param_min[id])
         || (new_value > param_max[id]))
-      delta = MIDDLE;
+      reset_delta ();
 
     render ();
   }
