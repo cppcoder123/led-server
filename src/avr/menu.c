@@ -271,17 +271,17 @@ static void value_update ()
     }
 }
 
-static uint8_t is_delta_needed ()
+static uint8_t render_delta_needed ()
 {
   return (param == PARAM_VOLUME) ? 1 : 0;
 }
 
-static uint8_t is_source_needed ()
+static uint8_t render_source_needed ()
 {
   return (param == PARAM_VOLUME) ? 1 : 0;
 }
 
-static uint8_t is_destination_needed ()
+static uint8_t render_destination_needed ()
 {
   return ((param == PARAM_TRACK)
           || (param == PARAM_CLOCK_H)
@@ -406,16 +406,16 @@ static void render ()
 
   uint8_t positive, abs = delta_abs (&positive);
 
-  if (is_delta_needed () != 0) {
+  if (render_delta_needed () != 0) {
     render_symbol (FONT_COLON, data, &position);
     render_delta (positive, abs, data, &position);
   }
   if (value_is_valid () != 0) {
-    if (is_source_needed () != 0) {
+    if (render_source_needed () != 0) {
       render_symbol (FONT_COLON, data, &position);
       render_number (param_value[param],
                      RENDER_LEADING_DISABLE, data, &position);
-    } else if (is_destination_needed () != 0) {
+    } else if (render_destination_needed () != 0) {
       render_symbol (FONT_COLON, data, &position);
       uint8_t dst = value_derive ();
       render_number (dst, RENDER_LEADING_DISABLE, data, &position);
@@ -428,7 +428,7 @@ static void render ()
   flush_stable_display (data);
 }
 
-static void param_set (uint8_t new_param)
+static void change_param_set (uint8_t new_param)
 {
   param = new_param;
   delta_reset ();
@@ -439,7 +439,7 @@ static void param_set (uint8_t new_param)
   render ();
 }
 
-static void param_change (uint8_t action)
+static void change_param (uint8_t action)
 {
   const uint8_t max_id = sizeof (param_change_array) / sizeof (uint8_t) - 1;
 
@@ -460,10 +460,10 @@ static void param_change (uint8_t action)
       id = max_id;
   }
 
-  param_set (param_change_array[id]);
+  change_param_set (param_change_array[id]);
 }
 
-static void delta_change (uint8_t action)
+static void change_delta (uint8_t action)
 {
   uint8_t backup_delta = delta;
 
@@ -558,16 +558,16 @@ static void start (uint8_t id, uint8_t action)
     /* debug_0 (DEBUG_MENU, 44); */
     uint8_t new_param = (id == VOLUME_ROTOR) ? PARAM_VOLUME : PARAM_TRACK;
     if (new_param != param)
-      param_set (new_param);
-    delta_change (action);
+      change_param_set (new_param);
+    change_delta (action);
     return;
   }
 
   /* here we should have complex way */
   if (id == PARAM_ROTOR)
-    param_change (action);
+    change_param (action);
   else
-    delta_change (action);
+    change_delta (action);
 }
 
 void menu_init ()
