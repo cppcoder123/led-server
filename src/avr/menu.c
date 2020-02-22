@@ -83,6 +83,47 @@ static uint8_t param_min[PARAM_VALUE_MAX];
 static uint8_t param_value[PARAM_VALUE_MAX];
 static uint8_t way = WAY_UNKNOWN;
 
+static uint8_t is_sum_fits (uint8_t a, uint8_t b)
+{
+  uint8_t a_ = 0xFF - a;
+  return (a_ >= b) ? 1 : 0;
+}
+
+static uint8_t delta_abs (uint8_t *positive)
+{
+  *positive = (delta >= DELTA_MIDDLE) ? 1 : 0;
+  return (*positive != 0) ? (delta - DELTA_MIDDLE) : (DELTA_MIDDLE - delta);
+}
+
+static void delta_reset ()
+{
+  delta = DELTA_MIDDLE;
+  chunk = CHUNK_MIDDLE;
+}
+
+static void send_message_0 (uint8_t msg_id)
+{
+  if (mode_is_connnected () != 0)
+    encode_msg_0 (msg_id, SERIAL_ID_TO_IGNORE);
+}
+
+static void send_message_1 (uint8_t msg_id, uint8_t payload_1)
+{
+  if (mode_is_connnected () != 0)
+    encode_msg_1 (msg_id, SERIAL_ID_TO_IGNORE, payload_1);
+}
+
+static void send_param_change (uint8_t parameter)
+{
+  if (mode_is_connnected () == 0)
+    return;
+
+  uint8_t positive, abs = delta_abs (&positive);
+
+  encode_msg_3
+    (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, abs);
+}
+
 static uint8_t value_is_valid ()
 {
   if (param >= PARAM_VALUE_MAX)
@@ -114,6 +155,122 @@ static uint8_t value_is_valid ()
   return (param_flag & mask) ? 1 : 0;
 }
 
+static uint8_t value_derive ()
+{
+  if (value_is_valid () == 0)
+    return 0;
+
+  uint8_t positive, abs = delta_abs (&positive);
+
+  uint8_t old = param_value[param];
+  uint8_t raw =  (positive != 0)
+    ? ((is_sum_fits (old, abs) != 0) ? (old + abs) : 0xFF)
+    : ((old > abs) ? (old - abs) : 0);
+
+  if (raw < param_min[param])
+    return param_min[param];
+  if (raw > param_max[param])
+    return param_max[param];
+
+  return raw;
+}
+
+static void value_query ()
+{
+  switch (param) {
+  case PARAM_ALARM_H:
+  case PARAM_ALARM_M:
+    {
+      uint8_t hour, min;
+      clock_alarm_get (&hour, &min);
+      /* debug_2 (DEBUG_MENU, 99, hour, min); */
+      param_value[PARAM_ALARM_H] = hour;
+      param_value[PARAM_ALARM_M] = min;
+      param_flag |= PARAM_FLAG_ALARM;
+    }
+    break;
+  case PARAM_BRIGHTNESS:
+    {
+      uint8_t brightness = 0;
+      flush_brightness_get (&brightness);
+      /* debug_1 (DEBUG_MENU, 22, brightness); */
+      param_value[PARAM_BRIGHTNESS] = brightness;
+      param_flag |= PARAM_FLAG_BRIGNHTNESS;
+    }
+    break;
+  case PARAM_CLOCK_H:
+  case PARAM_CLOCK_M:
+    {
+      uint8_t hour, min;
+      clock_get (&hour, &min);
+      param_value[PARAM_CLOCK_H] = hour;
+      param_value[PARAM_CLOCK_M] = min;
+      param_flag |= PARAM_FLAG_CLOCK;
+    }
+    break;
+  case PARAM_TRACK:
+    if ((param_flag & PARAM_FLAG_TRACK_SENT) == 0) {
+      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_TRACK);
+      param_flag |= PARAM_FLAG_TRACK_SENT;
+    }
+    break;
+  case PARAM_VOLUME:
+    if ((param_flag & PARAM_FLAG_VOLUME_SENT) == 0) {
+      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_VOLUME);
+      param_flag |= PARAM_FLAG_VOLUME_SENT;
+    }
+    break;
+  default:
+    break;
+  }
+}
+
+static void value_update ()
+{
+  switch (param) {
+    case PARAM_ALARM_DISABLE:
+      clock_alarm_engage_set (0);
+      break;
+    case PARAM_ALARM_ENABLE:
+      clock_alarm_engage_set (1);
+      break;
+    case PARAM_ALARM_H:
+      clock_alarm_set (value_derive (), param_value[PARAM_ALARM_M]);
+      break;
+    case PARAM_ALARM_M:
+      clock_alarm_set
+        (param_value[PARAM_ALARM_H], value_derive ());
+      break;
+    case PARAM_BRIGHTNESS:
+      flush_brightness_set (value_derive ());
+      break;
+    case PARAM_CLOCK_H:
+      clock_set (value_derive (), param_value[PARAM_CLOCK_M]);
+      break;
+    case PARAM_CLOCK_M:
+      clock_set (param_value[PARAM_CLOCK_H], value_derive ());
+      break;
+    case PARAM_POWER:
+      if (mode_is_connnected () == 0)
+        power_on ();
+      else
+        send_message_0 (MSG_ID_POWEROFF);
+      break;
+    case PARAM_REBOOT:
+      send_message_0 (MSG_ID_REBOOT);
+      /* debug_0 (DEBUG_MENU, 123); */
+      break;
+    case PARAM_TRACK:
+      send_param_change (PARAMETER_TRACK);
+      break;
+    case PARAM_VOLUME:
+      send_param_change (PARAMETER_VOLUME);
+      break;
+    default:
+      break;
+    }
+}
+
 static uint8_t is_delta_needed ()
 {
   return (param == PARAM_VOLUME) ? 1 : 0;
@@ -143,38 +300,6 @@ static void render_delta (uint8_t positive, uint8_t abs,
     render_symbol (FONT_MINUS, data, position);
 
   render_number (abs, RENDER_LEADING_DISABLE, data, position);
-}
-
-static uint8_t is_sum_fits (uint8_t a, uint8_t b)
-{
-  uint8_t a_ = 0xFF - a;
-  return (a_ >= b) ? 1 : 0;
-}
-
-static uint8_t delta_abs (uint8_t *positive)
-{
-  *positive = (delta >= DELTA_MIDDLE) ? 1 : 0;
-  return (*positive != 0) ? (delta - DELTA_MIDDLE) : (DELTA_MIDDLE - delta);
-}
-
-static uint8_t value_derive ()
-{
-  if (value_is_valid () == 0)
-    return 0;
-
-  uint8_t positive, abs = delta_abs (&positive);
-
-  uint8_t old = param_value[param];
-  uint8_t raw =  (positive != 0)
-    ? ((is_sum_fits (old, abs) != 0) ? (old + abs) : 0xFF)
-    : ((old > abs) ? (old - abs) : 0);
-
-  if (raw < param_min[param])
-    return param_min[param];
-  if (raw > param_max[param])
-    return param_max[param];
-
-  return raw;
 }
 
 static void render_label (uint8_t *data, uint8_t *position)
@@ -303,78 +428,10 @@ static void render ()
   flush_stable_display (data);
 }
 
-static void send_message_0 (uint8_t msg_id)
-{
-  if (mode_is_connnected () != 0)
-    encode_msg_0 (msg_id, SERIAL_ID_TO_IGNORE);
-}
-
-static void send_message_1 (uint8_t msg_id, uint8_t payload_1)
-{
-  if (mode_is_connnected () != 0)
-    encode_msg_1 (msg_id, SERIAL_ID_TO_IGNORE, payload_1);
-}
-
-static void value_query ()
-{
-  switch (param) {
-  case PARAM_ALARM_H:
-  case PARAM_ALARM_M:
-    {
-      uint8_t hour, min;
-      clock_alarm_get (&hour, &min);
-      /* debug_2 (DEBUG_MENU, 99, hour, min); */
-      param_value[PARAM_ALARM_H] = hour;
-      param_value[PARAM_ALARM_M] = min;
-      param_flag |= PARAM_FLAG_ALARM;
-    }
-    break;
-  case PARAM_BRIGHTNESS:
-    {
-      uint8_t brightness = 0;
-      flush_brightness_get (&brightness);
-      /* debug_1 (DEBUG_MENU, 22, brightness); */
-      param_value[PARAM_BRIGHTNESS] = brightness;
-      param_flag |= PARAM_FLAG_BRIGNHTNESS;
-    }
-    break;
-  case PARAM_CLOCK_H:
-  case PARAM_CLOCK_M:
-    {
-      uint8_t hour, min;
-      clock_get (&hour, &min);
-      param_value[PARAM_CLOCK_H] = hour;
-      param_value[PARAM_CLOCK_M] = min;
-      param_flag |= PARAM_FLAG_CLOCK;
-    }
-    break;
-  case PARAM_TRACK:
-    if ((param_flag & PARAM_FLAG_TRACK_SENT) == 0) {
-      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_TRACK);
-      param_flag |= PARAM_FLAG_TRACK_SENT;
-    }
-    break;
-  case PARAM_VOLUME:
-    if ((param_flag & PARAM_FLAG_VOLUME_SENT) == 0) {
-      send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_VOLUME);
-      param_flag |= PARAM_FLAG_VOLUME_SENT;
-    }
-    break;
-  default:
-    break;
-  }
-}
-
-static void reset_delta ()
-{
-  delta = DELTA_MIDDLE;
-  chunk = CHUNK_MIDDLE;
-}
-
 static void param_set (uint8_t new_param)
 {
   param = new_param;
-  reset_delta ();
+  delta_reset ();
 
   if (value_is_valid () == 0)
     value_query ();
@@ -382,7 +439,7 @@ static void param_set (uint8_t new_param)
   render ();
 }
 
-static void change_param (uint8_t action)
+static void param_change (uint8_t action)
 {
   const uint8_t max_id = sizeof (param_change_array) / sizeof (uint8_t) - 1;
 
@@ -406,7 +463,7 @@ static void change_param (uint8_t action)
   param_set (param_change_array[id]);
 }
 
-static void change_delta (uint8_t action)
+static void delta_change (uint8_t action)
 {
   uint8_t backup_delta = delta;
 
@@ -449,65 +506,10 @@ static void change_delta (uint8_t action)
   render ();
 }
 
-static void send_param_change (uint8_t parameter)
-{
-  if (mode_is_connnected () == 0)
-    return;
-
-  uint8_t positive, abs = delta_abs (&positive);
-
-  encode_msg_3
-    (MSG_ID_PARAM_SET, SERIAL_ID_TO_IGNORE, parameter, positive, abs);
-}
-
 static void stop ()
 {
-  /* fixme send new value*/
-  if (value_is_valid () == 0)
-    return;
-
-  switch (param) {
-  case PARAM_ALARM_DISABLE:
-    clock_alarm_engage_set (0);
-    break;
-  case PARAM_ALARM_ENABLE:
-    clock_alarm_engage_set (1);
-    break;
-  case PARAM_ALARM_H:
-    clock_alarm_set (value_derive (), param_value[PARAM_ALARM_M]);
-    break;
-  case PARAM_ALARM_M:
-    clock_alarm_set
-      (param_value[PARAM_ALARM_H], value_derive ());
-    break;
-  case PARAM_BRIGHTNESS:
-      flush_brightness_set (value_derive ());
-    break;
-  case PARAM_CLOCK_H:
-    clock_set (value_derive (), param_value[PARAM_CLOCK_M]);
-    break;
-  case PARAM_CLOCK_M:
-    clock_set (param_value[PARAM_CLOCK_H], value_derive ());
-    break;
-  case PARAM_POWER:
-    if (mode_is_connnected () == 0)
-      power_on ();
-    else
-      send_message_0 (MSG_ID_POWEROFF);
-    break;
-  case PARAM_REBOOT:
-    send_message_0 (MSG_ID_REBOOT);
-    /* debug_0 (DEBUG_MENU, 123); */
-    break;
-  case PARAM_TRACK:
-    send_param_change (PARAMETER_TRACK);
-    break;
-  case PARAM_VOLUME:
-    send_param_change (PARAMETER_VOLUME);
-    break;
-  default:
-    break;
-  }
+  if (value_is_valid () != 0)
+    value_update ();
 
   flush_shift_drain_stop ();
   mode_set (backup_mode);
@@ -516,7 +518,7 @@ static void stop ()
 
 static void reset ()
 {
-  reset_delta ();
+  delta_reset ();
   param = param_change_array[0];
   param_flag = 0;
   for (uint8_t i = 0; i < PARAM_VALUE_MAX; ++i)
@@ -531,7 +533,8 @@ static void start (uint8_t id, uint8_t action)
   if (at_empty (AT_MENU) != 0) {
     /* debug_0 (DEBUG_MENU, 11); */
     reset ();
-    way = (action == ROTOR_PUSH) ? WAY_COMPLEX : WAY_SIMPLE;
+    way = ((mode_is_connnected () != 0)
+           && (action != ROTOR_PUSH)) ? WAY_SIMPLE : WAY_COMPLEX;
     backup_mode = mode_get ();
     mode_set (MODE_MENU);
     send_message_0 (MSG_ID_SUSPEND);
@@ -556,36 +559,16 @@ static void start (uint8_t id, uint8_t action)
     uint8_t new_param = (id == VOLUME_ROTOR) ? PARAM_VOLUME : PARAM_TRACK;
     if (new_param != param)
       param_set (new_param);
-    change_delta (action);
+    delta_change (action);
     return;
   }
 
   /* here we should have complex way */
   if (id == PARAM_ROTOR)
-    change_param (action);
+    param_change (action);
   else
-    change_delta (action);
+    delta_change (action);
 }
-
-/*   if (action == ROTOR_PUSH) */
-/*     return; */
-
-/*   if (at_empty (AT_MENU) != 0) { */
-/*     reset (); */
-/*     at_schedule (AT_MENU, MENU_DELAY, &stop); */
-/*     backup_mode = mode_get (); */
-/*     mode_set (MODE_MENU); */
-/*     send_message_0 (MSG_ID_SUSPEND); */
-/*     flush_shift_drain_start (); */
-/*   } else { */
-/*     at_postpone (AT_MENU); */
-/*   } */
-
-/*   if (id == PARAM_ROTOR) */
-/*     change_param (action); */
-/*   else */
-/*     change_delta (action); */
-/* } */
 
 void menu_init ()
 {
@@ -624,7 +607,7 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
     uint8_t new_value = value_derive ();
     if ((new_value < param_min[id])
         || (new_value > param_max[id]))
-      reset_delta ();
+      delta_reset ();
 
     render ();
   }
