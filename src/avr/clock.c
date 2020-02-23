@@ -116,7 +116,7 @@ uint8_t clock_alarm_engage_get ()
   return alarm_engaged;
 }
   
-void clock_render(struct render_t *buf)
+void clock_render(volatile struct buf_t *buf)
 {
   /* debug_2 (77, 123, alarm_hour, alarm_minute); */
 
@@ -124,7 +124,7 @@ void clock_render(struct render_t *buf)
 
   /* uint8_t position = 0; */
   for (uint8_t i = 0; i < indent; ++i)
-    render_buffer_fill (buf, 0);
+    buf_byte_fill (buf, 0);
 
   render_number (buf, hour, RENDER_LEADING_DISABLE);
   render_symbol (buf, FONT_COLON);
@@ -132,12 +132,12 @@ void clock_render(struct render_t *buf)
 
   if (alarm_engaged != 0) {
     for (uint8_t j = 0; j < ALARM_SPACE; ++j)
-      render_buffer_fill (buf, 0);
+      buf_byte_fill (buf, 0);
     /* render_symbol (FONT_AT, buffer, &position); */
     render_number (buf, alarm_hour, RENDER_LEADING_DISABLE);
     render_symbol (buf, FONT_COLON);
     render_number (buf, alarm_minute, RENDER_LEADING_TEN);
   }
 
-  render_empty_tail (buf);
+  render_tail (buf);
 }

@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-#include "render.h"
+#include "buf.h"
 
 #define CLOCK_HOUR_MAX 23
 /* fixme: it seems clock is slower than needed */
@@ -39,6 +39,6 @@ uint8_t clock_alarm_engage_get ();
 
 /* Render time (and alarm) into buffer array for displaying */
 /* Note: Buffer should be at least 64 bytes long */
-void clock_render(struct render_t *buf);
+void clock_render(volatile struct buf_t *buf);
 
 #endif

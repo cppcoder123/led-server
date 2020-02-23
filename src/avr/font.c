@@ -303,14 +303,14 @@ static uint8_t fill_matrix(uint8_t matrix[], uint8_t symbol_id)
   return 1;
 }
 
-uint8_t font_add_symbol(uint8_t symbol, struct render_t *buf)
+uint8_t font_add_symbol(uint8_t symbol, volatile struct buf_t *buf)
 {
   uint8_t matrix[SYMBOL_SIZE];
   if (fill_matrix(matrix, symbol) == 0)
     return 0;
 
   for (uint8_t i = 0; i < SYMBOL_SIZE; ++i)
-    if (render_buffer_fill (buf, matrix[i]) == 0)
+    if (buf_byte_fill (buf, matrix[i]) == 0)
       return 0;
 
   return 1;

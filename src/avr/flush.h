@@ -6,6 +6,8 @@
 
 #include <stdint.h>
 
+#include "buf.h"
+
 #define FLUSH_STABLE_SIZE 64
 
 #define FLUSH_BRIGHTNESS_MAX 15
@@ -31,7 +33,7 @@ uint8_t flush_shift_buffer_size ();
  */
 
 /* ! array size is 64  */
-void flush_stable_display (uint8_t *arr);
+void flush_stable_display (volatile struct buf_t *buf);
 
 /*
  * Brightness

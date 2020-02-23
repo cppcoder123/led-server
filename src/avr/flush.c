@@ -112,10 +112,11 @@ uint8_t flush_shift_buffer_size ()
   return buffer_size (&shift_data);
 }
 
-void flush_stable_display (uint8_t *arr)
+void flush_stable_display (volatile struct buf_t *buf)
 {
+  uint8_t info = 0;
   for (uint8_t i = 0; i < MIN_DATA_SIZE; ++i)
-    stable_data[i] = arr[i];
+    stable_data[i] = (buf_byte_get (buf, i, &info) != 0) ? info : 0;
   
   dump (0);
 }

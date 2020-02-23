@@ -9,11 +9,11 @@
 #include "postpone.h"
 #include "spi.h"
 
-#define BUF_SIZE 20
+#define POSTPONE_BUF_SIZE 20
 
 #define ENOUGH_SPACE (LED_ARRAY_SIZE + MSG_OVERHEAD)
 
-static uint8_t postponed_message[BUF_SIZE];
+static uint8_t postponed_message[POSTPONE_BUF_SIZE];
 static uint8_t postponed_size;
 
 static uint8_t is_writable ()
@@ -36,7 +36,7 @@ static void flush (uint8_t *msg, uint8_t msg_size)
 void postpone_init ()
 {
   postponed_size = 0;
-  for (uint8_t i = 0; i < BUF_SIZE; ++i)
+  for (uint8_t i = 0; i < POSTPONE_BUF_SIZE; ++i)
     postponed_message[i] = SPI_WRITE_UNDERFLOW;
 }
 

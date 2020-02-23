@@ -43,11 +43,11 @@ static void stop_mode ()
 
 static void render_clock ()
 {
-  struct render_t buf;
-  render_buffer_init (&buf);
+  volatile struct buf_t buf;
+  buf_init (&buf);
 
   clock_render (&buf);
-  flush_stable_display (buf.data);
+  flush_stable_display (&buf);
 }
 
 static void switch_to_clock ()

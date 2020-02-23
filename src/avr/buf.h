@@ -6,7 +6,8 @@
 
 #include <stdint.h>
 
-#define BUF_SIZE 128
+/* BUF_SIZE should be 'FLUSH_STABLE_SIZE' but we will get mutual include, so redefine */
+#define BUF_SIZE 64
 
 struct buf_t
 {

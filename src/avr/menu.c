@@ -306,7 +306,7 @@ static uint8_t render_destination_needed ()
           || (param == PARAM_BRIGHTNESS)) ? 1 : 0;
 }
 
-static void render_delta (uint8_t positive, uint8_t abs, struct render_t *buf)
+static void render_delta (uint8_t positive, uint8_t abs, volatile struct buf_t *buf)
 {
   if (positive != 0)
     render_symbol (buf, FONT_PLUS);
@@ -316,7 +316,7 @@ static void render_delta (uint8_t positive, uint8_t abs, struct render_t *buf)
   render_number (buf, abs, RENDER_LEADING_DISABLE);
 }
 
-static void render_label (struct render_t *buf)
+static void render_label (volatile struct buf_t *buf)
 {
   switch (param) {
   case PARAM_ALARM_DISABLE:
@@ -416,12 +416,12 @@ static void render_label (struct render_t *buf)
 
 static void render ()
 {
-  struct render_t buf;
-  render_buffer_init (&buf);
+  volatile struct buf_t buf;
+  buf_init (&buf);
 
   /* debug_position (&buf, 1); */
 
-  render_buffer_fill (&buf, 0);
+  buf_byte_fill (&buf, 0);
   /* debug_position (&buf, 2); */
   
   render_label (&buf);
@@ -450,10 +450,10 @@ static void render ()
     }
   }
 
-  render_empty_tail (&buf);
+  render_tail (&buf);
   /* debug_position (&buf, 10); */
 
-  flush_stable_display (buf.data);
+  flush_stable_display (&buf);
 }
 
 /*
