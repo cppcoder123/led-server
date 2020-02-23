@@ -306,18 +306,17 @@ static uint8_t render_destination_needed ()
           || (param == PARAM_BRIGHTNESS)) ? 1 : 0;
 }
 
-static void render_delta (uint8_t positive, uint8_t abs,
-                          uint8_t *data, uint8_t *position)
+static void render_delta (uint8_t positive, uint8_t abs, struct render_t *buf)
 {
   if (positive != 0)
-    render_symbol (FONT_PLUS, data, position);
+    render_symbol (buf, FONT_PLUS);
   else
-    render_symbol (FONT_MINUS, data, position);
+    render_symbol (buf, FONT_MINUS);
 
-  render_number (abs, RENDER_LEADING_DISABLE, data, position);
+  render_number (buf, abs, RENDER_LEADING_DISABLE);
 }
 
-static void render_label (uint8_t *data, uint8_t *position)
+static void render_label (struct render_t *buf)
 {
   switch (param) {
   case PARAM_ALARM_DISABLE:
@@ -325,55 +324,55 @@ static void render_label (uint8_t *data, uint8_t *position)
       uint8_t tag[] =
         {FONT_A, FONT_l, FONT_MINUS, FONT_D, FONT_i,
          FONT_s, FONT_a, FONT_b, FONT_l, FONT_e};
-      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_ALARM_ENABLE:
     {
       uint8_t tag[] =
         {FONT_A, FONT_l, FONT_MINUS, FONT_E, FONT_n, FONT_a, FONT_b, FONT_l, FONT_e};
-      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_ALARM_H:
     {
       uint8_t tag[] =
         {FONT_A, FONT_l, FONT_MINUS, FONT_H};
-      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_ALARM_M:
     {
       uint8_t tag[] =
         {FONT_A, FONT_l, FONT_MINUS, FONT_M};
-      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_BRIGHTNESS:
     {
       uint8_t tag[] =
         {FONT_B, FONT_r, FONT_i, FONT_g, FONT_h, FONT_MINUS, FONT_s};
-      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_CLOCK_H:
     {
       uint8_t tag[]
         = {FONT_C, FONT_l, FONT_MINUS, FONT_H};
-      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_CLOCK_M:
     {
       uint8_t tag[] =
         {FONT_C, FONT_l, FONT_MINUS, FONT_M};
-      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_CANCEL:
     {
       uint8_t cancel[] = {FONT_C, FONT_a, FONT_n, FONT_c, FONT_e, FONT_l};
-      render_word (cancel, sizeof (cancel) / sizeof (uint8_t), data, position);
+      render_word (buf, cancel, sizeof (cancel) / sizeof (uint8_t));
     }
     break;
   case PARAM_POWER:
@@ -381,28 +380,28 @@ static void render_label (uint8_t *data, uint8_t *position)
       uint8_t on[] = {FONT_O, FONT_n};
       uint8_t off[]  = {FONT_O, FONT_f, FONT_f};
       if (mode_is_connnected () != 0)
-        render_word (off, sizeof (off) / sizeof (uint8_t), data, position);
+        render_word (buf, off, sizeof (off) / sizeof (uint8_t));
       else
-        render_word (on, sizeof (on) / sizeof (uint8_t), data, position);
+        render_word (buf, on, sizeof (on) / sizeof (uint8_t));
     }
     break;
   case PARAM_REBOOT:
     {
       uint8_t tag[] = {FONT_R, FONT_e, FONT_b, FONT_o, FONT_o, FONT_t};
-      render_word (tag, sizeof (tag) / sizeof (uint8_t), data, position);
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_TRACK:
     {
       uint8_t track[]
         = {FONT_C, FONT_h, FONT_a, FONT_n, FONT_n};
-      render_word (track, sizeof (track) / sizeof (uint8_t), data, position);
+      render_word (buf, track, sizeof (track) / sizeof (uint8_t));
     }
     break;
   case PARAM_VOLUME:
     {
       uint8_t vol[] = {FONT_V, FONT_o};
-      render_word (vol, sizeof (vol) / sizeof (uint8_t), data, position);
+      render_word (buf, vol, sizeof (vol) / sizeof (uint8_t));
     }
     break;
   default:
@@ -410,37 +409,51 @@ static void render_label (uint8_t *data, uint8_t *position)
   }
 }
 
+/* static void debug_position (struct render_t *buf, uint8_t mark) */
+/* { */
+/*   debug_2 (DEBUG_MENU, 111, *(buf->position), mark); */
+/* } */
+
 static void render ()
 {
-  uint8_t data[DATA_SIZE];
-  uint8_t position = 0;
-  data[position++] = 0;
-  data[position++] = 0;
+  struct render_t buf;
+  render_buffer_init (&buf);
 
-  render_label (data, &position);
+  /* debug_position (&buf, 1); */
+
+  render_buffer_fill (&buf, 0);
+  /* debug_position (&buf, 2); */
+  
+  render_label (&buf);
+  /* debug_position (&buf, 3); */
 
   uint8_t positive, abs = delta_abs (&positive);
 
   if (render_delta_needed () != 0) {
-    render_symbol (FONT_COLON, data, &position);
-    render_delta (positive, abs, data, &position);
+    render_symbol (&buf, FONT_COLON);
+    /* debug_position (&buf, 4); */
+    render_delta (positive, abs, &buf);
+    /* debug_position (&buf, 5); */
   }
   if (value_is_valid () != 0) {
     if (render_source_needed () != 0) {
-      render_symbol (FONT_COLON, data, &position);
-      render_number (param_value[param],
-                     RENDER_LEADING_DISABLE, data, &position);
+      render_symbol (&buf, FONT_COLON);
+      /* debug_position (&buf, 6); */
+      render_number (&buf, param_value[param], RENDER_LEADING_DISABLE);
+      /* debug_position (&buf, 7); */
     } else if (render_destination_needed () != 0) {
-      render_symbol (FONT_COLON, data, &position);
+      render_symbol (&buf, FONT_COLON);
+      /* debug_position (&buf, 8); */
       uint8_t dst = value_derive ();
-      render_number (dst, RENDER_LEADING_DISABLE, data, &position);
+      render_number (&buf, dst, RENDER_LEADING_DISABLE);
+      /* debug_position (&buf, 9); */
     }
   }
 
-  for (uint8_t i = position; i < DATA_SIZE; ++i)
-    render_empty_column (data, &position);
+  render_empty_tail (&buf);
+  /* debug_position (&buf, 10); */
 
-  flush_stable_display (data);
+  flush_stable_display (buf.data);
 }
 
 /*

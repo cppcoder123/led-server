@@ -116,30 +116,28 @@ uint8_t clock_alarm_engage_get ()
   return alarm_engaged;
 }
   
-void clock_render(uint8_t *buffer)
+void clock_render(struct render_t *buf)
 {
   /* debug_2 (77, 123, alarm_hour, alarm_minute); */
 
   uint8_t indent = (alarm_engaged == 0) ? LONG_INDENT : 0;
 
-  uint8_t position = 0;
+  /* uint8_t position = 0; */
   for (uint8_t i = 0; i < indent; ++i)
-    render_empty_column (buffer, &position);
+    render_buffer_fill (buf, 0);
 
-  render_number (hour, 0, buffer, &position);
-  render_symbol (FONT_COLON, buffer, &position);
-  render_number (minute, RENDER_LEADING_TEN, buffer, &position);
+  render_number (buf, hour, RENDER_LEADING_DISABLE);
+  render_symbol (buf, FONT_COLON);
+  render_number (buf, minute, RENDER_LEADING_TEN);
 
   if (alarm_engaged != 0) {
     for (uint8_t j = 0; j < ALARM_SPACE; ++j)
-      render_empty_column (buffer, &position);
+      render_buffer_fill (buf, 0);
     /* render_symbol (FONT_AT, buffer, &position); */
-    render_number (alarm_hour, 0, buffer, &position);
-    render_symbol (FONT_COLON, buffer, &position);
-    render_number (alarm_minute, RENDER_LEADING_TEN, buffer, &position);
+    render_number (buf, alarm_hour, RENDER_LEADING_DISABLE);
+    render_symbol (buf, FONT_COLON);
+    render_number (buf, alarm_minute, RENDER_LEADING_TEN);
   }
 
-  /* fill the tail with spaces */
-  for (uint8_t j = position; j < BUFFER_SIZE; ++j)
-    render_empty_column (buffer, &position);
+  render_empty_tail (buf);
 }

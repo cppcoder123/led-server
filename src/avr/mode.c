@@ -43,9 +43,11 @@ static void stop_mode ()
 
 static void render_clock ()
 {
-  uint8_t matrix[64];
-  clock_render (matrix);
-  flush_stable_display (matrix);
+  struct render_t buf;
+  render_buffer_init (&buf);
+
+  clock_render (&buf);
+  flush_stable_display (buf.data);
 }
 
 static void switch_to_clock ()
