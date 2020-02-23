@@ -67,11 +67,11 @@ enum {
   WAY_COMPLEX,                  /* the rest of params */
 };
 
-static const uint8_t param_change_array[] =
+static const uint8_t change_param_array[] =
   {PARAM_CANCEL, PARAM_ALARM_ENABLE, PARAM_ALARM_DISABLE,
    PARAM_ALARM_H, PARAM_ALARM_M,
    PARAM_CLOCK_H, PARAM_CLOCK_M,
-   PARAM_BRIGHTNESS, PARAM_POWER, PARAM_REBOOT};
+   PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER};
 
 static uint8_t backup_mode = MODE_MENU;
 static uint8_t chunk = CHUNK_MIDDLE;
@@ -446,19 +446,8 @@ static void render ()
 /*
  * Change (param or its value)
  */
-static void change_param_set (uint8_t new_param)
-{
-  param = new_param;
-  delta_reset ();
 
-  if (value_is_valid () == 0)
-    value_query ();
-
-  render ();
-}
-
-static uint8_t change_something (uint8_t old, uint8_t action,
-                                 uint8_t min, uint8_t max)
+static uint8_t change (uint8_t old, uint8_t action, uint8_t min, uint8_t max)
 {
   /* debug_2 (DEBUG_MENU, 88, new, chunk); */
 
@@ -480,26 +469,37 @@ static uint8_t change_something (uint8_t old, uint8_t action,
   return new;
 }
 
+static void change_param_set (uint8_t new_param)
+{
+  param = new_param;
+  delta_reset ();
+
+  if (value_is_valid () == 0)
+    value_query ();
+
+  render ();
+}
+
 static void change_param (uint8_t action)
 {
-  const uint8_t max_id = sizeof (param_change_array) / sizeof (uint8_t) - 1;
+  const uint8_t max_id = sizeof (change_param_array) / sizeof (uint8_t) - 1;
 
   uint8_t id = 0;
   for (id = 0; id <= max_id; ++id)
-    if (param == param_change_array[id])
+    if (param == change_param_array[id])
       break;
 
-  uint8_t new_id = change_something (id, action, 0, max_id);
+  uint8_t new_id = change (id, action, 0, max_id);
 
   if (new_id != id)
-    change_param_set (param_change_array[new_id]);
+    change_param_set (change_param_array[new_id]);
 }
 
 static void change_delta (uint8_t action)
 {
   uint8_t backup_delta = delta;
 
-  delta = change_something (delta, action, DELTA_MIN, DELTA_MAX);
+  delta = change (delta, action, DELTA_MIN, DELTA_MAX);
 
   if (delta == backup_delta)
     return;
@@ -543,7 +543,7 @@ static void stop ()
 static void reset ()
 {
   delta_reset ();
-  param = param_change_array[0];
+  param = change_param_array[0];
   param_flag = 0;
   for (uint8_t i = 0; i < PARAM_VALUE_MAX; ++i)
     param_value[i] = 0;
