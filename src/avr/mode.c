@@ -2,8 +2,8 @@
  *
  */
 #include "clock.h"
+#include "cron.h"
 #include "flush.h"
-#include "invoke.h"
 #include "heartbeat.h"
 #include "mode.h"
 #include "spi.h"
@@ -30,11 +30,11 @@ static void stop_mode ()
   case MODE_MENU:
     break;
   case MODE_CLOCK:
-    invoke_disable (INVOKE_ID_FLUSH);
+    cron_disable (CRON_ID_FLUSH);
     break;
   case MODE_RADIO:
     heartbeat_cancel ();
-    invoke_disable (INVOKE_ID_FLUSH);
+    cron_disable (CRON_ID_FLUSH);
     break;
   default:
     break;
@@ -60,15 +60,15 @@ static void start_mode ()
 {
   switch (current_mode) {
   case MODE_MENU:
-    invoke_enable (INVOKE_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
+    cron_enable (CRON_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
     break;
   case MODE_CLOCK:
-    invoke_enable (INVOKE_ID_FLUSH, CLOCK_RENDER_DELAY, &render_clock);
-    invoke_enable (INVOKE_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
+    cron_enable (CRON_ID_FLUSH, CLOCK_RENDER_DELAY, &render_clock);
+    cron_enable (CRON_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
     break;
   case MODE_RADIO:
-    invoke_disable (INVOKE_ID_CLOCK);
-    invoke_enable (INVOKE_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
+    cron_disable (CRON_ID_CLOCK);
+    cron_enable (CRON_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
     heartbeat_start (HB_DELAY, HB_MISS, &switch_to_clock, &spi_interrupt_start);
     is_connected = 1;
     break;

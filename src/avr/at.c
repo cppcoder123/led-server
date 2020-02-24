@@ -3,9 +3,9 @@
  */
 
 #include "at.h"
-#include "invoke.h"
+#include "cron.h"
 
-#define INVOKE_DELAY 50         /* ~ 1 sec */
+#define AT_DELAY 50         /* ~ 1 sec */
 
 static uint8_t current[AT_MAX];
 static uint8_t max[AT_MAX];
@@ -38,7 +38,7 @@ static void verify ()
       callback[id] ();
       callback[id] = 0;
       if (empty () != 0)
-        invoke_disable (INVOKE_ID_AT);
+        cron_disable (CRON_ID_AT);
     }
   }
 }
@@ -55,7 +55,7 @@ void at_schedule (uint8_t id, uint8_t delay, at_callback cb)
   callback[id] = cb;
 
   if (it_was_empty != 0)
-    invoke_enable (INVOKE_ID_AT, INVOKE_DELAY, &verify);
+    cron_enable (CRON_ID_AT, AT_DELAY, &verify);
 }
 
 void at_postpone (uint8_t id)
@@ -73,7 +73,7 @@ void at_cancel (uint8_t id)
 
   callback[id] = 0;
   if (empty () != 0)
-    invoke_disable (INVOKE_ID_AT);
+    cron_disable (CRON_ID_AT);
 }
 
 uint8_t at_empty (uint8_t id)

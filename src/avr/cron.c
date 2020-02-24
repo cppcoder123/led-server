@@ -4,24 +4,24 @@
 
 #include "buf.h"
 #include "counter.h"
-#include "invoke.h"
+#include "cron.h"
 
-#define INVOKE_COUNTER COUNTER_3
-#define INVOKE_PRESCALER COUNTER_PRESCALER_1024
+#define CRON_COUNTER COUNTER_3
+#define CRON_PRESCALER COUNTER_PRESCALER_1024
 
 /*low-78, high-0 => 50 Hz*/
 #define FACTOR_LOW 77
 #define FACTOR_HIGH 0
 
-static invoke_callback callback_array[INVOKE_ID_MAX];
-static uint8_t factor_array[INVOKE_ID_MAX];
-static uint8_t counter_array[INVOKE_ID_MAX];
+static cron_callback callback_array[CRON_ID_MAX];
+static uint8_t factor_array[CRON_ID_MAX];
+static uint8_t counter_array[CRON_ID_MAX];
 
 static volatile struct buf_t queue;
 
-void invoke_init ()
+void cron_init ()
 {
-  for (uint8_t i = 0; i < INVOKE_ID_MAX; ++i) {
+  for (uint8_t i = 0; i < CRON_ID_MAX; ++i) {
     callback_array[i] = 0;
     factor_array[i] = 0;
     counter_array[i] = 0;
@@ -30,11 +30,11 @@ void invoke_init ()
   buf_init (&queue);
 }
 
-void invoke_try ()
+void cron_try ()
 {
-  uint8_t id = INVOKE_ID_MAX;
+  uint8_t id = CRON_ID_MAX;
   if ((buf_byte_drain (&queue, &id) == 0)
-      || (id >= INVOKE_ID_MAX)  /* ? */
+      || (id >= CRON_ID_MAX)  /* ? */
       || (callback_array[id] == 0))
     return;
 
@@ -43,7 +43,7 @@ void invoke_try ()
 
 static void interrupt_function ()
 {
-  for (uint8_t i = 0; i < INVOKE_ID_MAX; ++i) {
+  for (uint8_t i = 0; i < CRON_ID_MAX; ++i) {
     if (callback_array[i] == 0)
       continue;
     if (++(counter_array[i]) >= factor_array[i]) {
@@ -55,21 +55,21 @@ static void interrupt_function ()
 
 static void engage_timer ()
 {
-  counter_interrupt (INVOKE_COUNTER,
+  counter_interrupt (CRON_COUNTER,
                      COUNTER_INTERRUPT_COMPARE_A, interrupt_function);
-  counter_set_compare_a (INVOKE_COUNTER, FACTOR_LOW, FACTOR_HIGH);
-  counter_enable (INVOKE_COUNTER, INVOKE_PRESCALER);
+  counter_set_compare_a (CRON_COUNTER, FACTOR_LOW, FACTOR_HIGH);
+  counter_enable (CRON_COUNTER, CRON_PRESCALER);
 }
 
 static void disengage_timer ()
 {
-  counter_disable (INVOKE_COUNTER);
+  counter_disable (CRON_COUNTER);
 }
 
 static uint8_t is_required ()
 {
   uint8_t status = 0;
-  for (uint8_t i = 0; i < INVOKE_ID_MAX; ++i)
+  for (uint8_t i = 0; i < CRON_ID_MAX; ++i)
     if (callback_array[i] != 0) {
       status = 1;
       break;
@@ -78,9 +78,9 @@ static uint8_t is_required ()
   return status;
 }
 
-uint8_t invoke_enable (uint8_t id, uint8_t factor, invoke_callback callback)
+uint8_t cron_enable (uint8_t id, uint8_t factor, cron_callback callback)
 {
-  if (id >= INVOKE_ID_MAX)
+  if (id >= CRON_ID_MAX)
     return 0;
 
   callback_array[id] = callback;
@@ -93,9 +93,9 @@ uint8_t invoke_enable (uint8_t id, uint8_t factor, invoke_callback callback)
   return 1;
 }
 
-uint8_t invoke_disable (uint8_t id)
+uint8_t cron_disable (uint8_t id)
 {
-  if (id >= INVOKE_ID_MAX)
+  if (id >= CRON_ID_MAX)
     return 0;
 
   callback_array[id] = 0;

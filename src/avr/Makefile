@@ -14,6 +14,7 @@ OBJECT_LIST = \
   buzz.o \
   clock.o \
   counter.o \
+  cron.o \
   debug.o \
   decode.o \
   display.o \
@@ -21,7 +22,6 @@ OBJECT_LIST = \
   flush.o \
   font.o \
   heartbeat.o \
-  invoke.o \
   menu.o \
   mode.o \
   postpone.o \

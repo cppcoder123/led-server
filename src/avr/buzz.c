@@ -8,7 +8,7 @@
 #include "buf.h"
 #include "buzz.h"
 #include "counter.h"
-#include "invoke.h"
+#include "cron.h"
 
 #define SOUND_COUNTER COUNTER_0
 #define SOUND_PRESCALER COUNTER_PRESCALER_1024
@@ -59,7 +59,7 @@ static void set_pitch_volume (uint8_t pitch, uint8_t volume)
 static void duration_callback ()
 {
   counter_disable (SOUND_COUNTER);
-  invoke_disable (INVOKE_ID_BUZZ);
+  cron_disable (CRON_ID_BUZZ);
 
   handle_sound ();
 }
@@ -74,7 +74,7 @@ static void handle_sound ()
   if ((pitch != 0) && (volume != 0))
     set_pitch_volume (pitch, volume);
 
-  invoke_enable (INVOKE_ID_BUZZ, duration, duration_callback);
+  cron_enable (CRON_ID_BUZZ, duration, duration_callback);
 }
 
 void buzz_start ()

@@ -2,7 +2,7 @@
  *
  */
 
-#include "invoke.h"
+#include "cron.h"
 #include "heartbeat.h"
 
 #define PROVOKE_LIMIT 1
@@ -49,10 +49,10 @@ void heartbeat_start (uint8_t delay, uint8_t max,
   report = report_cb;
   provoke = provoke_cb;
 
-  invoke_enable (INVOKE_ID_HEARTBEAT, delay, &verify);
+  cron_enable (CRON_ID_HEARTBEAT, delay, &verify);
 }
 
 void heartbeat_cancel ()
 {
-  invoke_disable (INVOKE_ID_HEARTBEAT);
+  cron_disable (CRON_ID_HEARTBEAT);
 }

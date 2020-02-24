@@ -12,7 +12,7 @@
 
 #define CLOCK_HOUR_MAX 23
 /* fixme: it seems clock is slower than needed */
-#define CLOCK_MINUTE_MAX 58
+#define CLOCK_MINUTE_MAX 59
 #define CLOCK_SECOND_MAX 59
 
 void clock_init ();

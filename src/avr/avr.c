@@ -8,10 +8,10 @@
 #include "buzz.h"
 #include "clock.h"
 #include "counter.h"
+#include "cron.h"
 #include "decode.h"
 #include "flush.h"
 #include "heartbeat.h"
-#include "invoke.h"
 #include "menu.h"
 #include "mode.h"
 #include "postpone.h"
@@ -27,8 +27,8 @@ static void init ()
   /* init counter after spi */
   counter_init ();
 
-  /* invoke needs a counter, so init it now*/
-  invoke_init ();
+  /* cron needs a counter, so init it now*/
+  cron_init ();
 
   at_init ();
   buzz_init ();
@@ -55,8 +55,8 @@ int main ()
   while (1) {
     /* buzz_try (); */
     counter_try ();
+    cron_try ();
     decode_try ();
-    invoke_try ();
     postpone_try ();
     rotor_try ();
   }
