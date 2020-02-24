@@ -27,8 +27,7 @@ enum {
 };
 
 /* factor is 0.02 sec */
-uint8_t cron_enable (uint8_t id,
-                     uint8_t factor, cron_callback callback);
+uint8_t cron_enable (uint8_t id, uint8_t factor, cron_callback callback);
 uint8_t cron_disable (uint8_t id);
 
 #endif
