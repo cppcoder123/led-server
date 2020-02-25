@@ -5,25 +5,6 @@
 #include "font.h"
 #include "render.h"
 
-#define DATA_SIZE FLUSH_STABLE_SIZE
-
-/* void render_buffer_init (struct render_t *buf) */
-/* { */
-/*   buf->position = 0; */
-
-/*   for (uint8_t i = 0; i < DATA_SIZE; ++i) */
-/*     buf->data[i] = 0; */
-/* } */
-
-/* uint8_t render_buffer_fill (struct render_t *buf, uint8_t byte) */
-/* { */
-/*   if (buf->position >= DATA_SIZE) */
-/*     return 0; */
-
-/*   buf->data[buf->position++] = byte; */
-/*   return 1; */
-/* } */
-
 uint8_t render_symbol (volatile struct buf_t *buf, uint8_t symbol)
 {
   return ((font_add_symbol (symbol, buf) != 0)
