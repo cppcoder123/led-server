@@ -10,6 +10,7 @@
 #include "buf.h"
 #include "debug.h"
 #include "rotor.h"
+#include "menu.h"
 
 /*
  * 2 sec for bouncing
@@ -44,18 +45,18 @@ static volatile struct buf_t event_buf;
 static uint8_t old_event = 0;       /* toggled bits */
 static uint8_t bounce = 0;
 
-static rotor_callback callback = 0;
+/* static rotor_callback menu_handle_rotor = 0; */
 
-static void dummy_callback (uint8_t id, uint8_t action)
-{
-}
+/* static void dummy_callback (uint8_t id, uint8_t action) */
+/* { */
+/* } */
 
 void rotor_init ()
 {
   buf_init (&event_buf);
   old_event = 0;
   bounce = 0;
-  callback = &dummy_callback;
+  /* menu_handle_rotor = &dummy_callback; */
   /* invoke_enable (INVOKE_ID_ROTOR, BOUNCE_DELAY, &bounce_clear); */
 
   /* enable 3-rd series of pin change interrupts */
@@ -95,7 +96,7 @@ static void debounce (uint8_t id)
   else
     at_schedule (AT_BOUNCE_1, BOUNCE_DELAY, &bounce_clear_1);
 
-  callback (id, ROTOR_PUSH);
+  menu_handle_rotor (id, ROTOR_PUSH);
 }
 
 static uint8_t apply_mask (uint8_t old, uint8_t new,
@@ -119,9 +120,9 @@ static void handle_event (uint8_t event, uint8_t id)
   const uint8_t mask_both = (mask_a | mask_b);
 
   if (apply_mask (old_event, event, mask_a, mask_both) != 0)
-    callback (id, ROTOR_CLOCKWISE);
+    menu_handle_rotor (id, ROTOR_CLOCKWISE);
   if (apply_mask (old_event, event, mask_b, mask_both) != 0)
-    callback (id, ROTOR_COUNTER_CLOCKWISE);
+    menu_handle_rotor (id, ROTOR_COUNTER_CLOCKWISE);
   if (((old_event & mask_push) == 0)
       && ((event & mask_push) == mask_push))
     debounce (id);
@@ -148,10 +149,10 @@ ISR (PCINT2_vect)
   buf_byte_fill (&event_buf, PINK); /* floyd */
 }
 
-void rotor_register (rotor_callback cb)
-{
-  if (cb == 0)
-    return;
+/* void rotor_register (rotor_callback cb) */
+/* { */
+/*   if (cb == 0) */
+/*     return; */
 
-  callback = cb;
-}
+/*   menu_handle_rotor = cb; */
+/* } */

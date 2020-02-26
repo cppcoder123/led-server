@@ -4,7 +4,7 @@
 #ifndef ROTOR_H
 #define ROTOR_H
 
-#include <stdint.h>
+/* #include <stdint.h> */
 
 void rotor_init ();
 
@@ -21,8 +21,8 @@ enum {
 };
 
 /* register callback to handle rotor events */
-typedef void (*rotor_callback) (uint8_t id, uint8_t action);
+/* typedef void (*rotor_callback) (uint8_t id, uint8_t action); */
 
-void rotor_register (rotor_callback cb);
+/* void rotor_register (rotor_callback cb); */
 
 #endif

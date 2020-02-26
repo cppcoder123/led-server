@@ -561,7 +561,7 @@ static void reset ()
 }
 
 /* start menu handling */
-static void start (uint8_t id, uint8_t action)
+void menu_handle_rotor (uint8_t id, uint8_t action)
 {
   /* debug_2 (DEBUG_MENU, 111, id, action); */
 
@@ -607,7 +607,7 @@ static void start (uint8_t id, uint8_t action)
 
 void menu_init ()
 {
-  rotor_register (&start);
+  /* rotor_register (&start); */
   backup_mode = MODE_MENU;
 
   param_min[PARAM_ALARM_H] = param_min[PARAM_CLOCK_H] = 0;
