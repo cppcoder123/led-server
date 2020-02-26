@@ -9,8 +9,6 @@
 #include "font.h"
 #include "render.h"
 
-#define POSITION_LIMIT FLUSH_STABLE_SIZE
-
 #define SYMBOL_SIZE 5
 
 static uint8_t fill_matrix(uint8_t matrix[], uint8_t symbol_id)

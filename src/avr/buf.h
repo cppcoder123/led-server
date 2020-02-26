@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-#include "buf-size.h"
+#define BUF_SIZE 64
 
 struct buf_t
 {

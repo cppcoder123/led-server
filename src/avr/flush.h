@@ -6,10 +6,7 @@
 
 #include <stdint.h>
 
-#include "buf-size.h"
 #include "buf.h"
-
-#define FLUSH_STABLE_SIZE BUF_SIZE
 
 #define FLUSH_BRIGHTNESS_MAX 15
 

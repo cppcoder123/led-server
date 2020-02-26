@@ -25,9 +25,6 @@
 #define PARAM_ROTOR ROTOR_1
 #define VOLUME_ROTOR PARAM_ROTOR
 
-/* total led matrix size */
-#define DATA_SIZE FLUSH_STABLE_SIZE
-
 #define PARAM_FLAG_ALARM (1 << 0)
 #define PARAM_FLAG_BRIGNHTNESS (1 << 1)
 #define PARAM_FLAG_CLOCK (1 << 2)

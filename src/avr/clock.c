@@ -11,8 +11,6 @@
 
 #define LONG_INDENT 22
 
-#define BUFFER_SIZE FLUSH_STABLE_SIZE
-
 #define ALARM_SPACE 3
 
 static uint8_t second = 0;
