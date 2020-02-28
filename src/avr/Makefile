@@ -21,6 +21,7 @@ OBJECT_LIST = \
   display.o \
   encode.o \
   fan.o \
+  feedback.o \
   flush.o \
   font.o \
   heartbeat.o \
@@ -28,7 +29,6 @@ OBJECT_LIST = \
   mode.o \
   postpone.o \
   power.o \
-  pwm.o \
   render.o \
   ring.o \
   rotor.o \
