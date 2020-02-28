@@ -9,6 +9,7 @@ TARGET_ELF = $(TARGET).elf
 OBJECT_LIST = \
   at.o \
   avr.o \
+  boost.o \
   buf.o \
   buffer.o \
   buzz.o \
@@ -19,6 +20,7 @@ OBJECT_LIST = \
   decode.o \
   display.o \
   encode.o \
+  fan.o \
   flush.o \
   font.o \
   heartbeat.o \

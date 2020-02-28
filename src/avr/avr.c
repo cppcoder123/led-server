@@ -10,6 +10,7 @@
 #include "counter.h"
 #include "cron.h"
 #include "decode.h"
+#include "fan.h"
 #include "flush.h"
 #include "heartbeat.h"
 #include "menu.h"
@@ -34,6 +35,7 @@ static void init ()
   buzz_init ();
   clock_init ();
   decode_init ();
+  fan_init ();
   flush_init ();
   heartbeat_init ();
   mode_init ();
@@ -57,6 +59,7 @@ int main ()
     counter_try ();
     cron_try ();
     decode_try ();
+    fan_try ();
     postpone_try ();
     rotor_try ();
   }
