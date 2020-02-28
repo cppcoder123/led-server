@@ -26,6 +26,7 @@ OBJECT_LIST = \
   mode.o \
   postpone.o \
   power.o \
+  pwm.o \
   render.o \
   ring.o \
   rotor.o \
