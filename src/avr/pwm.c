@@ -22,6 +22,8 @@ void pwm_try (struct pwm_t *pwm)
       || (++pwm->delay < pwm->max_delay))
     return;
 
+  pwm->delay = 0;
+
   uint8_t delta = (current > pwm->target)
     ? (current - pwm->target) : (pwm->target - current);
 
