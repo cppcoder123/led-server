@@ -26,7 +26,7 @@ void feedback_init (struct feedback_t *feedback, uint8_t target,
 /* check current value and call 'control' if needed */
 void feedback_try (struct feedback_t *feedback);
 
-/* provide current value for analysis */
-void feedback_current (struct feedback_t *feedback, uint8_t current);
+/* provide data for analysis */
+void feedback_data (struct feedback_t *feedback, uint8_t data);
 
 #endif
