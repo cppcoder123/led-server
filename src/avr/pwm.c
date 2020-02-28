@@ -26,7 +26,7 @@ void pwm_try (struct pwm_t *pwm)
     ? (current - pwm->target) : (pwm->target - current);
 
   if (delta > pwm->delta)
-    pwm->control (delta);
+    pwm->control (current);
 }
 
 void pwm_current (struct pwm_t *pwm, uint8_t current)
