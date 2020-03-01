@@ -4,9 +4,9 @@
 #ifndef BOOST_H
 #define BOOST_H
 
-void boost_init ();
+void boost_start ();
 
-void boost_uninit ();
+void boost_stop ();
 
 void boost_try ();
 

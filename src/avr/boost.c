@@ -21,14 +21,14 @@ static void control (uint8_t current)
   /* fixme */
 }
 
-void boost_init ()
+void boost_start ()
 {
   /* init sw part */
   feedback_init (&feedback, TARGET, DELTA, DELAY, &control);
   /* init hw part, fixme */
 }
 
-void boost_uninit ()
+void boost_stop ()
 {
   /* uninit hw part, fixme */
 }

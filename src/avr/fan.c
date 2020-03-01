@@ -27,14 +27,14 @@ void fan_try ()
 void fan_start ()
 {
   started = 1;
-  boost_init ();
+  boost_start ();
   /* fixme : init everything*/
 }
 
 void fan_stop ()
 {
   /* fixme : de-init everything*/
-  boost_uninit ();
+  boost_stop ();
   started = 0;
 }
 
