@@ -55,8 +55,7 @@ static void interrupt_function ()
 
 static void engage_timer ()
 {
-  counter_interrupt_enable (CRON_COUNTER, COUNTER_INTERRUPT_COMPARE_A,
-                            interrupt_function);
+  counter_interrupt_enable (CRON_COUNTER, interrupt_function);
   counter_set_register (CRON_COUNTER,
                         COUNTER_OUTPUT_COMPARE_A, FACTOR_LOW, FACTOR_HIGH);
   counter_enable (CRON_COUNTER, CRON_PRESCALER);
@@ -64,7 +63,7 @@ static void engage_timer ()
 
 static void disengage_timer ()
 {
-  counter_interrupt_disable (CRON_COUNTER, COUNTER_INTERRUPT_COMPARE_A);
+  counter_interrupt_disable (CRON_COUNTER);
   counter_disable (CRON_COUNTER);
 }
 
