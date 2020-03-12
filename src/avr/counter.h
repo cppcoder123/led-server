@@ -6,16 +6,6 @@
 
 #include <stdint.h>
 
-/* all our counters */
-enum {
-    COUNTER_0,
-    COUNTER_1,
-    COUNTER_2,
-    COUNTER_3,
-    COUNTER_4,
-    COUNTER_5,
-};
-
 /* prescaler values */
 #define COUNTER_PRESCALER_0 (0)   /* default value, disables the counter */
 #define COUNTER_PRESCALER_1 (1 << 0)
@@ -35,22 +25,40 @@ enum {
 /* interrupt action */
 typedef void (*counter_handle) ();
 
+/* all our counters */
+enum {
+    COUNTER_0,
+    COUNTER_1,
+    COUNTER_2,
+    COUNTER_3,
+    COUNTER_4,
+    COUNTER_5,
+};
+
+/* registers we want to update */
+enum {
+    COUNTER_VALUE,
+    COUNTER_OUTPUT_COMPARE_A,
+    COUNTER_OUTPUT_COMPARE_B,
+    /* output_compare_c is not used */
+};
+
 /* init internal structure */
 void counter_init ();
 
 void counter_enable (uint8_t id, uint8_t prescaler);
 void counter_disable (uint8_t id);
 
-/* void counter_prescaler (uint8_t id, uint8_t prescaler); */
-
-void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun);
-
-/* only low is valid for counter 0, 2*/
-void counter_set_compare_a (uint8_t id, uint8_t low, uint8_t high);
+void counter_interrupt_enable (uint8_t id,
+                               uint8_t int_type, counter_handle fun);
+void counter_interrupt_disable (uint8_t id, uint8_t int_type);
 
 /* only low is valid for counter 0, 2*/
-void counter_set (uint8_t id, uint8_t low, uint8_t high);
-void counter_get (uint8_t id, uint8_t *low, uint8_t *high);
+void counter_set_register (uint8_t id, uint8_t reg, uint8_t low, uint8_t high);
+
+/* only low is valid for counter 0, 2*/
+/* void counter_set (uint8_t id, uint8_t low, uint8_t high); */
+/* void counter_get (uint8_t id, uint8_t *low, uint8_t *high); */
 
 /* perform tasks scheduled by interrupts */
 void counter_try ();

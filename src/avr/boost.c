@@ -40,8 +40,9 @@ static void counter_start ()
 {
   /* fixme */
   counter_enable (BOOST_COUNTER, BOOST_PRESCALER);
-  /* fixme: set flags in 'set_compare_a' and rename it to 'enable_compare_a' */
-  counter_set_compare_a (BOOST_COUNTER, BOOST_PWM_MIDDLE, BOOST_COMPARE_A_HIGH);
+  counter_set_register (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_A,
+                        BOOST_PWM_MIDDLE, BOOST_COMPARE_A_HIGH);
+ /* fixme : set proper flags */
 }
 
 static void counter_stop ()

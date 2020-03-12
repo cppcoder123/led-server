@@ -16,6 +16,9 @@
 #define PRESCALER_MASK (COUNTER_PRESCALER_1 | COUNTER_PRESCALER_8 \
   | COUNTER_PRESCALER_256)
 
+#define COMPARE_A_8_BIT_FLAG (1 << 1)
+#define COMPARE_A_16_BIT_FLAG (1 << 3)
+
 /* either set "|=" or clear "&= ~" */
 typedef void (*reg_access) (uint8_t/*counter-id*/, uint8_t/*value*/);
 
@@ -220,7 +223,7 @@ static void timsk_clear (uint8_t id, uint8_t value)
   }
 }
 
-void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun)
+void counter_interrupt_enable (uint8_t id, uint8_t int_type, counter_handle fun)
 {
   if ((id > MAX_ID)
       || ((int_type != COUNTER_INTERRUPT_OVERFLOW)
@@ -232,116 +235,190 @@ void counter_interrupt (uint8_t id, uint8_t int_type, counter_handle fun)
   uint8_t int_mask = 0;
   if (int_type == COUNTER_INTERRUPT_COMPARE_A) {
     array = compare_a;
-    int_mask = (eight_bits (id) != 0) ? (1 << 1) : (1 << 3);
+    int_mask = (eight_bits (id) != 0)
+      ? COMPARE_A_8_BIT_FLAG : COMPARE_A_16_BIT_FLAG;
   }
 
   *(array + id) = fun;
 
-  reg_access reg_set = &tccrb_set;
-  reg_access reg_clear = &tccrb_clear;
-  if (eight_bits (id) != 0) {
-    reg_set = &tccra_set;
-    reg_clear = &tccra_clear;
-  }
+  reg_access reg_set = (eight_bits (id) != 0) ? &tccra_set : &tccrb_set;
 
-  if (fun != 0) {
-    timsk_set (id, int_type);
-    reg_set (id, int_mask);
-  } else {
-    timsk_clear (id, int_type);
-    reg_clear (id, int_mask);
-  }
+  timsk_set (id, int_type);
+  reg_set (id, int_mask);
 }
 
-void counter_set_compare_a (uint8_t id, uint8_t low, uint8_t high)
+void counter_interrupt_disable (uint8_t id, uint8_t int_type)
 {
-  switch (id) {
-  case COUNTER_0:
-    OCR0A = low;
-    break;
-  case COUNTER_1:
-    OCR1AL = low;
-    OCR1AH = high;
-    break;
-  case COUNTER_2:
-    OCR2A = low;
-    break;
-  case COUNTER_3:
-    OCR3AL = low;
-    OCR3AH = high;
-    break;
-  case COUNTER_4:
-    OCR4AL = low;
-    OCR4AH = high;
-    break;
-  case COUNTER_5:
-    OCR5AL = low;
-    OCR5AH = high;
-    break;
-  default:
-    break;
-  }
+  reg_access reg_clear = (eight_bits (id) != 0) ? &tccra_clear : &tccrb_clear;
+  uint8_t mask = (int_type == COUNTER_INTERRUPT_COMPARE_A)
+    ? ((eight_bits (id) != 0) ? COMPARE_A_8_BIT_FLAG : COMPARE_A_16_BIT_FLAG)
+    : 0;
+
+  timsk_clear (id, int_type);
+  reg_clear (id, mask);
 }
 
-void counter_set (uint8_t id, uint8_t low, uint8_t high)
+void counter_set_register (uint8_t id, uint8_t reg, uint8_t low, uint8_t high)
 {
-  switch (id) {
-  case COUNTER_0:
-    TCNT0 = low;
-    break;
-  case COUNTER_1:
-    TCNT1L = low;
-    TCNT1H = high;
-    break;
-  case COUNTER_2:
-    TCNT2 = low;
-    break;
-  case COUNTER_3:
-    TCNT3L = low;
-    TCNT3H = high;
-    break;
-  case COUNTER_4:
-    TCNT4L = low;
-    TCNT4H = high;
-    break;
-  case COUNTER_5:
-    TCNT5L = low;
-    TCNT5H = high;
-    break;
-  default:
-    break;
-  }
+  volatile uint8_t *reg_array[] =
+    {
+     &TCNT0, &TCNT0,            /* counter itself */
+     &TCNT1L, &TCNT1H,
+     &TCNT2, &TCNT2,
+     &TCNT3L, &TCNT3H,
+     &TCNT4L, &TCNT4H,
+     &TCNT5L, &TCNT5H,
+     &OCR0A, &OCR0A,            /*output compare a*/
+     &OCR1AL, &OCR1AH,
+     &OCR2A, &OCR2A,
+     &OCR3AL, &OCR3AH,
+     &OCR4AL, &OCR4AH,
+     &OCR5AL, &OCR5AH,
+     &OCR0B, &OCR0B,            /*output compare b*/
+     &OCR1BL, &OCR1BH,
+     &OCR2B, &OCR2B,
+     &OCR3BL, &OCR3BH,
+     &OCR4BL, &OCR4BH,
+     &OCR5BL, &OCR5BH
+  };
+
+  const uint8_t shift = 12;
+
+  uint8_t factor = (reg == COUNTER_OUTPUT_COMPARE_A) ? 1
+    : (reg == COUNTER_OUTPUT_COMPARE_B) ? 2
+    : 0;
+
+  uint8_t reg_array_id = id + factor * shift;
+  volatile uint8_t *lhs_low = reg_array[reg_array_id];
+  volatile uint8_t *lhs_high = reg_array[reg_array_id + 1];
+
+  *lhs_low = low;
+
+  if (eight_bits (id) == 0)
+    *lhs_high = high;
 }
 
-void counter_get (uint8_t id, uint8_t *low, uint8_t *high)
-{
-  switch (id) {
-  case COUNTER_0:
-    *low = TCNT0;
-    break;
-  case COUNTER_1:
-    *low = TCNT1L;
-    *high = TCNT1H;
-    break;
-  case COUNTER_2:
-    *low = TCNT2;
-    break;
-  case COUNTER_3:
-    *low = TCNT3L;
-    *high = TCNT3H;
-    break;
-  case COUNTER_4:
-    *low = TCNT4L;
-    *high = TCNT4H;
-    break;
-  case COUNTER_5:
-    *low = TCNT5L;
-    *high = TCNT5H;
-    break;
-  default:
-    break;
-  }
-}
+/*   switch (id) { */
+/*   case COUNTER_0: */
+/*     OCR0A = low; */
+/*     break; */
+/*   case COUNTER_1: */
+/*     OCR1AL = low; */
+/*     OCR1AH = high; */
+/*     break; */
+/*   case COUNTER_2: */
+/*     OCR2A = low; */
+/*     break; */
+/*   case COUNTER_3: */
+/*     OCR3AL = low; */
+/*     OCR3AH = high; */
+/*     break; */
+/*   case COUNTER_4: */
+/*     OCR4AL = low; */
+/*     OCR4AH = high; */
+/*     break; */
+/*   case COUNTER_5: */
+/*     OCR5AL = low; */
+/*     OCR5AH = high; */
+/*     break; */
+/*   default: */
+/*     break; */
+
+/*   } */
+
+/*   lhs_low = &TCNT0; */
+/* } */
+
+
+/* void counter_set_compare_a (uint8_t id, uint8_t low, uint8_t high) */
+/* { */
+/*   switch (id) { */
+/*   case COUNTER_0: */
+/*     OCR0A = low; */
+/*     break; */
+/*   case COUNTER_1: */
+/*     OCR1AL = low; */
+/*     OCR1AH = high; */
+/*     break; */
+/*   case COUNTER_2: */
+/*     OCR2A = low; */
+/*     break; */
+/*   case COUNTER_3: */
+/*     OCR3AL = low; */
+/*     OCR3AH = high; */
+/*     break; */
+/*   case COUNTER_4: */
+/*     OCR4AL = low; */
+/*     OCR4AH = high; */
+/*     break; */
+/*   case COUNTER_5: */
+/*     OCR5AL = low; */
+/*     OCR5AH = high; */
+/*     break; */
+/*   default: */
+/*     break; */
+/*   } */
+/* } */
+
+/* void counter_set (uint8_t id, uint8_t low, uint8_t high) */
+/* { */
+/*   switch (id) { */
+/*   case COUNTER_0: */
+/*     TCNT0 = low; */
+/*     break; */
+/*   case COUNTER_1: */
+/*     TCNT1L = low; */
+/*     TCNT1H = high; */
+/*     break; */
+/*   case COUNTER_2: */
+/*     TCNT2 = low; */
+/*     break; */
+/*   case COUNTER_3: */
+/*     TCNT3L = low; */
+/*     TCNT3H = high; */
+/*     break; */
+/*   case COUNTER_4: */
+/*     TCNT4L = low; */
+/*     TCNT4H = high; */
+/*     break; */
+/*   case COUNTER_5: */
+/*     TCNT5L = low; */
+/*     TCNT5H = high; */
+/*     break; */
+/*   default: */
+/*     break; */
+/*   } */
+/* } */
+
+/* void counter_get (uint8_t id, uint8_t *low, uint8_t *high) */
+/* { */
+/*   switch (id) { */
+/*   case COUNTER_0: */
+/*     *low = TCNT0; */
+/*     break; */
+/*   case COUNTER_1: */
+/*     *low = TCNT1L; */
+/*     *high = TCNT1H; */
+/*     break; */
+/*   case COUNTER_2: */
+/*     *low = TCNT2; */
+/*     break; */
+/*   case COUNTER_3: */
+/*     *low = TCNT3L; */
+/*     *high = TCNT3H; */
+/*     break; */
+/*   case COUNTER_4: */
+/*     *low = TCNT4L; */
+/*     *high = TCNT4H; */
+/*     break; */
+/*   case COUNTER_5: */
+/*     *low = TCNT5L; */
+/*     *high = TCNT5H; */
+/*     break; */
+/*   default: */
+/*     break; */
+/*   } */
+/* } */
 
 static void interrupt_routine (uint8_t is_compare_a, uint8_t counter_id)
 {
