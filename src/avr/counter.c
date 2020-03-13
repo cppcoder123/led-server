@@ -63,7 +63,7 @@ static void register_set (uint8_t counter_id,
                           uint8_t register_id, uint8_t value)
 {
   volatile uint8_t *reg = register_get (counter_id, register_id);
-  *reg = value;
+  *reg |= value;
 }
 
 static void register_clear (uint8_t counter_id,
@@ -89,32 +89,40 @@ void counter_disable (uint8_t id)
   register_clear (id, CONTROL_REGISTER_B, PRESCALER_MASK);
 }
 
-void counter_interrupt_enable (uint8_t id, counter_handle fun)
+static void handle_interrupt (uint8_t enable,
+                              uint8_t counter_id, counter_handle fun)
 {
-  if ((id > MAX_ID)
-      || (fun == 0))
+  if ((counter_id > MAX_ID)
+      || ((enable != 0)
+          && (fun == 0)))
     return;
 
-  uint8_t flag = (eight_bits (id) != 0)
+  uint8_t flag = (eight_bits (counter_id) != 0)
     ? FLAG_COMPARE_A_8 : FLAG_COMPARE_A_16;
-  uint8_t control_reg = (eight_bits (id) != 0)
+  uint8_t control_reg = (eight_bits (counter_id) != 0)
     ? CONTROL_REGISTER_A : CONTROL_REGISTER_B;
 
-  compare_a[id] = fun;
+  if (enable != 0) {
+    register_set (counter_id, control_reg, flag);
+    register_set (counter_id,
+                  CONTROL_REGISTER_INTERRUPT, FLAG_COMPARE_A_INTERRUPT);
+  } else {
+    register_clear (counter_id, control_reg, flag);
+    register_clear (counter_id,
+                    CONTROL_REGISTER_INTERRUPT, FLAG_COMPARE_A_INTERRUPT);
+  }
 
-  register_set (id, control_reg, flag);
-  register_set (id, CONTROL_REGISTER_INTERRUPT, FLAG_COMPARE_A_INTERRUPT);
+  compare_a[counter_id] = fun;
 }
 
-void counter_interrupt_disable (uint8_t id)
+void counter_interrupt_enable (uint8_t counter_id, counter_handle fun)
 {
-  uint8_t reg = (eight_bits (id) != 0)
-    ? CONTROL_REGISTER_A : CONTROL_REGISTER_B;
-  uint8_t flag = (eight_bits (id) != 0)
-    ? FLAG_COMPARE_A_8 : FLAG_COMPARE_A_16;
+  handle_interrupt (1, counter_id, fun);
+}
 
-  register_clear (id, reg, flag);
-  register_clear (id, CONTROL_REGISTER_INTERRUPT, FLAG_COMPARE_A_INTERRUPT);
+void counter_interrupt_disable (uint8_t counter_id)
+{
+  handle_interrupt (0, counter_id, 0);
 }
 
 void counter_set_register (uint8_t id, uint8_t reg, uint8_t low, uint8_t high)
