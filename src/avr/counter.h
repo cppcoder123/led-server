@@ -52,7 +52,10 @@ void counter_interrupt (uint8_t enable, uint8_t id, counter_handle fun);
 void counter_pwm (uint8_t enable, uint8_t id);
 
 /* only low is valid for counter 0, 2*/
-void counter_set_register (uint8_t id, uint8_t reg, uint8_t low, uint8_t high);
+void counter_register_write (uint8_t id, uint8_t reg,
+			     uint8_t low, uint8_t high);
+void counter_register_read (uint8_t id, uint8_t reg,
+			    uint8_t *low, uint8_t *high);
 
 /* perform tasks scheduled by interrupts */
 void counter_try ();

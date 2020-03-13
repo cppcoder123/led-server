@@ -18,11 +18,11 @@
 #define BOOST_COUNTER COUNTER_4
 #define BOOST_PRESCALER COUNTER_PRESCALER_1
 /* 25 kHz */
-#define BOOST_COMPARE_A 160
-#define BOOST_PWM_MIN 3
+#define BOOST_COMPARE_A_LOW 160
+#define BOOST_ZERO 0
+/* */
+#define BOOST_PWM_MIN 4
 #define BOOST_PWM_MAX 157
-#define BOOST_PWM_MIDDLE ((BOOST_PWM_MIN + BOOST_PWM_MAX) / 2)
-#define BOOST_COMPARE_A_HIGH 0
 
 static struct feedback_t feedback;
 
@@ -39,18 +39,19 @@ static void adc_stop ()
 static void counter_start ()
 {
   /* fixme */
+  counter_register_write
+    (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_A, BOOST_COMPARE_A_LOW, BOOST_ZERO);
+  counter_register_write
+    (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_B, BOOST_PWM_MIN, BOOST_ZERO);
+  /* counter_pwm (1, BOOST_COUNTER); */
   counter_enable (BOOST_COUNTER, BOOST_PRESCALER);
-  counter_set_register (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_A,
-                        BOOST_PWM_MIDDLE, BOOST_COMPARE_A_HIGH);
- /* fixme : set proper flags */
 }
 
 static void counter_stop ()
 {
   /* fixme */
   counter_disable (BOOST_COUNTER);
-  /* fixme */
-  /* counter_disable_compare_a (); */
+  /* counter_pwm (0, BOOST_COUNTER); */
 }
 
 static void control (uint8_t current)
@@ -63,8 +64,8 @@ void boost_start ()
   /* init sw part */
   feedback_init (&feedback, TARGET, DELTA, DELAY, &control);
   /* init hw part, fixme */
-  counter_start ();
   adc_start ();
+  counter_start ();
 }
 
 void boost_stop ()

@@ -113,7 +113,7 @@ void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_handle fun)
   }
 }
 
-void counter_set_register (uint8_t id, uint8_t reg, uint8_t low, uint8_t high)
+void counter_register_write (uint8_t id, uint8_t reg, uint8_t low, uint8_t high)
 {
   volatile uint8_t *reg_array[] =
     {
@@ -131,9 +131,7 @@ void counter_set_register (uint8_t id, uint8_t reg, uint8_t low, uint8_t high)
      &OCR5BL, &OCR5BH
   };
 
-  const uint8_t shift = 12;
-  const uint8_t factor = (reg == COUNTER_OUTPUT_COMPARE_B) ? 1 : 0;
-  const uint8_t reg_array_id = id + factor * shift;
+  const uint8_t reg_array_id = id * 2 + ((reg == COUNTER_OUTPUT_COMPARE_B) ? 12 : 0);
 
   volatile uint8_t *lhs_low = reg_array[reg_array_id];
   volatile uint8_t *lhs_high = reg_array[reg_array_id + 1];
