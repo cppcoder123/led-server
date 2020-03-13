@@ -103,6 +103,7 @@ static void handle_interrupt (uint8_t enable,
     ? CONTROL_REGISTER_A : CONTROL_REGISTER_B;
 
   if (enable != 0) {
+    compare_a[counter_id] = fun;
     register_set (counter_id, control_reg, flag);
     register_set (counter_id,
                   CONTROL_REGISTER_INTERRUPT, FLAG_COMPARE_A_INTERRUPT);
@@ -111,8 +112,6 @@ static void handle_interrupt (uint8_t enable,
     register_clear (counter_id,
                     CONTROL_REGISTER_INTERRUPT, FLAG_COMPARE_A_INTERRUPT);
   }
-
-  compare_a[counter_id] = fun;
 }
 
 void counter_interrupt_enable (uint8_t counter_id, counter_handle fun)
