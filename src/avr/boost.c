@@ -43,7 +43,7 @@ static void counter_start ()
     (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_A, BOOST_COMPARE_A_LOW, BOOST_ZERO);
   counter_register_write
     (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_B, BOOST_PWM_MIN, BOOST_ZERO);
-  /* counter_pwm (1, BOOST_COUNTER); */
+  counter_pwm (1, BOOST_COUNTER);
   counter_enable (BOOST_COUNTER, BOOST_PRESCALER);
 }
 
@@ -51,7 +51,7 @@ static void counter_stop ()
 {
   /* fixme */
   counter_disable (BOOST_COUNTER);
-  /* counter_pwm (0, BOOST_COUNTER); */
+  counter_pwm (0, BOOST_COUNTER);
 }
 
 static void control (uint8_t current)
@@ -64,15 +64,15 @@ void boost_start ()
   /* init sw part */
   feedback_init (&feedback, TARGET, DELTA, DELAY, &control);
   /* init hw part, fixme */
-  adc_start ();
   counter_start ();
+  adc_start ();
 }
 
 void boost_stop ()
 {
   /* uninit hw part, fixme */
-  counter_stop ();
   adc_stop ();
+  counter_stop ();
 }
 
 void boost_try ()

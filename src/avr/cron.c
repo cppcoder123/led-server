@@ -57,7 +57,7 @@ static void engage_timer ()
 {
   counter_interrupt (1, CRON_COUNTER, interrupt_function);
   counter_register_write (CRON_COUNTER,
-			  COUNTER_OUTPUT_COMPARE_A, FACTOR_LOW, FACTOR_HIGH);
+                          COUNTER_OUTPUT_COMPARE_A, FACTOR_LOW, FACTOR_HIGH);
   counter_enable (CRON_COUNTER, CRON_PRESCALER);
 }
 

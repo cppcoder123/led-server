@@ -36,25 +36,26 @@ enum {
     COUNTER_OUTPUT_COMPARE_A,
     COUNTER_OUTPUT_COMPARE_B,
     /* output_compare_c is not used */
+    COUNTER_VALUE,
 };
 
 /* init internal structure */
 void counter_init ();
 
-void counter_enable (uint8_t id, uint8_t prescaler);
-void counter_disable (uint8_t id);
+void counter_enable (uint8_t counter_id, uint8_t prescaler);
+void counter_disable (uint8_t counter_id);
 
 /* only ctc compare-a interrupts are used now */
-void counter_interrupt (uint8_t enable, uint8_t id, counter_handle fun);
+void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_handle fun);
 
 /* fast pwm with output-compare-a & output-compare-b */
 /* these registers should be set and !!! b <= a !!! */
-void counter_pwm (uint8_t enable, uint8_t id);
+void counter_pwm (uint8_t enable, uint8_t counter_id);
 
 /* only low is valid for counter 0, 2*/
-void counter_register_write (uint8_t id, uint8_t reg,
+void counter_register_write (uint8_t counter_id, uint8_t reg_id,
 			     uint8_t low, uint8_t high);
-void counter_register_read (uint8_t id, uint8_t reg,
+void counter_register_read (uint8_t counter_id, uint8_t reg_id,
 			    uint8_t *low, uint8_t *high);
 
 /* perform tasks scheduled by interrupts */
