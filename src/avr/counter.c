@@ -89,8 +89,7 @@ void counter_disable (uint8_t id)
   register_clear (id, CONTROL_REGISTER_B, PRESCALER_MASK);
 }
 
-static void handle_interrupt (uint8_t enable,
-                              uint8_t counter_id, counter_handle fun)
+void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_handle fun)
 {
   if ((counter_id > MAX_ID)
       || ((enable != 0)
@@ -112,16 +111,6 @@ static void handle_interrupt (uint8_t enable,
     register_clear (counter_id,
                     CONTROL_REGISTER_INTERRUPT, FLAG_INTERRUPT_COMPARE_A);
   }
-}
-
-void counter_interrupt_enable (uint8_t counter_id, counter_handle fun)
-{
-  handle_interrupt (1, counter_id, fun);
-}
-
-void counter_interrupt_disable (uint8_t counter_id)
-{
-  handle_interrupt (0, counter_id, 0);
 }
 
 void counter_set_register (uint8_t id, uint8_t reg, uint8_t low, uint8_t high)

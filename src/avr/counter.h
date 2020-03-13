@@ -45,8 +45,11 @@ void counter_enable (uint8_t id, uint8_t prescaler);
 void counter_disable (uint8_t id);
 
 /* only ctc compare-a interrupts are used now */
-void counter_interrupt_enable (uint8_t id, counter_handle fun);
-void counter_interrupt_disable (uint8_t id);
+void counter_interrupt (uint8_t enable, uint8_t id, counter_handle fun);
+
+/* fast pwm with output-compare-a & output-compare-b */
+/* these registers should be set and !!! b <= a !!! */
+void counter_pwm (uint8_t enable, uint8_t id);
 
 /* only low is valid for counter 0, 2*/
 void counter_set_register (uint8_t id, uint8_t reg, uint8_t low, uint8_t high);

@@ -15,7 +15,7 @@
 /* delay , 5 times? fixme */
 #define DELAY 5
 
-#define BOOST_COUNTER COUNTER_3
+#define BOOST_COUNTER COUNTER_4
 #define BOOST_PRESCALER COUNTER_PRESCALER_1
 /* 25 kHz */
 #define BOOST_COMPARE_A 160
