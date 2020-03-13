@@ -11,15 +11,15 @@
 
 #define MAX_ID COUNTER_5
 
-#define ARRAY_SIZE (COUNTER_5 + 1)
-
 #define PRESCALER_MASK (COUNTER_PRESCALER_1 | COUNTER_PRESCALER_8 \
   | COUNTER_PRESCALER_256)
 
 
-#define FLAG_COMPARE_A_8 (1 << 1)
-#define FLAG_COMPARE_A_16 (1 << 3)
-#define FLAG_COMPARE_A_INTERRUPT (1 << 1)
+/* enable something */
+#define FLAG_ENABLE_COMPARE_A_8 (1 << 1)
+#define FLAG_ENABLE_COMPARE_A_16 (1 << 3)
+/* enable interrupt */
+#define FLAG_INTERRUPT_COMPARE_A (1 << 1)
 
 enum {
   CONTROL_REGISTER_A,
@@ -27,13 +27,13 @@ enum {
   CONTROL_REGISTER_INTERRUPT,
 };
 
-static counter_handle compare_a[ARRAY_SIZE];
+static counter_handle compare_a[MAX_ID + 1];
 
 static volatile struct buf_t handle_queue;
 
 void counter_init ()
 {
-  for (uint8_t i = 0; i < ARRAY_SIZE; ++i) 
+  for (uint8_t i = 0; i <= MAX_ID; ++i)
     compare_a[i] = 0;
 
   buf_init (&handle_queue);
@@ -98,7 +98,7 @@ static void handle_interrupt (uint8_t enable,
     return;
 
   uint8_t flag = (eight_bits (counter_id) != 0)
-    ? FLAG_COMPARE_A_8 : FLAG_COMPARE_A_16;
+    ? FLAG_ENABLE_COMPARE_A_8 : FLAG_ENABLE_COMPARE_A_16;
   uint8_t control_reg = (eight_bits (counter_id) != 0)
     ? CONTROL_REGISTER_A : CONTROL_REGISTER_B;
 
@@ -106,11 +106,11 @@ static void handle_interrupt (uint8_t enable,
     compare_a[counter_id] = fun;
     register_set (counter_id, control_reg, flag);
     register_set (counter_id,
-                  CONTROL_REGISTER_INTERRUPT, FLAG_COMPARE_A_INTERRUPT);
+                  CONTROL_REGISTER_INTERRUPT, FLAG_INTERRUPT_COMPARE_A);
   } else {
     register_clear (counter_id, control_reg, flag);
     register_clear (counter_id,
-                    CONTROL_REGISTER_INTERRUPT, FLAG_COMPARE_A_INTERRUPT);
+                    CONTROL_REGISTER_INTERRUPT, FLAG_INTERRUPT_COMPARE_A);
   }
 }
 
