@@ -4,34 +4,36 @@
 
 #include <avr/interrupt.h>
 
+#include "unix/constant.h"
+
 #include "boost.h"
 #include "counter.h"
+#include "debug.h"
 #include "feedback.h"
 
 /* 12 volt, fixme check */
 #define FEEDBACK_TARGET 125
 /* suitable delta ? 10% fixme */
-#define FEEDBACK_DELTA 12
+#define FEEDBACK_DELTA 10
 /* delay , 5 times? fixme */
 #define FEEDBACK_DELAY 5
 
 #define BOOST_COUNTER COUNTER_4
 #define BOOST_PRESCALER COUNTER_PRESCALER_1
 /* ~25 kHz */
-#define BOOST_PWM_FREQUENCY 160
-#define BOOST_ZERO 0
-/* */
-#define BOOST_PWM_MIN 4
-#define BOOST_PWM_MAX BOOST_PWM_FREQUENCY
+#define BOOST_FREQUENCY 160
 
-/* handle pwm feedback */
-/* epsilon - delta is very small, no need to tune */
-#define PARAM_DELTA_EPSILON 3
-/* fine - carefull tuning is needed, more than this is rough */
-#define PARAM_DELTA_FINE 10
-/* ---------- */
+#define PWM_MIN 4
+#define PWM_MAX BOOST_FREQUENCY
 #define PWM_DELTA_FINE 1
 #define PWM_DELTA_ROUGH 5
+
+/* tiny - delta is very small, no need to tune */
+#define VOLTAGE_DELTA_TINY FEEDBACK_DELTA
+/* fine - carefull tuning is needed, more than this is rough */
+#define VOLTAGE_DELTA_FINE (5 * FEEDBACK_DELTA)
+
+#define BOOST_ZERO 0
 
 static struct feedback_t feedback;
 static uint8_t pwm = 0;
@@ -70,7 +72,7 @@ static void counter_start ()
 {
   /* fixme */
   counter_register_write
-    (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_A, BOOST_PWM_FREQUENCY, BOOST_ZERO);
+    (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_A, BOOST_FREQUENCY, BOOST_ZERO);
   counter_register_write
     (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_B, pwm, BOOST_ZERO);
   counter_pwm (1, BOOST_COUNTER);
@@ -86,10 +88,10 @@ static void counter_stop ()
 
 static uint8_t get_pwm_delta (uint8_t param_delta)
 {
-  if (param_delta <= PARAM_DELTA_EPSILON)
-    return 0;
+  if (param_delta <= VOLTAGE_DELTA_TINY)
+    return BOOST_ZERO;
 
-  if (param_delta <= PARAM_DELTA_FINE)
+  if (param_delta <= VOLTAGE_DELTA_FINE)
     return PWM_DELTA_FINE;
 
   /* delta is very big */
@@ -100,15 +102,22 @@ static void control (uint8_t current)
 {
   /* fixme */
   uint8_t need_more = (current < FEEDBACK_TARGET) ? 1 : 0;
-  uint8_t param_delta = (need_more > 0) ? FEEDBACK_TARGET - current : current - FEEDBACK_TARGET;
+  uint8_t param_delta = (need_more > 0)
+    ? FEEDBACK_TARGET - current : current - FEEDBACK_TARGET;
   uint8_t pwm_delta = get_pwm_delta (param_delta);
 
+  if (pwm_delta == BOOST_ZERO) {
+    /* we shouldn't be here */
+    debug_1 (DEBUG_BOOST, 99, param_delta);
+    return;
+  }
+
   if (need_more > 0)
-    pwm = (pwm + pwm_delta < BOOST_PWM_MAX)
-      ? pwm + pwm_delta : BOOST_PWM_MAX;
+    pwm = (pwm + pwm_delta < PWM_MAX)
+      ? pwm + pwm_delta : PWM_MAX;
   else
-    pwm = ((pwm > pwm_delta) && (pwm - pwm_delta > BOOST_PWM_MIN))
-           ? pwm - pwm_delta : BOOST_PWM_MIN;
+    pwm = ((pwm > pwm_delta) && (pwm - pwm_delta > PWM_MIN))
+           ? pwm - pwm_delta : PWM_MIN;
 
   counter_register_write (BOOST_COUNTER,
                           COUNTER_OUTPUT_COMPARE_B, pwm, BOOST_ZERO);
@@ -117,8 +126,9 @@ static void control (uint8_t current)
 void boost_start ()
 {
   /* init sw part */
-  feedback_init (&feedback, FEEDBACK_TARGET, FEEDBACK_DELTA, FEEDBACK_DELAY, &control);
-  pwm = BOOST_PWM_MIN;
+  feedback_init (&feedback, FEEDBACK_TARGET,
+                 FEEDBACK_DELTA, FEEDBACK_DELAY, &control);
+  pwm = PWM_MIN;
   /* init hw part */
   counter_start ();
   adc_start ();

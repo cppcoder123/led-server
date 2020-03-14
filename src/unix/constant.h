@@ -89,8 +89,10 @@ enum {
 
 /* debug domain */
 enum {
+  DEBUG_BOOST,
   DEBUG_CLOCK,
   DEBUG_DECODE,
+  DEBUG_FAN,
   DEBUG_FLUSH,
   DEBUG_MENU,
   DEBUG_SPI,
