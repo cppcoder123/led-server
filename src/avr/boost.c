@@ -23,7 +23,8 @@
 /* ~25 kHz */
 #define BOOST_FREQUENCY 160
 
-#define PWM_MIN 4
+/* min - idle run? */
+#define PWM_MIN 0
 #define PWM_MAX BOOST_FREQUENCY
 #define PWM_DELTA_FINE 1
 #define PWM_DELTA_ROUGH 5
