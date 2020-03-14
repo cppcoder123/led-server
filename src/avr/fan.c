@@ -6,7 +6,6 @@
 
 #include "unix/constant.h"
 
-#include "at.h"
 #include "boost.h"
 #include "counter.h"
 #include "cron.h"
@@ -46,14 +45,12 @@ static struct feedback_t feedback;
 static uint8_t started = 0;
 static uint8_t pwm = PWM_MAX;
 /* give fan a time to gain momentum */
-static uint8_t ignore = 1;
+static uint8_t ignore_count = METER_DELAY;
 
 void fan_init ()
 {
   /* fixme */
   started = 0;
-  pwm = PWM_MAX;
-  ignore = 1;
 }
 
 void fan_try ()
@@ -68,6 +65,7 @@ void fan_try ()
 
 static void start_pwm ()
 {
+  pwm = PWM_MAX;
   counter_register_write
     (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_A, PWM_FREQUENCY, FAN_ZERO);
   counter_register_write
@@ -84,8 +82,16 @@ static void stop_pwm ()
 
 static void measure ()
 {
-  if (ignore != 0)
+  if (ignore_count > 1) {
+    --ignore_count;
     return;
+  }
+  if (ignore_count == 1) {
+    /* prepare for measurements */
+    --ignore_count;
+    counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
+    return;
+  }
 
   uint8_t low, high;
   counter_register_read (METER_COUNTER, COUNTER_VALUE, &low, &high);
@@ -97,18 +103,12 @@ static void measure ()
     debug_1 (DEBUG_FAN, 222, high);
 }
 
-static void dont_ignore ()
-{
-  ignore = 0;
-}
-
 static void start_meter ()      /* frequency-meter */
 {
-  ignore = 1;
+  ignore_count = METER_DELAY;
   counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
   counter_enable (METER_COUNTER, METER_PRESCALER);
   cron_enable (CRON_ID_FAN, METER_FREQUENCY, &measure);
-  at_schedule (AT_FAN, METER_DELAY, &dont_ignore);
 }
 
 static void stop_meter ()
