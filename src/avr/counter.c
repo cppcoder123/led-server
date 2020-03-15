@@ -44,16 +44,16 @@ enum {
 
 typedef void (*handle_flag) (uint8_t counter_id, uint8_t reg_id, uint8_t flag);
 
-static counter_handle compare_a[MAX_ID + 1];
+static counter_callback callback_array[MAX_ID + 1];
 
-static volatile struct buf_t handle_queue;
+static volatile struct buf_t invoke_queue;
 
 void counter_init ()
 {
   for (uint8_t i = 0; i <= MAX_ID; ++i)
-    compare_a[i] = 0;
+    callback_array[i] = 0;
 
-  buf_init (&handle_queue);
+  buf_init (&invoke_queue);
 }
 
 static uint8_t eight_bits (uint8_t id)
@@ -107,7 +107,7 @@ void counter_disable (uint8_t id)
   control_register_clear (id, CONTROL_REGISTER_B, PRESCALER_MASK);
 }
 
-void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_handle fun)
+void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_callback fun)
 {
   if ((counter_id > MAX_ID)
       || ((enable != 0)
@@ -122,7 +122,7 @@ void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_handle fun)
     ? &control_register_set : &control_register_clear;
 
   if (enable != 0)
-    compare_a[counter_id] = fun;
+    callback_array[counter_id] = fun;
 
   handle (counter_id, control_reg, flag);
   handle (counter_id, CONTROL_REGISTER_INTERRUPT, FLAG_INTERRUPT_COMPARE_A);
@@ -202,48 +202,43 @@ void counter_register_read (uint8_t counter_id,
     *high = *reg_high;
 }
 
-static void interrupt_routine (uint8_t counter_id)
-{
-  buf_byte_fill (&handle_queue, counter_id);
-}
-
 ISR(TIMER0_COMPA_vect)
 {
-  interrupt_routine (COUNTER_0);
+  buf_byte_fill (&invoke_queue, COUNTER_0);
 }
 
 ISR(TIMER1_COMPA_vect)
 {
-  interrupt_routine (COUNTER_1);
+  buf_byte_fill (&invoke_queue, COUNTER_1);
 }
 
 ISR(TIMER2_COMPA_vect)
 {
-  interrupt_routine (COUNTER_2);
+  buf_byte_fill (&invoke_queue, COUNTER_2);
 }
 
 ISR(TIMER3_COMPA_vect)
 {
-  interrupt_routine (COUNTER_3);
+  buf_byte_fill (&invoke_queue, COUNTER_3);
 }
 
 ISR(TIMER4_COMPA_vect)
 {
-  interrupt_routine (COUNTER_4);
+  buf_byte_fill (&invoke_queue, COUNTER_4);
 }
 
 ISR(TIMER5_COMPA_vect)
 {
-  interrupt_routine (COUNTER_5);
+  buf_byte_fill (&invoke_queue, COUNTER_5);
 }
 
 void counter_try ()
 {
   uint8_t id = 0;
-  if ((buf_byte_drain (&handle_queue, &id) == 0)
+  if ((buf_byte_drain (&invoke_queue, &id) == 0)
       || (id > MAX_ID))
     return;
 
   /* if (fun != 0) --- it doesn't work ---*/
-  compare_a[id] ();
+  callback_array[id] ();
 }

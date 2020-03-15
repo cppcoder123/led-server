@@ -19,7 +19,7 @@
                                     | COUNTER_PRESCALER_8 | COUNTER_PRESCALER_1)
 
 /* interrupt action */
-typedef void (*counter_handle) ();
+typedef void (*counter_callback) ();
 
 /* all our counters */
 enum {
@@ -45,11 +45,15 @@ void counter_init ();
 void counter_enable (uint8_t counter_id, uint8_t prescaler);
 void counter_disable (uint8_t counter_id);
 
-/* only ctc compare-a interrupts are used now */
-void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_handle fun);
+/* only ctc compare-a interrupts are used now, */
+/* so output-compare-a register should be updated before */
+/* calling counter_enable */
+void counter_interrupt (uint8_t enable,
+                        uint8_t counter_id, counter_callback fun);
 
 /* fast pwm with output-compare-a & output-compare-b */
 /* these registers should be set and !!! b <= a !!! */
+/* before counter_enable call */
 void counter_pwm (uint8_t enable, uint8_t counter_id);
 
 /* only low is valid for counter 0, 2*/
