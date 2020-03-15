@@ -101,7 +101,7 @@ void clock_alarm_get (uint8_t *a_hour, uint8_t *a_min)
   *a_min = alarm_minute;
 }
 
-void clock_alarm_engage_set(uint8_t engage)
+void clock_alarm_control(uint8_t engage)
 {
   alarm_engaged = (engage == 0) ? 0 : 1;
 
@@ -109,7 +109,7 @@ void clock_alarm_engage_set(uint8_t engage)
   /*   buzz_stop (); */
 }
 
-uint8_t clock_alarm_engage_get ()
+uint8_t clock_alarm_state ()
 {
   return alarm_engaged;
 }

@@ -43,17 +43,16 @@
 #define CHUNK_MIDDLE ((CHUNK_MIN + CHUNK_MAX) / 2) 
 
 enum {
-  PARAM_ALARM_H,
-  PARAM_ALARM_M,
+  PARAM_ALARM_HOUR,
+  PARAM_ALARM_MINUTE,
   PARAM_BRIGHTNESS,
-  PARAM_CLOCK_H,
-  PARAM_CLOCK_M,
+  PARAM_CLOCK_HOUR,
+  PARAM_CLOCK_MINUTE,
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
   PARAM_CANCEL,                 /* cancel param change */
   PARAM_VALUE_MAX = PARAM_CANCEL,
-  PARAM_ALARM_DISABLE,
-  PARAM_ALARM_ENABLE,
+  PARAM_ALARM,                  /* enable or disable */
   PARAM_POWER,                  /* 'On' or 'Off' */
   PARAM_REBOOT,                 /* reboot pi */
 };
@@ -65,9 +64,9 @@ enum {
 };
 
 static const uint8_t change_param_array[] =
-  {PARAM_CANCEL, PARAM_ALARM_ENABLE, PARAM_ALARM_DISABLE,
-   PARAM_ALARM_H, PARAM_ALARM_M,
-   PARAM_CLOCK_H, PARAM_CLOCK_M,
+  {PARAM_CANCEL, PARAM_ALARM,
+   PARAM_ALARM_HOUR, PARAM_ALARM_MINUTE,
+   PARAM_CLOCK_HOUR, PARAM_CLOCK_MINUTE,
    PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER};
 
 static uint8_t backup_mode = MODE_MENU;
@@ -146,12 +145,12 @@ static uint8_t value_is_valid ()
   case PARAM_TRACK:
     mask = PARAM_FLAG_TRACK;
     break;
-  case PARAM_CLOCK_H:
-  case PARAM_CLOCK_M:
+  case PARAM_CLOCK_HOUR:
+  case PARAM_CLOCK_MINUTE:
     mask = PARAM_FLAG_CLOCK;
     break;
-  case PARAM_ALARM_H:
-  case PARAM_ALARM_M:
+  case PARAM_ALARM_HOUR:
+  case PARAM_ALARM_MINUTE:
     mask = PARAM_FLAG_ALARM;
     break;
   case PARAM_BRIGHTNESS:
@@ -187,14 +186,14 @@ static uint8_t value_derive ()
 static void value_query ()
 {
   switch (param) {
-  case PARAM_ALARM_H:
-  case PARAM_ALARM_M:
+  case PARAM_ALARM_HOUR:
+  case PARAM_ALARM_MINUTE:
     {
       uint8_t hour, min;
       clock_alarm_get (&hour, &min);
       /* debug_2 (DEBUG_MENU, 99, hour, min); */
-      param_value[PARAM_ALARM_H] = hour;
-      param_value[PARAM_ALARM_M] = min;
+      param_value[PARAM_ALARM_HOUR] = hour;
+      param_value[PARAM_ALARM_MINUTE] = min;
       param_flag |= PARAM_FLAG_ALARM;
     }
     break;
@@ -207,13 +206,13 @@ static void value_query ()
       param_flag |= PARAM_FLAG_BRIGNHTNESS;
     }
     break;
-  case PARAM_CLOCK_H:
-  case PARAM_CLOCK_M:
+  case PARAM_CLOCK_HOUR:
+  case PARAM_CLOCK_MINUTE:
     {
       uint8_t hour, min;
       clock_get (&hour, &min);
-      param_value[PARAM_CLOCK_H] = hour;
-      param_value[PARAM_CLOCK_M] = min;
+      param_value[PARAM_CLOCK_HOUR] = hour;
+      param_value[PARAM_CLOCK_MINUTE] = min;
       param_flag |= PARAM_FLAG_CLOCK;
     }
     break;
@@ -237,27 +236,27 @@ static void value_query ()
 static void value_update ()
 {
   switch (param) {
-    case PARAM_ALARM_DISABLE:
-      clock_alarm_engage_set (0);
+    case PARAM_ALARM:
+      if (clock_alarm_state () == 0)
+        clock_alarm_control (1);
+      else
+        clock_alarm_control (0);
       break;
-    case PARAM_ALARM_ENABLE:
-      clock_alarm_engage_set (1);
+    case PARAM_ALARM_HOUR:
+      clock_alarm_set (value_derive (), param_value[PARAM_ALARM_MINUTE]);
       break;
-    case PARAM_ALARM_H:
-      clock_alarm_set (value_derive (), param_value[PARAM_ALARM_M]);
-      break;
-    case PARAM_ALARM_M:
+    case PARAM_ALARM_MINUTE:
       clock_alarm_set
-        (param_value[PARAM_ALARM_H], value_derive ());
+        (param_value[PARAM_ALARM_HOUR], value_derive ());
       break;
     case PARAM_BRIGHTNESS:
       flush_brightness_set (value_derive ());
       break;
-    case PARAM_CLOCK_H:
-      clock_set (value_derive (), param_value[PARAM_CLOCK_M]);
+    case PARAM_CLOCK_HOUR:
+      clock_set (value_derive (), param_value[PARAM_CLOCK_MINUTE]);
       break;
-    case PARAM_CLOCK_M:
-      clock_set (param_value[PARAM_CLOCK_H], value_derive ());
+    case PARAM_CLOCK_MINUTE:
+      clock_set (param_value[PARAM_CLOCK_HOUR], value_derive ());
       break;
     case PARAM_POWER:
       if (mode_is_connnected () == 0)
@@ -296,10 +295,10 @@ static uint8_t render_source_needed ()
 static uint8_t render_destination_needed ()
 {
   return ((param == PARAM_TRACK)
-          || (param == PARAM_CLOCK_H)
-          || (param == PARAM_CLOCK_M)
-          || (param == PARAM_ALARM_H)
-          || (param == PARAM_ALARM_M)
+          || (param == PARAM_CLOCK_HOUR)
+          || (param == PARAM_CLOCK_MINUTE)
+          || (param == PARAM_ALARM_HOUR)
+          || (param == PARAM_ALARM_MINUTE)
           || (param == PARAM_BRIGHTNESS)) ? 1 : 0;
 }
 
@@ -316,29 +315,26 @@ static void render_delta (uint8_t positive, uint8_t abs, volatile struct buf_t *
 static void render_label (volatile struct buf_t *buf)
 {
   switch (param) {
-  case PARAM_ALARM_DISABLE:
-    {
+  case PARAM_ALARM:
+    if (clock_alarm_state () != 0) {
       uint8_t tag[] =
         {FONT_A, FONT_l, FONT_MINUS, FONT_D, FONT_i,
          FONT_s, FONT_a, FONT_b, FONT_l, FONT_e};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
-    }
-    break;
-  case PARAM_ALARM_ENABLE:
-    {
+    } else {
       uint8_t tag[] =
         {FONT_A, FONT_l, FONT_MINUS, FONT_E, FONT_n, FONT_a, FONT_b, FONT_l, FONT_e};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
-  case PARAM_ALARM_H:
+  case PARAM_ALARM_HOUR:
     {
       uint8_t tag[] =
         {FONT_A, FONT_l, FONT_MINUS, FONT_H};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
-  case PARAM_ALARM_M:
+  case PARAM_ALARM_MINUTE:
     {
       uint8_t tag[] =
         {FONT_A, FONT_l, FONT_MINUS, FONT_M};
@@ -352,14 +348,14 @@ static void render_label (volatile struct buf_t *buf)
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
-  case PARAM_CLOCK_H:
+  case PARAM_CLOCK_HOUR:
     {
       uint8_t tag[]
         = {FONT_C, FONT_l, FONT_MINUS, FONT_H};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
-  case PARAM_CLOCK_M:
+  case PARAM_CLOCK_MINUTE:
     {
       uint8_t tag[] =
         {FONT_C, FONT_l, FONT_MINUS, FONT_M};
@@ -610,13 +606,13 @@ void menu_init ()
   /* rotor_register (&start); */
   backup_mode = MODE_MENU;
 
-  param_min[PARAM_ALARM_H] = param_min[PARAM_CLOCK_H] = 0;
+  param_min[PARAM_ALARM_HOUR] = param_min[PARAM_CLOCK_HOUR] = 0;
   param_min[PARAM_BRIGHTNESS] = 0;
-  param_min[PARAM_ALARM_M] = param_min[PARAM_CLOCK_M] = 0;
+  param_min[PARAM_ALARM_MINUTE] = param_min[PARAM_CLOCK_MINUTE] = 0;
 
-  param_max[PARAM_ALARM_H] = param_max[PARAM_CLOCK_H] = CLOCK_HOUR_MAX;
+  param_max[PARAM_ALARM_HOUR] = param_max[PARAM_CLOCK_HOUR] = CLOCK_HOUR_MAX;
   param_max[PARAM_BRIGHTNESS] = 0xF;
-  param_max[PARAM_ALARM_M] = param_max[PARAM_CLOCK_M] = CLOCK_MINUTE_MAX;
+  param_max[PARAM_ALARM_MINUTE] = param_max[PARAM_CLOCK_MINUTE] = CLOCK_MINUTE_MAX;
 
   reset ();
 }

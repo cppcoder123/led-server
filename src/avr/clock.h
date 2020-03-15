@@ -28,9 +28,9 @@ uint8_t clock_alarm_set (uint8_t hour, uint8_t minute);
 void clock_alarm_get (uint8_t *hour, uint8_t *minute);
 
 /* if arg is not zero then engage, else disengage */
-void clock_alarm_engage_set (uint8_t engage);
+void clock_alarm_control (uint8_t engage);
 
-uint8_t clock_alarm_engage_get ();
+uint8_t clock_alarm_state ();
 
 /* uint8_t clock_alarm_engage(uint8_t hour, uint8_t minute); */
 
