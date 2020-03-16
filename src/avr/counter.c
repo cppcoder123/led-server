@@ -15,7 +15,9 @@
   | COUNTER_PRESCALER_256)
 
 /* enable something */
+/* either WGM01 or WGM21*/
 #define FLAG_ENABLE_COMPARE_A_8 (1 << 1)
+/* WGM12, WGM32, WGM42, WGM52 */
 #define FLAG_ENABLE_COMPARE_A_16 (1 << 3)
 /*
  * ! Note:
