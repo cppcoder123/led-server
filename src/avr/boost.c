@@ -3,6 +3,7 @@
  */
 
 #include <avr/interrupt.h>
+#include <avr/io.h>
 
 #include "unix/constant.h"
 
@@ -12,11 +13,11 @@
 #include "feedback.h"
 
 /* 12 volt, fixme check */
-#define FEEDBACK_TARGET 125
+#define FEEDBACK_TARGET 107
 /* suitable delta ? 10% fixme */
 #define FEEDBACK_DELTA 10
 /* delay , 5 times? fixme */
-#define FEEDBACK_DELAY 5
+#define FEEDBACK_DELAY 2
 
 #define BOOST_COUNTER COUNTER_4
 #define BOOST_PRESCALER COUNTER_PRESCALER_1
@@ -27,7 +28,7 @@
 #define PWM_MIN 0
 #define PWM_MAX BOOST_FREQUENCY
 #define PWM_DELTA_FINE 1
-#define PWM_DELTA_ROUGH 5
+#define PWM_DELTA_ROUGH 1
 
 /* tiny - delta is very small, no need to tune */
 #define VOLTAGE_DELTA_TINY FEEDBACK_DELTA
@@ -35,6 +36,8 @@
 #define VOLTAGE_DELTA_FINE (5 * FEEDBACK_DELTA)
 
 #define BOOST_ZERO 0
+
+#define BOOST_PORT PORTH4
 
 static struct feedback_t feedback;
 static uint8_t pwm = 0;
@@ -45,16 +48,20 @@ static void adc_start ()
 
   /* 0 pin is connected to adc => no mux adjustment */
   /* 1 for ADLAR => left adjust result, no accuracy*/
-  /* AVCC with external capacitor at AREF */
-  ADMUX |= (1 < REFS0) | (1 << ADLAR);
+  /* AVCC is for ref, -2.56V internal ref- */
+  ADMUX = 0;
+  /* ADMUX |= (1 < REFS0) | (1 << ADLAR); */
+  /* ADMUX |= (1 << REFS1) | (1 < REFS0) | (1 << ADLAR); */
+  ADMUX |= (1 << REFS1) | (1 << ADLAR);
 
-  /*free running mode => no ADCSRB adjustment */
+  /*free running mode => no ADCSRB adjustment 000 for ADTS*/
 
   /* disable digital pin for adc0 */
   DIDR0 |= (1 << ADC0D);
 
-  /*enable adc, enable interrupt, auto triggering, 128 clock division factor*/
-  ADCSRA |= (1 << ADEN) | (1 << ADATE)
+  /*enable adc, start conversion, enable interrupt, */
+  /* auto triggering, 128 clock division factor*/
+  ADCSRA |= (1 << ADEN) | (1 << ADSC) | (1 << ADATE)
     | (1 << ADIE) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0);
 }
 
@@ -66,7 +73,11 @@ static void adc_stop ()
 
 ISR(ADC_vect)
 {
-  feedback_data (&feedback, ADCH);
+  /* ADMUX &= 0xF0; */
+  const uint8_t data = ADCH;
+  feedback_data (&feedback, data/*ADCH*/);
+  /* debug_1 (DEBUG_BOOST, 55, data); */
+  /* ADCSRA |= (1 << ADSC); */
 }
 
 static void counter_start ()
@@ -120,6 +131,8 @@ static void control (uint8_t current)
     pwm = ((pwm > pwm_delta) && (pwm - pwm_delta > PWM_MIN))
            ? pwm - pwm_delta : PWM_MIN;
 
+  debug_1 (DEBUG_BOOST, 88, pwm);
+
   counter_register_write (BOOST_COUNTER,
                           COUNTER_OUTPUT_COMPARE_B, pwm, BOOST_ZERO);
 }
@@ -131,6 +144,8 @@ void boost_start ()
                  FEEDBACK_DELTA, FEEDBACK_DELAY, &control);
   pwm = PWM_MIN;
   /* init hw part */
+  /* enable boost port */
+  DDRH |= (1 << BOOST_PORT);
   counter_start ();
   adc_start ();
 }

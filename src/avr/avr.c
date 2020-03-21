@@ -54,6 +54,9 @@ int main ()
 {
   init ();
 
+  /* debug */
+  fan_start ();
+
   while (1) {
     /* buzz_try (); */
     counter_try ();

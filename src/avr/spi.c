@@ -12,7 +12,7 @@
 
 #define SPI_MISO PORTB3
 /* irq pin is connected to pi's gpio-27 */
-#define SPI_IRQ PORTB6
+#define SPI_IRQ PORTB4
 
 #define FLAG_WRITE_INTERRUPT (1 << 0)
 

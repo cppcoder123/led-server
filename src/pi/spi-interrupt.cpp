@@ -12,7 +12,7 @@
 
 namespace
 {
-  auto interrupt_offset = 27;         // fixme: check
+  auto interrupt_offset = 23;         // fixme: check
 } // namespace
 
 namespace led_d

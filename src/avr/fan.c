@@ -155,6 +155,8 @@ void fan_start ()
   started = 1;
 
   boost_start ();
+  /* debug */
+  return;
   feedback_init (&feedback, FEEDBACK_TARGET,
                  FEEDBACK_DELTA, FEEDBACK_DELAY, &control);
   start_pwm ();

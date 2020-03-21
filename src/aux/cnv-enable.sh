@@ -2,9 +2,9 @@
 
 ROOT=/sys/class/gpio
 
-echo 22 > ${ROOT}/export 
+echo 24 > ${ROOT}/export 
 sleep 1
-echo out > ${ROOT}/gpio22/direction 
+echo out > ${ROOT}/gpio24/direction 
 sleep 1
-echo 1 > ${ROOT}/gpio22/value 
+echo 1 > ${ROOT}/gpio24/value 
 sleep 1

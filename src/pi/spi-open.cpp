@@ -11,7 +11,7 @@ namespace
 
   auto chip_name = "gpiochip0";
 
-  auto enable_offset = 22;      // fixme: check
+  auto enable_offset = 24;      // fixme: check
 
 } // anonymous
 
