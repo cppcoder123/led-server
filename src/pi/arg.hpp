@@ -21,8 +21,7 @@ namespace led_d
 
     static bool init (arg_t &arg, int argc, char **argv);
 
-    bool foreground;
-    bool kill;                  // kill daemon if it is running
+    // bool kill;                  // kill daemon if it is running
     bool spi_msg;               // print spi messages
 
     std::string default_font;

@@ -8,17 +8,10 @@ ROOT = $(shell pwd)
 
 LIB_ROOT = $(ROOT)/..
 LIB_ASIO = $(LIB_ROOT)/asio
-LIB_DAEMON = $(LIB_ROOT)/daemon
 LIB_TCLAP = $(LIB_ROOT)/tclap
 
 COMMON_CFLAGS = -DVARRUN=\"/var/run/led\"
 COMMON_CPPFLAGS = -DASIO_STANDALONE -std=c++17 -Wall -pedantic -g
-
-#
-# Dependency
-#
-LIB_DAEMON_OBJECT = $(LIB_DAEMON)/src/libdaemon.a
-LIB_PATH_LIST = $(LIB_DAEMON)
 
 #
 #
@@ -31,24 +24,17 @@ OBJECT_LIST = led-d.o arg.o base.o bash.o command.o content.o \
 #
 #
 #
-LDFLAGS = -L $(LIB_DAEMON)/src -ldaemon -lgpiod -lpthread
+LDFLAGS = -lgpiod -lpthread
 
-CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_DAEMON)/include \
-  -I $(LIB_ASIO) -I $(LIB_ROOT) $(OPTIONAL_DEFINE)
+CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_ASIO) -I $(LIB_ROOT) $(OPTIONAL_DEFINE)
 
 #
 #
 #
 ALL: $(TARGET)
 
-$(TARGET): $(LIB_DAEMON_OBJECT) $(OBJECT_LIST) $(LIB_UNIX)/*
+$(TARGET): $(OBJECT_LIST) $(LIB_UNIX)/*
 	$(CXX) -o $@ $(OBJECT_LIST) $(LDFLAGS)
-
-$(LIB_DAEMON_OBJECT):
-	+cd $(LIB_DAEMON) && make
-
-#$(TARGET): $(OBJECT_LIST) $(LIB_UNIX)/*
-
 
 %.o: %.cpp $(wildcard *.hpp)
 	+$(CXX) $(CPPFLAGS) -c $<
@@ -57,7 +43,6 @@ $(LIB_DAEMON_OBJECT):
 .PHONY: clean tar
 
 clean:
-	-cd $(LIB_DAEMON) && make clean
 	-rm $(OBJECT_LIST) $(TARGET)
 
 tar:

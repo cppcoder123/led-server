@@ -14,8 +14,8 @@ namespace led_d
 {
 
   arg_t::arg_t ()
-    : foreground (false),
-      kill (false)
+    // : foreground (false),
+    //   kill (false)
   {
   }
 
@@ -24,11 +24,11 @@ namespace led_d
     try {
       TCLAP::CmdLine parser ("xxx", ' ', "0.0.1");
 
-      TCLAP::SwitchArg
-        foreground
-        ("f", "foreground", "Run daemon in foreground", parser, false);
-      TCLAP::SwitchArg
-        kill ("k", "kill", "Kill old process", parser, false);
+      // TCLAP::SwitchArg
+      //   foreground
+      //   ("f", "foreground", "Run daemon in foreground", parser, false);
+      // TCLAP::SwitchArg
+      //   kill ("k", "kill", "Kill old process", parser, false);
       TCLAP::SwitchArg
         spi ("i", "spI", "Show spi messages", parser, false);
       //
@@ -45,8 +45,8 @@ namespace led_d
 
       parser.parse (argc, argv);
 
-      arg.foreground = foreground.getValue ();
-      arg.kill = kill.getValue ();
+      // arg.foreground = foreground.getValue ();
+      // arg.kill = kill.getValue ();
       arg.spi_msg = spi.getValue ();
       //
       arg.default_font = default_font.getValue ();
