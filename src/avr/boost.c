@@ -18,6 +18,8 @@
 #define FEEDBACK_DELTA 10
 /* delay , 5 times? fixme */
 #define FEEDBACK_DELAY 2
+/* ignore first measurements */
+#define FEEDBACK_IGNORE 100
 
 #define BOOST_COUNTER COUNTER_4
 #define BOOST_PRESCALER COUNTER_PRESCALER_1
@@ -140,8 +142,8 @@ static void control (uint8_t current)
 void boost_start ()
 {
   /* init sw part */
-  feedback_init (&feedback, FEEDBACK_TARGET,
-                 FEEDBACK_DELTA, FEEDBACK_DELAY, &control);
+  feedback_init (&feedback, FEEDBACK_TARGET, FEEDBACK_DELTA,
+                 FEEDBACK_DELAY, FEEDBACK_IGNORE, &control);
   pwm = PWM_MIN;
   /* init hw part */
   /* enable boost port */

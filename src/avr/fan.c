@@ -19,6 +19,8 @@
 #define FEEDBACK_DELTA 5
 /* fixme, how responsive is feedback */
 #define FEEDBACK_DELAY 10
+/* ignore first measurements */
+#define FEEDBACK_IGNORE 100
 
 #define PWM_COUNTER COUNTER_5
 #define PWM_PRESCALER COUNTER_PRESCALER_1
@@ -33,7 +35,7 @@
 /* measure frequency, 1 time per second, fixme?*/
 #define METER_FREQUENCY 50
 /* wait 10 secs before starting measurements */
-#define METER_DELAY 10
+/* #define METER_DELAY 10 */
 /* difference is too small => no correction is needed */
 #define METER_DELTA_TINY FEEDBACK_DELTA
 /* diff is small, correct carefully*/
@@ -45,7 +47,7 @@ static struct feedback_t feedback;
 static uint8_t started = 0;
 static uint8_t pwm = PWM_MAX;
 /* give fan a time to gain momentum */
-static uint8_t ignore_count = METER_DELAY;
+static uint8_t prepare = 1;
 
 void fan_init ()
 {
@@ -82,13 +84,9 @@ static void stop_pwm ()
 
 static void measure ()
 {
-  if (ignore_count > 1) {
-    --ignore_count;
-    return;
-  }
-  if (ignore_count == 1) {
+  if (prepare > 0) {
     /* prepare for measurements */
-    --ignore_count;
+    prepare = 0;
     counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
     return;
   }
@@ -105,7 +103,7 @@ static void measure ()
 
 static void start_meter ()      /* frequency-meter */
 {
-  ignore_count = METER_DELAY;
+  prepare = 1;
   counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
   counter_enable (METER_COUNTER, METER_PRESCALER);
   cron_enable (CRON_ID_FAN, METER_FREQUENCY, &measure);
@@ -157,8 +155,8 @@ void fan_start ()
   boost_start ();
   /* debug */
   return;
-  feedback_init (&feedback, FEEDBACK_TARGET,
-                 FEEDBACK_DELTA, FEEDBACK_DELAY, &control);
+  feedback_init (&feedback, FEEDBACK_TARGET, FEEDBACK_DELTA,
+                 FEEDBACK_DELAY, FEEDBACK_IGNORE, &control);
   start_pwm ();
   start_meter ();
   /* fixme */
