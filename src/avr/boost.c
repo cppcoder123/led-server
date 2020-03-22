@@ -13,9 +13,9 @@
 #include "feedback.h"
 
 /* 12 volt, fixme check */
-#define FEEDBACK_TARGET 107
+#define FEEDBACK_TARGET 102
 /* suitable delta ? 10% fixme */
-#define FEEDBACK_DELTA 10
+#define FEEDBACK_DELTA 2
 /* delay , 5 times? fixme */
 #define FEEDBACK_DELAY 2
 /* ignore first measurements */
