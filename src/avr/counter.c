@@ -182,11 +182,11 @@ void counter_register_write (uint8_t counter_id,
                              uint8_t reg_id, uint8_t low, uint8_t high)
 {
   /* 1. get prescaler */
-  volatile uint8_t *control_register_b
-    = control_register_get (counter_id, CONTROL_REGISTER_B);
-  const uint8_t prescaler = *control_register_b & PRESCALER_MASK;
-  /* 2. stop the counter */
-  counter_disable (counter_id);
+  /* volatile uint8_t *control_register_b */
+  /*   = control_register_get (counter_id, CONTROL_REGISTER_B); */
+  /* const uint8_t prescaler = *control_register_b & PRESCALER_MASK; */
+  /* /\* 2. stop the counter *\/ */
+  /* counter_disable (counter_id); */
   /* 3. get counter value */
   volatile uint8_t *reg_low = 0;
   volatile uint8_t *reg_high = 0;
@@ -195,7 +195,7 @@ void counter_register_write (uint8_t counter_id,
   if (eight_bits (counter_id) == 0)
     *reg_high = high;
   /* 4. start the counter */
-  counter_enable (counter_id, prescaler);
+  /* counter_enable (counter_id, prescaler); */
 }
 
 void counter_register_read (uint8_t counter_id,

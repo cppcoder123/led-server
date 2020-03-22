@@ -16,11 +16,11 @@
 #include "fan.h"
 
 /* fixme, needed rev/min */
-#define FEEDBACK_TARGET 50
+#define FEEDBACK_TARGET 100
 /* fixme, needed parameter accuracy, 10% ? */
-#define FEEDBACK_DELTA 5
+#define FEEDBACK_DELTA 2
 /* fixme, how responsive is feedback */
-#define FEEDBACK_DELAY 10
+#define FEEDBACK_DELAY 2
 /* ignore first measurements */
 #define FEEDBACK_IGNORE 100
 
@@ -30,7 +30,7 @@
 #define PWM_MAX PWM_FREQUENCY
 #define PWM_MIN 2
 #define PWM_DELTA_FINE 1
-#define PWM_DELTA_ROUGH 5
+#define PWM_DELTA_ROUGH 2
 
 #define METER_COUNTER COUNTER_1
 #define METER_PRESCALER COUNTER_PRESCALER_1
@@ -105,7 +105,7 @@ static void measure ()
 
   feedback_data (&feedback, low);
 
-  /* if (high != FAN_ZERO) */
+  if (high != FAN_ZERO)
     debug_2 (DEBUG_FAN, 222, low, high);
 }
 
