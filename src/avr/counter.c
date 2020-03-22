@@ -30,6 +30,7 @@
  * (1 << 4) - together with (1 << 5) inverting mode
  */
 #define FLAG_ENABLE_PWM_A ((1 << 0) | (1 << 1) | (1 << 5))
+#define FLAG_ENABLE_PWM_A_INVERT (1 << 4)
 /*
  * (1 << 3) - WGMx2
  * (1 << 4) - WGMx3
@@ -130,7 +131,7 @@ void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_callback fun
   handle (counter_id, CONTROL_REGISTER_INTERRUPT, FLAG_INTERRUPT_COMPARE_A);
 }
 
-void counter_pwm (uint8_t enable, uint8_t counter_id)
+void counter_pwm (uint8_t enable, uint8_t counter_id, uint8_t positive)
 {
   if (eight_bits (counter_id) != 0)
     /* not used now */
@@ -139,7 +140,11 @@ void counter_pwm (uint8_t enable, uint8_t counter_id)
   handle_flag handle = (enable != 0)
     ? &control_register_set : &control_register_clear;
 
-  handle (counter_id, CONTROL_REGISTER_A, FLAG_ENABLE_PWM_A);
+  uint8_t flag_a = FLAG_ENABLE_PWM_A;
+  if (positive == 0)
+    flag_a |= FLAG_ENABLE_PWM_A_INVERT;
+
+  handle (counter_id, CONTROL_REGISTER_A, flag_a);
   handle (counter_id, CONTROL_REGISTER_B, FLAG_ENABLE_PWM_B);
 }
 
@@ -181,21 +186,14 @@ static void value_register_get (uint8_t counter_id, uint8_t reg_id,
 void counter_register_write (uint8_t counter_id,
                              uint8_t reg_id, uint8_t low, uint8_t high)
 {
-  /* 1. get prescaler */
-  /* volatile uint8_t *control_register_b */
-  /*   = control_register_get (counter_id, CONTROL_REGISTER_B); */
-  /* const uint8_t prescaler = *control_register_b & PRESCALER_MASK; */
-  /* /\* 2. stop the counter *\/ */
-  /* counter_disable (counter_id); */
-  /* 3. get counter value */
   volatile uint8_t *reg_low = 0;
   volatile uint8_t *reg_high = 0;
   value_register_get (counter_id, reg_id, &reg_low, &reg_high);
-  *reg_low = low;
+
+  /* ! high byte first */
   if (eight_bits (counter_id) == 0)
     *reg_high = high;
-  /* 4. start the counter */
-  /* counter_enable (counter_id, prescaler); */
+  *reg_low = low;
 }
 
 void counter_register_read (uint8_t counter_id,
@@ -203,9 +201,9 @@ void counter_register_read (uint8_t counter_id,
 {
   volatile uint8_t *reg_low = 0;
   volatile uint8_t *reg_high = 0;
-
   value_register_get (counter_id, reg_id, &reg_low, &reg_high);
 
+  /* ! low byte first */
   *low = *reg_low;
   if (eight_bits (counter_id) == 0)
     *high = *reg_high;

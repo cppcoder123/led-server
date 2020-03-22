@@ -16,42 +16,40 @@
 #include "fan.h"
 
 /* fixme, needed rev/min */
-#define FEEDBACK_TARGET 100
+#define FEEDBACK_TARGET 30
 /* fixme, needed parameter accuracy, 10% ? */
 #define FEEDBACK_DELTA 2
 /* fixme, how responsive is feedback */
-#define FEEDBACK_DELAY 2
+/* #define FEEDBACK_DELAY 2 */
 /* ignore first measurements */
-#define FEEDBACK_IGNORE 100
+#define FEEDBACK_IGNORE 3
 
 #define PWM_COUNTER COUNTER_5
 #define PWM_PRESCALER COUNTER_PRESCALER_1
 #define PWM_FREQUENCY 160
 #define PWM_MAX PWM_FREQUENCY
 #define PWM_MIN 2
+#define PWM_START ((PWM_MAX + PWM_MIN) / 2)
 #define PWM_DELTA_FINE 1
-#define PWM_DELTA_ROUGH 2
+#define PWM_DELTA_ROUGH 5
 
 #define METER_COUNTER COUNTER_1
-#define METER_PRESCALER COUNTER_PRESCALER_1
-/* measure frequency, 1 time per second, fixme?*/
-#define METER_FREQUENCY 50
-/* wait 10 secs before starting measurements */
-/* #define METER_DELAY 10 */
+#define METER_PRESCALER COUNTER_PRESCALER_EXT_RISE
+/* measure frequency, once per 5 sec?*/
+#define METER_FREQUENCY 250
 /* difference is too small => no correction is needed */
 #define METER_DELTA_TINY FEEDBACK_DELTA
 /* diff is small, correct carefully*/
-#define METER_DELTA_FINE (5 * FEEDBACK_DELTA)
+#define METER_DELTA_FINE (3 * FEEDBACK_DELTA)
 
 #define FAN_ZERO 0
 
 #define FAN_PORT PORTL4
+/* #define METER_PIN PORTD6 */
 
 static struct feedback_t feedback;
 static uint8_t started = 0;
 static uint8_t pwm = PWM_MAX;
-/* give fan a time to gain momentum */
-static uint8_t prepare = 1;
 
 void fan_init ()
 {
@@ -73,45 +71,42 @@ static void start_pwm ()
 {
   DDRL |= (1 << FAN_PORT);
 
-  pwm = PWM_MAX;
+  pwm = PWM_START;
   counter_register_write
     (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_A, PWM_FREQUENCY, FAN_ZERO);
   counter_register_write
     (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_B, pwm, FAN_ZERO);
-  counter_pwm (1, PWM_COUNTER);
+  counter_pwm (1, PWM_COUNTER, 0);
   counter_enable (PWM_COUNTER, PWM_PRESCALER);
 }
 
 static void stop_pwm ()
 {
   counter_disable (PWM_COUNTER);
-  counter_pwm (0, PWM_COUNTER);
+  counter_pwm (0, PWM_COUNTER, 0);
 
   DDRL &= ~(1 << FAN_PORT);
 }
 
 static void measure ()
 {
-  if (prepare > 0) {
-    /* prepare for measurements */
-    prepare = 0;
-    counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
-    return;
-  }
-
   uint8_t low = 0, high = 0;
   counter_register_read (METER_COUNTER, COUNTER_VALUE, &low, &high);
   counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
 
-  feedback_data (&feedback, low);
+  if ((low > 0x7F) && (high < 0xFF))
+    ++high;
 
-  if (high != FAN_ZERO)
-    debug_2 (DEBUG_FAN, 222, low, high);
+  feedback_data (&feedback, high);
+
+  /* if (high != FAN_ZERO) */
+  /* debug_1 (DEBUG_FAN, 222, high); */
 }
 
 static void start_meter ()      /* frequency-meter */
 {
-  prepare = 1;
+  /* DDRD &= ~(1 << METER_PIN); */
+
   counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
   counter_enable (METER_COUNTER, METER_PRESCALER);
   cron_enable (CRON_ID_FAN, METER_FREQUENCY, &measure);
@@ -152,7 +147,10 @@ static void control (uint8_t current)
     pwm = ((pwm > pwm_delta) && (pwm - pwm_delta > PWM_MIN))
       ? pwm - pwm_delta : PWM_MIN;
 
-  debug_1 (DEBUG_FAN, 123, pwm);
+  /* debug_1 (DEBUG_FAN, 123, pwm); */
+
+  /* fixme */
+  /* pwm = 160; */
 
   counter_register_write (PWM_COUNTER,
                           COUNTER_OUTPUT_COMPARE_B, pwm, FAN_ZERO);
@@ -164,7 +162,7 @@ void fan_start ()
 
   boost_start ();
   feedback_init (&feedback, FEEDBACK_TARGET, FEEDBACK_DELTA,
-                 FEEDBACK_DELAY, FEEDBACK_IGNORE, &control);
+                 /* FEEDBACK_DELAY, */ FEEDBACK_IGNORE, &control);
   start_pwm ();
   start_meter ();
   /* fixme */

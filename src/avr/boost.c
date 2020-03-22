@@ -89,7 +89,7 @@ static void counter_start ()
     (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_A, BOOST_FREQUENCY, BOOST_ZERO);
   counter_register_write
     (BOOST_COUNTER, COUNTER_OUTPUT_COMPARE_B, pwm, BOOST_ZERO);
-  counter_pwm (1, BOOST_COUNTER);
+  counter_pwm (1, BOOST_COUNTER, 1);
   counter_enable (BOOST_COUNTER, BOOST_PRESCALER);
 }
 
@@ -97,7 +97,7 @@ static void counter_stop ()
 {
   /* fixme */
   counter_disable (BOOST_COUNTER);
-  counter_pwm (0, BOOST_COUNTER);
+  counter_pwm (0, BOOST_COUNTER, 1);
 }
 
 static uint8_t get_pwm_delta (uint8_t param_delta)
@@ -143,7 +143,7 @@ void boost_start ()
 {
   /* init sw part */
   feedback_init (&feedback, FEEDBACK_TARGET, FEEDBACK_DELTA,
-                 FEEDBACK_DELAY, FEEDBACK_IGNORE, &control);
+                 /* FEEDBACK_DELAY, */ FEEDBACK_IGNORE, &control);
   pwm = PWM_MIN;
   /* init hw part */
   /* enable boost port */

@@ -54,7 +54,8 @@ void counter_interrupt (uint8_t enable,
 /* fast pwm with output-compare-a & output-compare-b */
 /* these registers should be set and !!! b <= a !!! */
 /* before counter_enable call */
-void counter_pwm (uint8_t enable, uint8_t counter_id);
+/* if positive > 0 then positive pwm else negative */
+void counter_pwm (uint8_t enable, uint8_t counter_id, uint8_t positive);
 
 /* only low is valid for counter 0, 2*/
 void counter_register_write (uint8_t counter_id, uint8_t reg_id,
