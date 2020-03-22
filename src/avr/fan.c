@@ -2,6 +2,8 @@
  *
  */
 
+#include <avr/io.h>
+
 #include <stdint.h>
 
 #include "unix/constant.h"
@@ -43,6 +45,8 @@
 
 #define FAN_ZERO 0
 
+#define FAN_PORT PORTL4
+
 static struct feedback_t feedback;
 static uint8_t started = 0;
 static uint8_t pwm = PWM_MAX;
@@ -67,6 +71,8 @@ void fan_try ()
 
 static void start_pwm ()
 {
+  DDRL |= (1 << FAN_PORT);
+
   pwm = PWM_MAX;
   counter_register_write
     (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_A, PWM_FREQUENCY, FAN_ZERO);
@@ -80,6 +86,8 @@ static void stop_pwm ()
 {
   counter_disable (PWM_COUNTER);
   counter_pwm (0, PWM_COUNTER);
+
+  DDRL &= ~(1 << FAN_PORT);
 }
 
 static void measure ()
@@ -91,14 +99,14 @@ static void measure ()
     return;
   }
 
-  uint8_t low, high;
+  uint8_t low = 0, high = 0;
   counter_register_read (METER_COUNTER, COUNTER_VALUE, &low, &high);
   counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
 
   feedback_data (&feedback, low);
 
-  if (high != FAN_ZERO)
-    debug_1 (DEBUG_FAN, 222, high);
+  /* if (high != FAN_ZERO) */
+    debug_2 (DEBUG_FAN, 222, low, high);
 }
 
 static void start_meter ()      /* frequency-meter */
@@ -144,6 +152,8 @@ static void control (uint8_t current)
     pwm = ((pwm > pwm_delta) && (pwm - pwm_delta > PWM_MIN))
       ? pwm - pwm_delta : PWM_MIN;
 
+  debug_1 (DEBUG_FAN, 123, pwm);
+
   counter_register_write (PWM_COUNTER,
                           COUNTER_OUTPUT_COMPARE_B, pwm, FAN_ZERO);
 }
@@ -153,8 +163,6 @@ void fan_start ()
   started = 1;
 
   boost_start ();
-  /* debug */
-  return;
   feedback_init (&feedback, FEEDBACK_TARGET, FEEDBACK_DELTA,
                  FEEDBACK_DELAY, FEEDBACK_IGNORE, &control);
   start_pwm ();

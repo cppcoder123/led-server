@@ -133,7 +133,7 @@ static void control (uint8_t current)
     pwm = ((pwm > pwm_delta) && (pwm - pwm_delta > PWM_MIN))
            ? pwm - pwm_delta : PWM_MIN;
 
-  debug_1 (DEBUG_BOOST, 88, pwm);
+  /* debug_1 (DEBUG_BOOST, 88, pwm); */
 
   counter_register_write (BOOST_COUNTER,
                           COUNTER_OUTPUT_COMPARE_B, pwm, BOOST_ZERO);
