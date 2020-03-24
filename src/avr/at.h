@@ -13,7 +13,7 @@ enum {
   AT_BOUNCE_0,
   AT_BOUNCE_1,
   AT_MENU,
-  /* AT_POWER, */
+  AT_POWER,
   AT_MAX,                       /* keep it last */
 };
 
