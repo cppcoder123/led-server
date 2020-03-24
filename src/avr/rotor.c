@@ -26,12 +26,12 @@
 #define MASK_ROTOR_0_A (1 << 3)
 #define MASK_ROTOR_0_B (1 << 5)
 #define MASK_ROTOR_0_BOTH (MASK_ROTOR_0_A | MASK_ROTOR_0_B)
-#define MASK_ROTOR_0_PUSH (1 << 7)
+#define MASK_ROTOR_0_PUSH (1 << 1)
 
-#define MASK_ROTOR_1_A (1 << 4)
-#define MASK_ROTOR_1_B (1 << 2)
+#define MASK_ROTOR_1_A (1 << 2)
+#define MASK_ROTOR_1_B (1 << 4)
 #define MASK_ROTOR_1_BOTH (MASK_ROTOR_1_A | MASK_ROTOR_1_B)
-#define MASK_ROTOR_1_PUSH (1 << 6)
+#define MASK_ROTOR_1_PUSH (1 << 0)
 
 /*
  * It looks that turn buttons are bounce protected by hardware,

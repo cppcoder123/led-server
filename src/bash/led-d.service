@@ -3,7 +3,7 @@ Description=Led matrix server
 
 [Service]
 User=pi
-ExecStart=/usr/bin/led-d --foreground
+ExecStart=/usr/bin/led-d
 
 [Install]
 WantedBy=multi-user.target

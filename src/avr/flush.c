@@ -34,8 +34,8 @@ void flush_init ()
   for (uint8_t i = 0; i < MIN_DATA_SIZE; ++i)
     stable_data[i] = 0;
 
-  display_init (&display_left, PORTA0, PORTA2, PORTA4);
-  display_init (&display_right, PORTA1, PORTA3, PORTA5);
+  display_init (&display_left, PORTA6, PORTA2, PORTA0);
+  display_init (&display_right, PORTA7, PORTA3, PORTA1);
 
   brightness = FLUSH_BRIGHTNESS_MAX;
   flush_brightness_set (brightness);
