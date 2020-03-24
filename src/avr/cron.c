@@ -17,7 +17,7 @@ static cron_callback callback_array[CRON_ID_MAX];
 static uint8_t factor_array[CRON_ID_MAX];
 static uint8_t counter_array[CRON_ID_MAX];
 
-static volatile struct buf_t queue;
+static struct buf_t queue;
 
 void cron_init ()
 {

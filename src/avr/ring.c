@@ -8,8 +8,8 @@
 
 #include "ring.h"
 
-void ring_init (uint8_t size, volatile uint8_t *data,
-                volatile uint8_t *start, volatile uint8_t *finish)
+void ring_init (uint8_t size, uint8_t *data,
+                uint8_t *start, uint8_t *finish)
 {
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
     for (uint8_t i = 0; i < size; ++i)
@@ -29,7 +29,7 @@ uint8_t ring_size (uint8_t size, uint8_t start, uint8_t finish)
   return result;
 }
 
-void ring_clear (volatile uint8_t *start, volatile uint8_t *finish)
+void ring_clear (uint8_t *start, uint8_t *finish)
 {
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
     *start = *finish = 0;
@@ -46,9 +46,8 @@ uint8_t ring_space (uint8_t size, uint8_t start, uint8_t finish)
   return result;
 }
 
-uint8_t ring_byte_fill (uint8_t size, volatile uint8_t *data,
-                        uint8_t start, volatile uint8_t *finish,
-                        uint8_t byte)
+uint8_t ring_byte_fill (uint8_t size, uint8_t *data,
+                        uint8_t start, uint8_t *finish, uint8_t byte)
 {
   uint8_t result = 0;
   ATOMIC_BLOCK (ATOMIC_RESTORESTATE) {
@@ -70,8 +69,8 @@ uint8_t ring_byte_fill (uint8_t size, volatile uint8_t *data,
   return result;
 }
 
-uint8_t ring_byte_drain (uint8_t size, volatile uint8_t *data,
-                         volatile uint8_t *start, volatile uint8_t *finish,
+uint8_t ring_byte_drain (uint8_t size, uint8_t *data,
+                         uint8_t *start, uint8_t *finish,
                          uint8_t *byte)
 {
   uint8_t result = 0;
@@ -97,7 +96,7 @@ uint8_t ring_byte_drain (uint8_t size, volatile uint8_t *data,
   return result;
 }
 
-uint8_t ring_byte_get (uint8_t size, volatile uint8_t *data,
+uint8_t ring_byte_get (uint8_t size, uint8_t *data,
                        uint8_t start, uint8_t finish,
                        uint8_t index, uint8_t *byte)
 {
@@ -125,8 +124,8 @@ uint8_t ring_byte_get (uint8_t size, volatile uint8_t *data,
   return result;
 }
 
-uint8_t ring_array_fill (uint8_t size, volatile uint8_t *data,
-                         uint8_t start, volatile uint8_t *finish,
+uint8_t ring_array_fill (uint8_t size, uint8_t *data,
+                         uint8_t start, uint8_t *finish,
                          uint8_t *array, uint8_t array_size)
 {
   uint8_t result = 0;
@@ -142,8 +141,8 @@ uint8_t ring_array_fill (uint8_t size, volatile uint8_t *data,
   return result;
 }
 
-uint8_t ring_array_drain (uint8_t size, volatile uint8_t *data,
-                          volatile uint8_t *start, volatile uint8_t *finish,
+uint8_t ring_array_drain (uint8_t size, uint8_t *data,
+                          uint8_t *start, uint8_t *finish,
                           uint8_t *array, uint8_t array_size)
 {
   uint8_t result = 0;

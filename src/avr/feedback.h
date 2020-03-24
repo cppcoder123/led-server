@@ -15,7 +15,7 @@ struct feedback_t
   uint8_t target;
   uint8_t delta;
   uint8_t ignore;
-  volatile struct buf_t data;
+  struct buf_t data;
   feedback_control control;
 };
 

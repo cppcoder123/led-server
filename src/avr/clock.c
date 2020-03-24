@@ -114,7 +114,7 @@ uint8_t clock_alarm_state ()
   return alarm_engaged;
 }
   
-void clock_render(volatile struct buf_t *buf)
+void clock_render(struct buf_t *buf)
 {
   /* debug_2 (77, 123, alarm_hour, alarm_minute); */
 

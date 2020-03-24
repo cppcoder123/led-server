@@ -43,7 +43,7 @@ static void stop_mode ()
 
 static void render_clock ()
 {
-  volatile struct buf_t buf;
+  struct buf_t buf;
   buf_init (&buf);
 
   clock_render (&buf);

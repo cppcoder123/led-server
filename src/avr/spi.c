@@ -16,8 +16,8 @@
 
 #define FLAG_WRITE_INTERRUPT (1 << 0)
 
-static volatile struct buffer_t read_buf;
-static volatile struct buffer_t write_buf;
+static struct buffer_t read_buf;
+static struct buffer_t write_buf;
 
 static volatile uint8_t flag;
 

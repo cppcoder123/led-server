@@ -31,7 +31,7 @@ uint8_t flush_shift_buffer_size ();
  */
 
 /* ! array size is 64  */
-void flush_stable_display (volatile struct buf_t *buf);
+void flush_stable_display (struct buf_t *buf);
 
 /*
  * Brightness

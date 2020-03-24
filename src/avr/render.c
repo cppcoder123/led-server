@@ -5,7 +5,7 @@
 #include "font.h"
 #include "render.h"
 
-uint8_t render_symbol (volatile struct buf_t *buf, uint8_t symbol)
+uint8_t render_symbol (struct buf_t *buf, uint8_t symbol)
 {
   return ((font_add_symbol (symbol, buf) != 0)
           && (buf_byte_fill (buf, 0) != 0)) ? 1 : 0;
@@ -16,7 +16,7 @@ static uint8_t is_zero_needed (uint8_t flag, uint8_t order)
   return ((flag & order) == order) ? 1 : 0;
 }
 
-uint8_t render_number (volatile struct buf_t *buf,
+uint8_t render_number (struct buf_t *buf,
                        uint8_t num, uint8_t leading_zero)
 {
   uint8_t hundred = num / 100;  /* 0, 1, 2 */
@@ -36,7 +36,7 @@ uint8_t render_number (volatile struct buf_t *buf,
   return render_symbol (buf, rest % 10);
 }
 
-uint8_t render_word (volatile struct buf_t *buf,
+uint8_t render_word (struct buf_t *buf,
                      uint8_t *word, uint8_t word_len)
 {
   for (uint8_t i = 0; i < word_len; ++i)
@@ -46,7 +46,7 @@ uint8_t render_word (volatile struct buf_t *buf,
   return 1;
 }
 
-void render_tail (volatile struct buf_t *buf)
+void render_tail (struct buf_t *buf)
 {
   while (buf_byte_fill (buf, 0) != 0)
          ;

@@ -49,7 +49,7 @@ typedef void (*handle_flag) (uint8_t counter_id, uint8_t reg_id, uint8_t flag);
 
 static counter_callback callback_array[MAX_ID + 1];
 
-static volatile struct buf_t invoke_queue;
+static struct buf_t invoke_queue;
 
 void counter_init ()
 {

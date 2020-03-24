@@ -19,28 +19,28 @@ struct buffer_t
  * Functions return 0 in case of failure
  */
 
-void buffer_init (volatile struct buffer_t *buffer);
+void buffer_init (struct buffer_t *buffer);
 
-uint8_t buffer_size (volatile struct buffer_t *buffer);
+uint8_t buffer_size (struct buffer_t *buffer);
 
 /* make it empty */
-void buffer_clear (volatile struct buffer_t *buffer);
+void buffer_clear (struct buffer_t *buffer);
 
 /* return free space */
-uint8_t buffer_space (volatile struct buffer_t *buffer);
+uint8_t buffer_space (struct buffer_t *buffer);
 
-uint8_t buffer_byte_fill (volatile struct buffer_t *buffer, uint8_t byte);
-uint8_t buffer_byte_drain (volatile struct buffer_t *buffer, uint8_t *byte);
-uint8_t buffer_byte_get (volatile struct buffer_t *buffer,
+uint8_t buffer_byte_fill (struct buffer_t *buffer, uint8_t byte);
+uint8_t buffer_byte_drain (struct buffer_t *buffer, uint8_t *byte);
+uint8_t buffer_byte_get (struct buffer_t *buffer,
                          uint8_t index, uint8_t *byte);
 
-uint8_t buffer_array_fill (volatile struct buffer_t *buffer,
+uint8_t buffer_array_fill (struct buffer_t *buffer,
                            uint8_t *array, uint8_t array_size);
-uint8_t buffer_array_drain (volatile struct buffer_t *buffer,
+uint8_t buffer_array_drain (struct buffer_t *buffer,
                             uint8_t *array, uint8_t array_size);
 
-uint8_t buffer_is_fillable (volatile struct buffer_t *buffer, uint8_t fill_size);
-uint8_t buffer_is_drainable (volatile struct buffer_t *buffer, uint8_t drain_size);
+uint8_t buffer_is_fillable (struct buffer_t *buffer, uint8_t fill_size);
+uint8_t buffer_is_drainable (struct buffer_t *buffer, uint8_t drain_size);
 
 
 #endif

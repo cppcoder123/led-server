@@ -41,7 +41,7 @@
 #define BOUNCE_0 (1 << 0)
 #define BOUNCE_1 (1 << 1)
 
-static volatile struct buf_t event_buf;
+static struct buf_t event_buf;
 static uint8_t old_event = 0;       /* toggled bits */
 static uint8_t bounce = 0;
 

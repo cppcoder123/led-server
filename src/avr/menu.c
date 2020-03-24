@@ -302,7 +302,7 @@ static uint8_t render_destination_needed ()
           || (param == PARAM_BRIGHTNESS)) ? 1 : 0;
 }
 
-static void render_delta (uint8_t positive, uint8_t abs, volatile struct buf_t *buf)
+static void render_delta (uint8_t positive, uint8_t abs, struct buf_t *buf)
 {
   if (positive != 0)
     render_symbol (buf, FONT_PLUS);
@@ -312,7 +312,7 @@ static void render_delta (uint8_t positive, uint8_t abs, volatile struct buf_t *
   render_number (buf, abs, RENDER_LEADING_DISABLE);
 }
 
-static void render_label (volatile struct buf_t *buf)
+static void render_label (struct buf_t *buf)
 {
   switch (param) {
   case PARAM_ALARM:
@@ -409,7 +409,7 @@ static void render_label (volatile struct buf_t *buf)
 
 static void render ()
 {
-  volatile struct buf_t buf;
+  struct buf_t buf;
   buf_init (&buf);
 
   /* debug_position (&buf, 1); */

@@ -17,7 +17,7 @@
 
 #define SHIFT_DELAY 0
 
-static volatile struct buffer_t shift_data;
+static struct buffer_t shift_data;
 static uint8_t stable_data[MIN_DATA_SIZE];
 
 static struct display_t display_right;
@@ -112,7 +112,7 @@ uint8_t flush_shift_buffer_size ()
   return buffer_size (&shift_data);
 }
 
-void flush_stable_display (volatile struct buf_t *buf)
+void flush_stable_display (struct buf_t *buf)
 {
   uint8_t info = 0;
   for (uint8_t i = 0; i < MIN_DATA_SIZE; ++i)
