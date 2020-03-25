@@ -90,6 +90,7 @@ enum {
 /* debug domain */
 enum {
   DEBUG_BOOST,
+  DEBUG_BUZZ,
   DEBUG_CLOCK,
   DEBUG_DECODE,
   DEBUG_FAN,

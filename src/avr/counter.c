@@ -16,26 +16,48 @@
 
 /* enable something */
 /* either WGM01 or WGM21*/
-#define FLAG_ENABLE_COMPARE_A_8 (1 << 1)
+#define FLAG_8_ENABLE_COMPARE_A (1 << 1)
 /* WGM12, WGM32, WGM42, WGM52 */
-#define FLAG_ENABLE_COMPARE_A_16 (1 << 3)
+#define FLAG_16_ENABLE_COMPARE_A (1 << 3)
 /*
- * ! Note:
- *     PWM falgs are valid only for 16 bit counter only!
- *     Define Fast PWM with OCRA and switch OCRB output
+ * Define Fast PWM with OCRA and switch OCRB output
+ */
+/*
+ * 8 bit counters
+ *
+ *
+ * Register A:
+ *
+ * (1 << 0) - WGMx0
+ * (1 << 1) - WGMx1
+ *
+ * (1 << 4) - COMxB0
+ * (1 << 5) - COMxB1
+ */
+#define FLAG_8_ENABLE_PWM_A ((1 << 0) | (1 << 1) | (1 << 5))
+#define FLAG_8_ENABLE_PWM_A_INVERT (1 << 4)
+/*
+ * Register B:
+ *
+ * (1 << 3) - WGMx2
+ */
+#define FLAG_8_ENABLE_PWM_B (1 << 3)
+
+/*
+ * 16 bit counters
  *
  * (1 << 0) - WGMx0 one of fast pwm flags
  * (1 << 1) - WGMx1
  * (1 << 5) - is non inverting mode,
  * (1 << 4) - together with (1 << 5) inverting mode
  */
-#define FLAG_ENABLE_PWM_A ((1 << 0) | (1 << 1) | (1 << 5))
-#define FLAG_ENABLE_PWM_A_INVERT (1 << 4)
+#define FLAG_16_ENABLE_PWM_A ((1 << 0) | (1 << 1) | (1 << 5))
+#define FLAG_16_ENABLE_PWM_A_INVERT (1 << 4)
 /*
  * (1 << 3) - WGMx2
  * (1 << 4) - WGMx3
  */
-#define FLAG_ENABLE_PWM_B ((1 << 3) | (1 << 4))
+#define FLAG_16_ENABLE_PWM_B ((1 << 3) | (1 << 4))
 /* enable interrupt */
 #define FLAG_INTERRUPT_COMPARE_A (1 << 1)
 
@@ -118,7 +140,7 @@ void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_callback fun
     return;
 
   uint8_t flag = (eight_bits (counter_id) != 0)
-    ? FLAG_ENABLE_COMPARE_A_8 : FLAG_ENABLE_COMPARE_A_16;
+    ? FLAG_8_ENABLE_COMPARE_A : FLAG_16_ENABLE_COMPARE_A;
   uint8_t control_reg = (eight_bits (counter_id) != 0)
     ? CONTROL_REGISTER_A : CONTROL_REGISTER_B;
   handle_flag handle = (enable != 0)
@@ -133,19 +155,21 @@ void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_callback fun
 
 void counter_pwm (uint8_t enable, uint8_t counter_id, uint8_t positive)
 {
-  if (eight_bits (counter_id) != 0)
-    /* not used now */
-    return;
-
   handle_flag handle = (enable != 0)
     ? &control_register_set : &control_register_clear;
 
-  uint8_t flag_a = FLAG_ENABLE_PWM_A;
+  const uint8_t eight = eight_bits (counter_id);
+
+  uint8_t flag_a = (eight != 0) ? FLAG_8_ENABLE_PWM_A : FLAG_16_ENABLE_PWM_A;
   if (positive == 0)
-    flag_a |= FLAG_ENABLE_PWM_A_INVERT;
+    flag_a |= (eight != 0)
+      ? FLAG_8_ENABLE_PWM_A_INVERT : FLAG_16_ENABLE_PWM_A_INVERT;
+
+  const uint8_t flag_b = (eight != 0)
+    ? FLAG_8_ENABLE_PWM_B : FLAG_16_ENABLE_PWM_B;
 
   handle (counter_id, CONTROL_REGISTER_A, flag_a);
-  handle (counter_id, CONTROL_REGISTER_B, FLAG_ENABLE_PWM_B);
+  handle (counter_id, CONTROL_REGISTER_B, flag_b);
 }
 
 static void value_register_get (uint8_t counter_id, uint8_t reg_id,
