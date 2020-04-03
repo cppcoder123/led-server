@@ -55,7 +55,7 @@ int main ()
   init ();
 
   /* debug */
-  fan_start ();
+  /* fan_start ();*/
 
   while (1) {
     counter_try ();
