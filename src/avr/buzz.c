@@ -17,8 +17,9 @@
 
 #define BUZZ_ZERO 0
 
-#define BUZZ_MIN 2
-#define BUZZ_MAX 255
+#define PITCH_STEP 5
+#define PITCH_MIN 5
+#define PITCH_MAX 250
 
 #define BUZZ_PORT PORTG5
 
@@ -37,7 +38,7 @@ static void set_output_zero ()
 void buzz_init ()
 {
   flag = 0;
-  pitch = BUZZ_MIN;
+  pitch = PITCH_MAX;
 
   /* enable buzz output */
   DDRG |= (1 << BUZZ_PORT);
@@ -49,8 +50,6 @@ static void set_pitch (uint8_t pitch)
 {
   uint8_t reg_b = pitch / 2;
 
-  counter_disable (BUZZ_COUNTER);
-
   counter_register_write (BUZZ_COUNTER,
                           COUNTER_OUTPUT_COMPARE_A, pitch, BUZZ_ZERO);
   counter_register_write (BUZZ_COUNTER,
@@ -60,36 +59,44 @@ static void set_pitch (uint8_t pitch)
   counter_enable (BUZZ_COUNTER, BUZZ_PRESCALER);
 }
 
+static void reschedule ();
+
+static void re_reschedule ()
+{
+  reschedule ();
+}
+
 static void reschedule ()
 {
+  counter_disable (BUZZ_COUNTER);
 
   if ((flag & FLAG_BUZZING) == 0) {
-    counter_disable (BUZZ_COUNTER);
     set_output_zero ();
     return;
   }
 
   if (flag | FLAG_ASCEND) {
-    if (pitch < BUZZ_MAX)
-      ++pitch;
+    if (pitch < PITCH_MAX)
+      pitch += PITCH_STEP;
     else
       flag &= ~FLAG_ASCEND;     /* start descend */
   } else {
-    if (pitch > BUZZ_MIN)
-      --pitch;
+    if (pitch > PITCH_MIN)
+      pitch -= PITCH_STEP;
     else
       flag |= FLAG_ASCEND;
   }
 
   set_pitch (pitch);
 
-  at_schedule (AT_BUZZ, BUZZ_DELAY, &reschedule);
+  at_schedule (AT_BUZZ, BUZZ_DELAY, &re_reschedule);
 }
 
 void buzz_start ()
 {
-  flag |= (FLAG_BUZZING | FLAG_ASCEND);
-  pitch = BUZZ_MIN;
+  flag |= (FLAG_BUZZING);
+  flag &= ~(FLAG_ASCEND);
+  pitch = PITCH_MAX / 2;
   set_pitch (pitch);
 
   at_schedule (AT_BUZZ, BUZZ_DELAY, &reschedule);

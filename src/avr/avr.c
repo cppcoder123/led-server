@@ -56,6 +56,7 @@ int main ()
 
   /* debug */
   /* fan_start ();*/
+  /* buzz_start (); */
 
   while (1) {
     counter_try ();
