@@ -4,6 +4,8 @@
 
 #include <avr/io.h>
 
+#include "unix/constant.h"
+
 #include "at.h"
 #include "buzz.h"
 #include "counter.h"
@@ -59,15 +61,10 @@ static void set_pitch (uint8_t pitch)
   counter_enable (BUZZ_COUNTER, BUZZ_PRESCALER);
 }
 
-static void reschedule ();
-
-static void re_reschedule ()
-{
-  reschedule ();
-}
-
 static void reschedule ()
 {
+  debug_0 (DEBUG_BUZZ, 111);
+
   counter_disable (BUZZ_COUNTER);
 
   if ((flag & FLAG_BUZZING) == 0) {
@@ -89,7 +86,7 @@ static void reschedule ()
 
   set_pitch (pitch);
 
-  at_schedule (AT_BUZZ, BUZZ_DELAY, &re_reschedule);
+  at_schedule (AT_BUZZ, BUZZ_DELAY, &reschedule);
 }
 
 void buzz_start ()
