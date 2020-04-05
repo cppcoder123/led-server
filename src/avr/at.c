@@ -2,7 +2,10 @@
  *
  */
 
+#include "unix/constant.h"
+
 #include "at.h"
+#include "debug.h"
 #include "cron.h"
 
 #define AT_DELAY 50         /* ~ 1 sec */
@@ -48,14 +51,20 @@ void at_schedule (uint8_t id, uint8_t delay, at_callback cb)
   if ((id >= AT_MAX) || (cb == 0))
     return;
 
-  uint8_t it_was_empty = empty ();
+  debug_0 (DEBUG_BUZZ, 31);
+
+  /* uint8_t it_was_empty = empty (); */
+
+  /* debug_1 (DEBUG_BUZZ, 11, it_was_empty); */
 
   current[id] = 0;
   max[id] = delay;
   callback[id] = cb;
 
-  if (it_was_empty != 0)
-    cron_enable (CRON_ID_AT, AT_DELAY, &verify);
+  /* if (it_was_empty != 0) */
+  debug_0 (DEBUG_BUZZ, 32);
+  cron_enable (CRON_ID_AT, AT_DELAY, &verify);
+  debug_0 (DEBUG_BUZZ, 33);
 }
 
 void at_postpone (uint8_t id)

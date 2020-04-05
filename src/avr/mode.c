@@ -1,6 +1,7 @@
 /*
  *
  */
+#include "buzz.h"
 #include "clock.h"
 #include "cron.h"
 #include "flush.h"
@@ -63,10 +64,12 @@ static void start_mode ()
     cron_enable (CRON_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
     break;
   case MODE_CLOCK:
+    /* buzz_stop (); */
     cron_enable (CRON_ID_FLUSH, CLOCK_RENDER_DELAY, &render_clock);
     cron_enable (CRON_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
     break;
   case MODE_RADIO:
+    /* buzz_start (); */
     cron_disable (CRON_ID_CLOCK);
     cron_enable (CRON_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
     heartbeat_start (HB_DELAY, HB_MISS, &switch_to_clock, &spi_interrupt_start);

@@ -6,21 +6,24 @@
 
 #include "unix/constant.h"
 
-#include "at.h"
+/* #include "at.h" */
 #include "buzz.h"
 #include "counter.h"
+#include "cron.h"
+#include "debug.h"
 
 #define BUZZ_COUNTER COUNTER_0
 #define BUZZ_PRESCALER COUNTER_PRESCALER_8
 #define BUZZ_PWM 1
 
 /* 2 seconds */
-#define BUZZ_DELAY 2            /* 2 seconds */
+/* #define BUZZ_DELAY 2            /\* 2 seconds *\/ */
+#define BUZZ_DELAY 100            /* 2 seconds */
 
 #define BUZZ_ZERO 0
 
 #define PITCH_STEP 5
-#define PITCH_MIN 5
+#define PITCH_MIN 125
 #define PITCH_MAX 250
 
 #define BUZZ_PORT PORTG5
@@ -61,9 +64,11 @@ static void set_pitch (uint8_t pitch)
   counter_enable (BUZZ_COUNTER, BUZZ_PRESCALER);
 }
 
+static void reschedule ();
+
 static void reschedule ()
 {
-  debug_0 (DEBUG_BUZZ, 111);
+  /* debug_0 (DEBUG_BUZZ, 111); */
 
   counter_disable (BUZZ_COUNTER);
 
@@ -72,7 +77,7 @@ static void reschedule ()
     return;
   }
 
-  if (flag | FLAG_ASCEND) {
+  if ((flag & FLAG_ASCEND) != 0) {
     if (pitch < PITCH_MAX)
       pitch += PITCH_STEP;
     else
@@ -84,22 +89,27 @@ static void reschedule ()
       flag |= FLAG_ASCEND;
   }
 
+  /* debug_1 (DEBUG_BUZZ, 22, pitch); */
   set_pitch (pitch);
+  /* debug_0 (DEBUG_BUZZ, 23); */
 
-  at_schedule (AT_BUZZ, BUZZ_DELAY, &reschedule);
+  /* at_schedule (AT_BUZZ, BUZZ_DELAY, &reschedule); */
+  /* debug_0 (DEBUG_BUZZ, 24); */
 }
 
 void buzz_start ()
 {
   flag |= (FLAG_BUZZING);
   flag &= ~(FLAG_ASCEND);
-  pitch = PITCH_MAX / 2;
+  pitch = PITCH_MAX;
   set_pitch (pitch);
 
-  at_schedule (AT_BUZZ, BUZZ_DELAY, &reschedule);
+  cron_enable (CRON_ID_BUZZ, BUZZ_DELAY, &reschedule);
 }
 
 void buzz_stop ()
 {
   flag &= ~FLAG_BUZZING;
+  cron_disable (CRON_ID_BUZZ);
+  /* counter_disable (BUZZ_COUNTER); */
 }
