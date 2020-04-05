@@ -2,7 +2,7 @@
 //
 //
 
-// #include <functional>
+#include "unix/log.hpp"
 
 #include "font.hpp"
 
@@ -16,6 +16,30 @@ namespace led_d
     {
       static const matrix_t s_empty;
       return s_empty;
+    }
+
+    matrix_t transpose (const matrix_t &src)
+    {
+      constexpr auto matrix_size = 8;
+      if (src.size () != matrix_size)
+        return src;
+
+      matrix_t dst (matrix_size, 0xFF);
+
+      uint8_t src_mask = (1 << 0);
+      for (auto &dst_byte : dst) {
+        uint8_t rotated = 0;
+        for (auto src_iter = src.rbegin ();
+             src_iter != src.rend (); ++src_iter) {
+          rotated <<= 1;
+          if (*src_iter & src_mask)
+            rotated |= (1 << 0);
+        }
+        dst_byte = rotated;
+        src_mask <<= 1;
+      }
+
+      return dst;
     }
 
   }
@@ -35,8 +59,24 @@ namespace led_d
       return empty_symbol ();
     }
 
-    auto &symbol = find_symbol (to_uint32 (m_first_byte, to_uint8 (s)));
+    log_t::buffer_t buf;
+    buf << "font: 2-byte symbol"
+        << std::hex << (unsigned) m_first_byte
+        << " - "
+        << std::hex << (unsigned) to_uint8 (s);
+    log_t::error (buf);
+
+    // auto &symbol = find_symbol (to_uint32 (m_first_byte, to_uint8 (s)));
+    auto &symbol = find_symbol (to_uint32 (to_uint8 (s), m_first_byte));
     m_first_byte = (symbol.empty () == true) ? to_uint8 (s) : 0;
+    if (symbol.empty () == true) {
+      log_t::buffer_t buf;
+      buf << "font: Failed to map 2-byte symbol"
+          << std::hex << m_first_byte
+          << std::hex << to_uint8 (s);
+      log_t::error (buf);
+      return find_symbol (to_uint32 ('*'));
+    }
 
     return symbol;
   }
@@ -58,8 +98,11 @@ namespace led_d
 
   uint32_t font_t::to_uint32 (uint8_t first, uint8_t second)
   {
-    // fixme
-    return 0;
+    constexpr auto first_mask = 0x1F; // right 5 bits
+    constexpr auto second_mask = 0x3F; // right 6 bits
+    uint32_t buf = first & first_mask;
+    buf <<= 8;
+    return buf | (second & second_mask);
   }
 
   const matrix_t& font_t::find_symbol (unsigned key) const
@@ -73,15 +116,18 @@ namespace led_d
     return *ptr;
   }
 
-  void font_t::basic_symbol_add (map_t &data, char key, const matrix_t &symbol)
+  void font_t::basic_symbol_add (map_t &data,
+                                 char key, const matrix_t &raw_symbol)
   {
+    auto symbol = transpose (raw_symbol);
     auto ptr = std::make_shared<matrix_t>(symbol);
     data.insert (std::make_pair (to_uint32 (key), ptr));
   }
 
   void font_t::extended_symbol_add (map_t &data, uint8_t first,
-                                    uint8_t second, const matrix_t &symbol)
+                                    uint8_t second, const matrix_t &raw_symbol)
   {
+    auto symbol = transpose (raw_symbol);
     auto ptr = std::make_shared<matrix_t>(symbol);
     data.insert (std::make_pair (to_uint32 (first, second), ptr));
   }
