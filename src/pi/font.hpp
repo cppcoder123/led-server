@@ -4,6 +4,9 @@
 #ifndef FONT_HPP
 #define FONT_HPP
 
+#include <map>
+#include <memory>
+#include <cstdint>
 #include <vector>
 
 #include "matrix.hpp"
@@ -20,16 +23,32 @@ namespace led_d
     ~font_t () {};
 
     const matrix_t& get (char s) const;
-    void add (char s, const matrix_t &symbol);
 
   private:
 
-    static bool is_in_range (char s);
-    static std::size_t to_id (char s);
+    static bool is_basic (char s);
 
-    using vector_t = std::vector<matrix_t>;
+    static uint8_t to_uint8 (char s);
+    static uint32_t to_uint32 (char s);
+    static uint32_t to_uint32 (uint8_t first, uint8_t second);
 
-    vector_t m_vector;
+    const matrix_t& find_symbol (uint32_t key) const;
+
+    using matrix_ptr_t = std::shared_ptr<matrix_t>;
+    using map_t = std::map<unsigned, matrix_ptr_t>;
+
+    static void basic_symbol_add (map_t &data,
+                                  char key, const matrix_t &symbol);
+    static void extended_symbol_add (map_t &data, uint8_t first,
+                                     uint8_t second, const matrix_t &symbol);
+
+    static map_t fill_data ();
+
+    // handle only 2 bytes from utf-8, umlauts & russian
+    mutable uint8_t m_first_byte;
+
+
+    map_t m_data;
   };
 
 } // namespace led_d

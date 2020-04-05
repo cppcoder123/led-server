@@ -24,7 +24,6 @@ namespace led_d
     // bool kill;                  // kill daemon if it is running
     bool spi_msg;               // print spi messages
 
-    std::string default_font;
     std::list<std::string> subject_regexp_list;
   };
 } // namespace led_d

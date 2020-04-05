@@ -9,7 +9,7 @@
 #include "unix/format.hpp"
 
 #include "arg.hpp"
-#include "font-dir.hpp"
+#include "font.hpp"
 #include "matrix.hpp"
 
 namespace led_d
@@ -20,8 +20,8 @@ namespace led_d
 
   public:
 
-    render_t (const std::string &default_font);
-    ~render_t () {}
+    render_t () = default;
+    ~render_t () = default;
 
     bool pixelize (matrix_t &dst,
                    const std::string &text, const std::string &format) const;
@@ -32,7 +32,7 @@ namespace led_d
     bool pixelize (matrix_t &matrix,
                    const std::string &text, const format_t &format) const;
 
-    font_dir_t m_font_dir;
+    font_t m_font;
   };
 
 } // namespace led_d

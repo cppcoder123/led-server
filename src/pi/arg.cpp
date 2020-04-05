@@ -34,9 +34,9 @@ namespace led_d
       //
       //
       //
-      TCLAP::ValueArg<std::string>
-        default_font ("d", "default-font", "Default font to use",
-                      false, "", "font name", parser);
+      // TCLAP::ValueArg<std::string>
+      //   default_font ("d", "default-font", "Default font to use",
+      //                 false, "", "font name", parser);
 
       TCLAP::MultiArg<std::string>
         subject_regexp_list
@@ -49,7 +49,7 @@ namespace led_d
       // arg.kill = kill.getValue ();
       arg.spi_msg = spi.getValue ();
       //
-      arg.default_font = default_font.getValue ();
+      // arg.default_font = default_font.getValue ();
 
       for (auto iter = subject_regexp_list.begin ();
            iter != subject_regexp_list.end (); ++iter)

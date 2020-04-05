@@ -8,10 +8,10 @@
 
 namespace led_d
 {
-  render_t::render_t (const std::string &default_font)
-    : m_font_dir (default_font)
-  {
-  }
+  // render_t::render_t ()
+  //   : m_font_dir (default_font)
+  // {
+  // }
 
   bool render_t::pixelize (matrix_t &matrix, const std::string &text,
                            const std::string &format_string) const
@@ -39,7 +39,7 @@ namespace led_d
                            const std::string &text,
                            const format_t &format) const
   {
-    auto font = m_font_dir.get_font (format.get_font ());
+    // auto font = m_font_dir.get_font (format.get_font ());
 
     std::size_t info_start (format.get_start ());
     std::size_t info_finish (info_start);
@@ -48,8 +48,9 @@ namespace led_d
 
     matrix_t tmp_matrix;
     for (std::size_t pos = info_start; pos < info_finish; ++pos) {
-      auto &symbol = font.get (text[pos]);
-      tmp_matrix.insert (tmp_matrix.end (), symbol.begin (), symbol.end ());
+      auto &symbol = m_font.get (text[pos]);
+      if (symbol.empty () == false)
+        tmp_matrix.insert (tmp_matrix.end (), symbol.begin (), symbol.end ());
     }
 
     if (format.get_inversion () == true)

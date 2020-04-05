@@ -90,7 +90,6 @@ namespace led_d
       m_status_queue (std::ref (m_mutex), std::ref (m_condition)),
       m_content (arg.subject_regexp_list),
       m_suspend (false),
-      m_render (arg.default_font),
       m_go (true)
   {
   }

@@ -40,19 +40,6 @@ namespace led_d
 
       matrix_t dst (matrix_size, 0xFF);
 
-      // uint8_t src_mask = (1 << 0);
-      // for (auto dst_iter = dst.begin (); dst_iter != dst.end (); ++dst_iter) {
-      //   uint8_t transposed = 0;
-      //   for (auto src_iter = src.crbegin (); src_iter != src.crend (); ++src_iter) {
-      //     transposed <<= 1;
-      //     if (*src_iter & src_mask)
-      //       transposed |= (1 << 0);
-      //   }
-
-      //   *dst_iter = transposed;
-      //   src_mask <<= 1;
-      // }
-
       uint8_t src_mask = (1 << 0);
       for (auto &dst_byte : dst) {
         uint8_t rotated = 0;

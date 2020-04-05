@@ -14,10 +14,10 @@ COMMON_CFLAGS = -DVARRUN=\"/var/run/led\"
 COMMON_CPPFLAGS = -DASIO_STANDALONE -std=c++17 -Wall -pedantic -g
 
 #
-#
+# font-dir.o 
 # bash-in.o
 OBJECT_LIST = led-d.o arg.o base.o bash.o command.o content.o \
-  font-dir.o font.o handle.o mcu-block.o mcu-handle.o mcu-parse.o \
+  font.o handle.o mcu-block.o mcu-handle.o mcu-parse.o \
   popen.o render.o spi-dev.o spi-interrupt.o spi-open.o \
   status.o
 
