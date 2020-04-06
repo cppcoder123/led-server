@@ -32,14 +32,16 @@ namespace led_d
     static uint16_t to_uint16 (char s);
     static uint16_t to_uint16 (uint8_t first, uint8_t second);
 
-    const matrix_t& find_symbol (uint16_t key) const;
-
     using matrix_ptr_t = std::shared_ptr<matrix_t>;
     using map_t = std::map<unsigned, matrix_ptr_t>;
 
-    static void basic_symbol_add (map_t &data,
+    static const matrix_t& find_symbol (uint16_t key, map_t *symbol_map);
+
+    const matrix_t& find_symbol (uint16_t key) const;
+
+    static void add_basic_symbol (map_t &data,
                                   char key, const matrix_t &symbol);
-    static void extended_symbol_add (map_t &data, uint8_t first,
+    static void add_extended_symbol (map_t &data, uint8_t first,
                                      uint8_t second, const matrix_t &symbol);
 
     static map_t fill_data ();
