@@ -29,10 +29,10 @@ namespace led_d
     static bool is_basic (char s);
 
     static uint8_t to_uint8 (char s);
-    static uint32_t to_uint32 (char s);
-    static uint32_t to_uint32 (uint8_t first, uint8_t second);
+    static uint16_t to_uint16 (char s);
+    static uint16_t to_uint16 (uint8_t first, uint8_t second);
 
-    const matrix_t& find_symbol (uint32_t key) const;
+    const matrix_t& find_symbol (uint16_t key) const;
 
     using matrix_ptr_t = std::shared_ptr<matrix_t>;
     using map_t = std::map<unsigned, matrix_ptr_t>;

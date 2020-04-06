@@ -52,7 +52,7 @@ namespace led_d
   const matrix_t& font_t::get (char s) const
   {
     if (is_basic (s) == true)
-      return find_symbol (to_uint32 (s));
+      return find_symbol (to_uint16 (s));
 
     if (m_first_byte == 0) {
       m_first_byte = s;
@@ -66,8 +66,8 @@ namespace led_d
         << std::hex << (unsigned) to_uint8 (s);
     log_t::error (buf);
 
-    // auto &symbol = find_symbol (to_uint32 (m_first_byte, to_uint8 (s)));
-    auto &symbol = find_symbol (to_uint32 (to_uint8 (s), m_first_byte));
+    // auto &symbol = find_symbol (to_uint16 (m_first_byte, to_uint8 (s)));
+    auto &symbol = find_symbol (to_uint16 (to_uint8 (s), m_first_byte));
     m_first_byte = (symbol.empty () == true) ? to_uint8 (s) : 0;
     if (symbol.empty () == true) {
       log_t::buffer_t buf;
@@ -75,7 +75,7 @@ namespace led_d
           << std::hex << m_first_byte
           << std::hex << to_uint8 (s);
       log_t::error (buf);
-      return find_symbol (to_uint32 ('*'));
+      return find_symbol (to_uint16 ('*'));
     }
 
     return symbol;
@@ -91,21 +91,21 @@ namespace led_d
     return static_cast<uint8_t>(s);
   }
 
-  uint32_t font_t::to_uint32 (char s)
+  uint16_t font_t::to_uint16 (char s)
   {
-    return static_cast<uint32_t>(s);
+    return static_cast<uint16_t>(s);
   }
 
-  uint32_t font_t::to_uint32 (uint8_t first, uint8_t second)
+  uint16_t font_t::to_uint16 (uint8_t first, uint8_t second)
   {
     constexpr auto first_mask = 0x1F; // right 5 bits
     constexpr auto second_mask = 0x3F; // right 6 bits
-    uint32_t buf = first & first_mask;
-    buf <<= 8;
+    uint16_t buf = first & first_mask;
+    buf <<= 6;
     return buf | (second & second_mask);
   }
 
-  const matrix_t& font_t::find_symbol (unsigned key) const
+  const matrix_t& font_t::find_symbol (uint16_t key) const
   {
     auto iter = m_data.find (key);
     if (iter == m_data.end ())
@@ -121,7 +121,7 @@ namespace led_d
   {
     auto symbol = transpose (raw_symbol);
     auto ptr = std::make_shared<matrix_t>(symbol);
-    data.insert (std::make_pair (to_uint32 (key), ptr));
+    data.insert (std::make_pair (to_uint16 (key), ptr));
   }
 
   void font_t::extended_symbol_add (map_t &data, uint8_t first,
@@ -129,7 +129,7 @@ namespace led_d
   {
     auto symbol = transpose (raw_symbol);
     auto ptr = std::make_shared<matrix_t>(symbol);
-    data.insert (std::make_pair (to_uint32 (first, second), ptr));
+    data.insert (std::make_pair (to_uint16 (first, second), ptr));
   }
 
   font_t::map_t font_t::fill_data ()
