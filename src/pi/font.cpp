@@ -59,24 +59,26 @@ namespace led_d
       return empty_symbol ();
     }
 
-    log_t::buffer_t buf;
-    buf << "font: 2-byte symbol"
-        << std::hex << (unsigned) m_first_byte
-        << " - "
-        << std::hex << (unsigned) to_uint8 (s);
-    log_t::error (buf);
+    // log_t::buffer_t buf;
+    // buf << "font: 2-byte symbol"
+    //     << std::hex << (unsigned) m_first_byte
+    //     << " - "
+    //     << std::hex << (unsigned) to_uint8 (s);
+    // log_t::error (buf);
 
     // auto &symbol = find_symbol (to_uint16 (m_first_byte, to_uint8 (s)));
     auto &symbol = find_symbol (to_uint16 (to_uint8 (s), m_first_byte));
-    m_first_byte = (symbol.empty () == true) ? to_uint8 (s) : 0;
+    // m_first_byte = (symbol.empty () == true) ? to_uint8 (s) : 0;
     if (symbol.empty () == true) {
       log_t::buffer_t buf;
       buf << "font: Failed to map 2-byte symbol"
-          << std::hex << m_first_byte
-          << std::hex << to_uint8 (s);
+          << std::hex << (unsigned) m_first_byte << " - "
+          << std::hex << (unsigned) to_uint8 (s);
       log_t::error (buf);
+      m_first_byte = 0;
       return find_symbol (to_uint16 ('*'));
     }
+    m_first_byte = 0;
 
     return symbol;
   }
@@ -105,15 +107,21 @@ namespace led_d
     return buf | (second & second_mask);
   }
 
-  const matrix_t& font_t::find_symbol (uint16_t key) const
+  const matrix_t& font_t::find_symbol (uint16_t key, const map_t &symbol_map)
   {
-    auto iter = m_data.find (key);
-    if (iter == m_data.end ())
+    auto iter = symbol_map.find (key);
+    if (iter == symbol_map.end ())
       return empty_symbol ();
 
     auto ptr = iter->second;
 
     return *ptr;
+    
+  }
+
+  const matrix_t& font_t::find_symbol (uint16_t key) const
+  {
+    return find_symbol (key, m_data);
   }
 
   void font_t::add_basic_symbol (map_t &data,
@@ -124,11 +132,11 @@ namespace led_d
     data.insert (std::make_pair (to_uint16 (key), ptr));
   }
 
-  void font_t::add_extended_symbol (map_t &data, uint8_t first,
-                                    uint8_t second, const matrix_t &raw_symbol)
+  void font_t::add_extended_symbol (map_t &data, uint8_t first, uint8_t second,
+                                    const matrix_t &raw_symbol, bool rotate)
   {
-    auto symbol = transpose (raw_symbol);
-    auto ptr = std::make_shared<matrix_t>(symbol);
+    auto symbol = (rotate == true) ? transpose (raw_symbol) : empty_symbol ();
+    auto ptr = std::make_shared<matrix_t>((rotate == true) ? symbol : raw_symbol);
     data.insert (std::make_pair (to_uint16 (first, second), ptr));
   }
 
@@ -139,17 +147,18 @@ namespace led_d
     auto add_basic = [&data] (char key, const matrix_t &symbol)
       {add_basic_symbol (data, key, symbol);};
     auto add_german = [&data] (uint8_t second, const matrix_t &symbol)
-      {add_extended_symbol (data, 0xC3, second, symbol);};
+      {add_extended_symbol (data, 0xC3, second, symbol, true);};
     auto add_russian = [&data] (bool d0, uint8_t second, const matrix_t &symbol)
-      {add_extended_symbol (data, (d0 == true) ? 0xD0 : 0xD1, second, symbol);};
+      {add_extended_symbol
+       (data, (d0 == true) ? 0xD0 : 0xD1, second, symbol, true);};
     auto map_russian = [&data] (bool d0, uint8_t second, char basic)
       {
-        auto &symbol = find_symbol (to_uint16 (basic), &data);
+        auto &symbol = find_symbol (to_uint16 (basic), data);
         if (symbol.empty () == true)
           return;
 
         auto first = (d0 == true) ? 0xD0 : 0xD1;
-        add_extended_symbol (data, first, second, symbol);
+        add_extended_symbol (data, first, second, symbol, false);
       };
 
     // **************************************************
@@ -250,18 +259,45 @@ namespace led_d
     add_basic ('~', { 0x6E, 0x3B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
     // **************************************************
     add_german (0x84, // a-big-umlaut
-                  {0x22, 0x0C, 0x1E, 0x33, 0x33, 0x3F, 0x33, 0x33});
+                {0x22, 0x0C, 0x1E, 0x33, 0x33, 0x3F, 0x33, 0x33});
     add_german (0xA4, // a-small-umlaut
-                  {0x22, 0x00, 0x1E, 0x30, 0x3E, 0x33, 0x6E, 0x00});
+                {0x22, 0x00, 0x1E, 0x30, 0x3E, 0x33, 0x6E, 0x00});
     add_german (0x96, // o-big-umlaut
-                  {0x22, 0x1C, 0x36, 0x63, 0x63, 0x63, 0x36, 0x1C});
+                {0x22, 0x1C, 0x36, 0x63, 0x63, 0x63, 0x36, 0x1C});
     add_german (0xB6, // o-small-umlaut
-                  {0x22, 0x00, 0x1E, 0x33, 0x33, 0x33, 0x1E, 0x00});
+                {0x22, 0x00, 0x1E, 0x33, 0x33, 0x33, 0x1E, 0x00});
     add_german (0x9C, // u-big-umlaut
-                  {0x22, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x3F});
+                {0x22, 0x33, 0x33, 0x33, 0x33, 0x33, 0x33, 0x3F});
     add_german (0xBC, // u-small-umlaut
-                  {0x22, 0x00, 0x33, 0x33, 0x33, 0x33, 0x6E, 0x00});
+                {0x22, 0x00, 0x33, 0x33, 0x33, 0x33, 0x6E, 0x00});
     // **************************************************
+    map_russian (true, 0x90, 'A');
+    add_russian (true, 0x91, {0x3F, 0x3F, 0x03, 0x1F, 0x23, 0x23, 0x1F, 0x00}); // Big BE
+
+    map_russian (true, 0x95, 'E');
+
+    map_russian (true, 0x9A, 'K');
+
+    map_russian (true, 0x9C, 'M');
+    map_russian (true, 0x9D, 'H');
+    map_russian (true, 0x9E, 'O');
+
+    map_russian (true, 0xA0, 'P');
+    map_russian (true, 0xA1, 'C');
+    map_russian (true, 0xA2, 'T');
+
+    map_russian (true, 0xB0, 'a');
+    // small be
+    add_russian (true, 0xB1, {0x7E, 0x03, 0x06, 0x3E, 0x43, 0x43, 0x3F, 0x00});
+
+    map_russian (true, 0xB5, 'e');
+
+    map_russian (true, 0xB9, 'k');
+
+    map_russian (true, 0xBE, 'o');
+
+    map_russian (false, 0x80, 'p');
+    map_russian (false, 0x81, 'c');
 
     // **************************************************
 
