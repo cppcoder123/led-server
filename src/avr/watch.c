@@ -51,6 +51,8 @@
  */
 #define REG_VALUE_DISABLE_32KHZ 0
 
+/* set initial time */
+#define INITIAL_TIME 1
 
 /* 10 pixels from left */
 #define IMAGE_INDENT 10
@@ -121,7 +123,13 @@ void watch_init ()
   action = ACTION_IDLE;
   buf_init (&event_queue);
   init_interrupt ();            /* register for 1Hz signal */
+
   buf_byte_fill (&event_queue, EVENT_DISABLE_32KHZ);
+
+  buffer[BUFFER_WRITE_HOUR] = INITIAL_TIME;
+  buffer[BUFFER_WRITE_MINUTE] = INITIAL_TIME;
+  buffer[BUFFER_WRITE_SECOND] = INITIAL_TIME;
+  buf_byte_fill (&event_queue, EVENT_WRITE);
 }
 
 static void write_callback (uint8_t status)
