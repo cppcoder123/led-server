@@ -113,6 +113,23 @@ static void init_interrupt ()
   EIMSK |= (1 << INT2);
 }
 
+static uint8_t ds3232_to_hour (uint8_t src)
+{
+  /* see comments for 'from' complement function */
+  if (src > 23)
+    src = 23;
+
+  return ((src / 10) << 4) | (src % 10);
+}
+
+/* handle seconds here too */
+static uint8_t ds3232_to_minute (uint8_t src)
+{
+  if (src > 59)
+    src = 59;
+
+  return ((src / 10) << 4) | (src % 10);
+}
 
 void watch_init ()
 {
@@ -126,9 +143,9 @@ void watch_init ()
 
   buf_byte_fill (&event_queue, EVENT_DISABLE_32KHZ);
 
-  buffer[BUFFER_WRITE_HOUR] = INITIAL_TIME;
-  buffer[BUFFER_WRITE_MINUTE] = INITIAL_TIME;
-  buffer[BUFFER_WRITE_SECOND] = INITIAL_TIME;
+  buffer[BUFFER_WRITE_HOUR] = ds3232_to_hour (INITIAL_TIME);
+  buffer[BUFFER_WRITE_MINUTE] = ds3232_to_minute (INITIAL_TIME);
+  buffer[BUFFER_WRITE_SECOND] = ds3232_to_minute (INITIAL_TIME);
   buf_byte_fill (&event_queue, EVENT_WRITE);
 }
 
@@ -199,6 +216,30 @@ static void write ()
   twi_write_byte (reg, reg_value, &write_callback);
 }
 
+/*
+ * Convert ds3231 format to plain hours/minutes/seconds
+ */
+
+static uint8_t ds3232_from_hour (uint8_t src)
+{
+  /*
+   * Assume 24h mode:
+   * Right for bits are hours (less than 10),
+   * bits 5 and 6 represent 10-nth of hours
+   */
+  return ((src >> 4) & 3) * 10 + (src & 0xf);
+}
+
+/* valid for seconds too */
+static uint8_t ds3232_from_minute (uint8_t src)
+{
+  /*
+   * Right 4 bits are minutes (less than 10),
+   * bits 5,6,7 are tens of seconds
+   */
+  return ((src >> 4) & 7) * 10 + (src & 0xf);
+}
+
 static void render () /* send watch value into display */
 {
   struct buf_t image;
@@ -207,11 +248,17 @@ static void render () /* send watch value into display */
   for (uint8_t i = 0; i < IMAGE_INDENT; ++i)
     buf_byte_fill (&image, 0);
 
-  render_number (&image, buffer[BUFFER_READ_HOUR], RENDER_LEADING_DISABLE);
+  render_number
+    (&image,
+     ds3232_from_hour (buffer[BUFFER_READ_HOUR]), RENDER_LEADING_DISABLE);
   render_symbol (&image, FONT_COLON);
-  render_number (&image, buffer[BUFFER_READ_MINUTE], RENDER_LEADING_TEN);
+  render_number
+    (&image,
+     ds3232_from_minute (buffer[BUFFER_READ_MINUTE]), RENDER_LEADING_TEN);
   render_symbol (&image, FONT_COLON);
-  render_number (&image, buffer[BUFFER_READ_SECOND], RENDER_LEADING_TEN);
+  render_number
+    (&image,
+     ds3232_from_minute (buffer[BUFFER_READ_SECOND]), RENDER_LEADING_TEN);
 
   render_tail (&image);
 
@@ -336,9 +383,9 @@ void watch_disable ()
 
 void watch_write (uint8_t hour, uint8_t minute, uint8_t second)
 {
-  buffer[BUFFER_WRITE_HOUR] = hour;
-  buffer[BUFFER_WRITE_MINUTE] = minute;
-  buffer[BUFFER_WRITE_SECOND] = second;
+  buffer[BUFFER_WRITE_HOUR] = ds3232_to_hour (hour);
+  buffer[BUFFER_WRITE_MINUTE] = ds3232_to_minute (minute);
+  buffer[BUFFER_WRITE_SECOND] = ds3232_to_minute (second);
 
   buf_byte_fill (&event_queue, EVENT_WRITE);
 }
