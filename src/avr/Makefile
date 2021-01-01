@@ -32,7 +32,8 @@ OBJECT_LIST = \
   render.o \
   ring.o \
   rotor.o \
-  spi.o
+  spi.o \
+  watch.o
 
 MCU = atmega2560
 
