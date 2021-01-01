@@ -105,6 +105,14 @@ static uint8_t action;
 
 static struct buf_t event_queue;
 
+enum {
+      RTC_TO,                   /* convert time to ds3231 format */
+      RTC_FROM,                 /* from */
+      RTC_HOUR,
+      RTC_MINUTE,
+      RTC_SECOND,
+};
+
 static void init_interrupt ()
 {
    /* 1 & 1 => rising edge */
@@ -113,22 +121,36 @@ static void init_interrupt ()
   EIMSK |= (1 << INT2);
 }
 
-static uint8_t ds3232_to_hour (uint8_t src)
+/*
+ * Convert hour/minute/second to/from ds3231 format.
+ *
+ * hours:
+ *    Assume 24h mode:
+ *    Right for bits are hours (less than 10),
+ *    bits 5 and 6 represent 10-nth of hours
+ *
+ * minutes/seconds:
+ *    Right 4 bits are minutes (less than 10),
+ *    bits 5,6,7 are tens of seconds
+ */
+static uint8_t rtc (uint8_t src, uint8_t direction, uint8_t unit)
 {
-  /* see comments for 'from' complement function */
-  if (src > 23)
-    src = 23;
+  uint8_t result = 0;
 
-  return ((src / 10) << 4) | (src % 10);
-}
+  if (direction == RTC_TO) {
+    if ((unit == RTC_HOUR)
+        && (src > 23))
+      src = 23;
+    if ((unit != RTC_HOUR)
+        && (src > 59))
+      src = 59;
+      result = ((src / 10) << 4) | (src % 10);
+  } else {                      /* from rtc */
+    const uint8_t tens_mask = (unit == RTC_HOUR) ? 0x3 : 0x7;
+    result = ((src >> 4) & tens_mask) * 10 + (src & 0xf);
+  }
 
-/* handle seconds here too */
-static uint8_t ds3232_to_minute (uint8_t src)
-{
-  if (src > 59)
-    src = 59;
-
-  return ((src / 10) << 4) | (src % 10);
+  return result;
 }
 
 void watch_init ()
@@ -143,9 +165,9 @@ void watch_init ()
 
   buf_byte_fill (&event_queue, EVENT_DISABLE_32KHZ);
 
-  buffer[BUFFER_WRITE_HOUR] = ds3232_to_hour (INITIAL_TIME);
-  buffer[BUFFER_WRITE_MINUTE] = ds3232_to_minute (INITIAL_TIME);
-  buffer[BUFFER_WRITE_SECOND] = ds3232_to_minute (INITIAL_TIME);
+  buffer[BUFFER_WRITE_HOUR] = rtc (INITIAL_TIME, RTC_TO, RTC_HOUR);
+  buffer[BUFFER_WRITE_MINUTE] = rtc (INITIAL_TIME, RTC_TO, RTC_MINUTE);
+  buffer[BUFFER_WRITE_SECOND] = rtc (INITIAL_TIME, RTC_TO, RTC_SECOND);
   buf_byte_fill (&event_queue, EVENT_WRITE);
 }
 
@@ -216,30 +238,6 @@ static void write ()
   twi_write_byte (reg, reg_value, &write_callback);
 }
 
-/*
- * Convert ds3231 format to plain hours/minutes/seconds
- */
-
-static uint8_t ds3232_from_hour (uint8_t src)
-{
-  /*
-   * Assume 24h mode:
-   * Right for bits are hours (less than 10),
-   * bits 5 and 6 represent 10-nth of hours
-   */
-  return ((src >> 4) & 3) * 10 + (src & 0xf);
-}
-
-/* valid for seconds too */
-static uint8_t ds3232_from_minute (uint8_t src)
-{
-  /*
-   * Right 4 bits are minutes (less than 10),
-   * bits 5,6,7 are tens of seconds
-   */
-  return ((src >> 4) & 7) * 10 + (src & 0xf);
-}
-
 static void render () /* send watch value into display */
 {
   struct buf_t image;
@@ -248,17 +246,16 @@ static void render () /* send watch value into display */
   for (uint8_t i = 0; i < IMAGE_INDENT; ++i)
     buf_byte_fill (&image, 0);
 
-  render_number
-    (&image,
-     ds3232_from_hour (buffer[BUFFER_READ_HOUR]), RENDER_LEADING_DISABLE);
+  uint8_t time_buf = rtc (buffer[BUFFER_READ_HOUR], RTC_FROM, RTC_HOUR);
+  render_number (&image, time_buf, RENDER_LEADING_DISABLE);
   render_symbol (&image, FONT_COLON);
-  render_number
-    (&image,
-     ds3232_from_minute (buffer[BUFFER_READ_MINUTE]), RENDER_LEADING_TEN);
+
+  time_buf = rtc (buffer[BUFFER_READ_MINUTE], RTC_FROM, RTC_MINUTE);
+  render_number (&image, time_buf, RENDER_LEADING_TEN);
   render_symbol (&image, FONT_COLON);
-  render_number
-    (&image,
-     ds3232_from_minute (buffer[BUFFER_READ_SECOND]), RENDER_LEADING_TEN);
+
+  time_buf = rtc (buffer[BUFFER_READ_SECOND], RTC_FROM, RTC_SECOND);
+  render_number (&image, time_buf, RENDER_LEADING_TEN);
 
   render_tail (&image);
 
@@ -383,9 +380,9 @@ void watch_disable ()
 
 void watch_write (uint8_t hour, uint8_t minute, uint8_t second)
 {
-  buffer[BUFFER_WRITE_HOUR] = ds3232_to_hour (hour);
-  buffer[BUFFER_WRITE_MINUTE] = ds3232_to_minute (minute);
-  buffer[BUFFER_WRITE_SECOND] = ds3232_to_minute (second);
+  buffer[BUFFER_WRITE_HOUR] = rtc (hour, RTC_TO, RTC_HOUR);
+  buffer[BUFFER_WRITE_MINUTE] = rtc (minute, RTC_TO, RTC_MINUTE);
+  buffer[BUFFER_WRITE_SECOND] = rtc (second, RTC_TO, RTC_SECOND);
 
   buf_byte_fill (&event_queue, EVENT_WRITE);
 }
