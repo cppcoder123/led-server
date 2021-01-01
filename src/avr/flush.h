@@ -30,7 +30,7 @@ uint8_t flush_shift_buffer_size ();
  * Stable rendering
  */
 
-/* ! array size is 64  */
+/* 2 matrices 32x8 points => 64 bytes  */
 void flush_stable_display (struct buf_t *buf);
 
 /*
