@@ -6,6 +6,16 @@
 #include "twi.h"
 #include "watch.h"
 
+/* fixme: correct values */
+#define REG_ENABLE 110
+#define REG_HOUR 111
+#define REG_MINUTE 112
+#define REG_SECOND 113
+
+/* fixme: correct values */
+#define REG_VALUE_ENABLE 123
+#define REG_VALUE_DISABLE 124
+
 /*
  * Buffer, either read or write
  */
@@ -64,9 +74,67 @@ void watch_init ()
   /* fixme */
 }
 
+static void write_callback (uint8_t status)
+{
+  /* fixme */
+  if (status != TWI_SUCCESS) {
+    /* fixme: report */
+    return;
+  }
+
+  action = ACTION_IDLE;
+
+  if ((event == EVENT_ENABLE)
+      || (event == EVENT_DISABLE)) {
+    event = EVENT_IDLE;
+    return;
+  }
+
+  if (sub_event == SUB_EVENT_SECOND) {
+    /*render () fixme */
+    event = EVENT_IDLE;
+    sub_event = SUB_EVENT_IDLE;
+    return;
+  }
+
+  if (sub_event == SUB_EVENT_HOUR)
+    sub_event = SUB_EVENT_MINUTE;
+  else if (sub_event == SUB_EVENT_MINUTE)
+    sub_event = SUB_EVENT_SECOND;
+  /* !!! action is not idle, we should continue */
+  action = ACTION_READY;
+}
+
 static void write ()
 {
   /* fixme */
+  uint8_t reg = REG_ENABLE;
+  uint8_t reg_value = REG_VALUE_ENABLE;
+
+  switch (event) {
+  case EVENT_ENABLE:
+  case EVENT_DISABLE:
+    reg_value = (event == EVENT_ENABLE) ? REG_VALUE_ENABLE
+      : REG_VALUE_DISABLE;
+    break;
+  case EVENT_READ:
+  case EVENT_WRITE:
+    if (sub_event == SUB_EVENT_HOUR) {
+      reg = REG_HOUR;
+      reg_value = buffer[BUFFER_WRITE_HOUR];
+    } else if (sub_event == SUB_EVENT_MINUTE) {
+      reg = REG_MINUTE;
+      reg_value = buffer[BUFFER_WRITE_MINUTE];
+    } else if (sub_event == SUB_EVENT_SECOND) {
+      reg = REG_SECOND;
+      reg_value = buffer[BUFFER_WRITE_SECOND];
+    }
+    break;
+  default:
+    break;
+  }
+
+  twi_write_byte (reg, reg_value, &write_callback);
 }
 
 static void read_callback (uint8_t status, uint8_t value)
@@ -81,8 +149,25 @@ static void read_callback (uint8_t status, uint8_t value)
 
   if ((event == EVENT_ENABLE)
       || (event == EVENT_DISABLE)) {
+    /* do we need this ? */
     event = EVENT_IDLE;
     return;
+  }
+
+  if (event == EVENT_READ) {
+    switch (sub_event) {
+    case SUB_EVENT_HOUR:
+      buffer[BUFFER_READ_HOUR] = value;
+      break;
+    case SUB_EVENT_MINUTE:
+      buffer[BUFFER_READ_MINUTE] = value;
+      break;
+    case SUB_EVENT_SECOND:
+      buffer[BUFFER_READ_SECOND] = value;
+      break;
+    default:
+      break;
+    }
   }
 
   if (sub_event == SUB_EVENT_SECOND) {
@@ -100,14 +185,19 @@ static void read_callback (uint8_t status, uint8_t value)
   action = ACTION_READY;
 }
 
-/* 'read_reg' should be called from local _try function */
-/* !!! Redo */
 static void read ()
 {
   /* fixme */
+  if (event != EVENT_READ)
+    return;
 
-  twi_read_byte (111/*REG fixme*/, &read_callback);
-  
+  uint8_t reg = (sub_event == SUB_EVENT_HOUR)
+    ? REG_HOUR
+    : (sub_event == SUB_EVENT_MINUTE)
+    ? REG_MINUTE
+    : REG_SECOND;
+
+  twi_read_byte (reg, &read_callback);
 }
 
 void watch_try ()

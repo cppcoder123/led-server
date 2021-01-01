@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <util/twi.h>
 
-/* #include "unix/constant.h" */
+#include "unix/constant.h"
 
 #include "debug.h"
 #include "twi.h"
@@ -15,45 +15,41 @@
 #define STATUS_MASK (TWSR & 0xF8)
 /* #define CONTROL_MASK ((1 << TWEN) | (1 << TWIE)) */
 
-#define SLAVE_ADDRESS 0x17      /* addr selection wire to +5v */
-
-#define TRANSFER_BYTE 0
-#define TRANSFER_WORD 7
+#define SLAVE_ADDRESS 0x68
 
 enum {
-  mode_write_start,     /* W: start writing */
-  mode_write_slave,     /* W: slave device addr, w */
-  mode_write_reg,       /* W: LC717 register addr */
-  mode_write_value,     /* W: LC717 register value */
-  /* mode_write_stop,  */     /* W: end of writing */
-  mode_read_start,      /* R: start reading */
-  mode_read_slave,      /* R: slave addr, r */
-  mode_read_value,      /* R: slave read value */
-  mode_read_done,       /* R: time to send STOP */
-  /* mode_read_stop,   */     /* R: stop reading */
-  mode_idle,
-  mode_last = mode_idle
+  MODE_WRITE_START,     /* W: start writing */
+  MODE_WRITE_SLAVE,     /* W: slave device addr, w */
+  MODE_WRITE_REG,       /* W: LC717 register addr */
+  MODE_WRITE_VALUE,     /* W: LC717 register value */
+  /* MODE_WRITE_STOP,  */     /* W: end of writing */
+  MODE_READ_START,      /* R: start reading */
+  MODE_READ_SLAVE,      /* R: slave addr, r */
+  MODE_READ_VALUE,      /* R: slave read value */
+  MODE_READ_DONE,       /* R: time to send STOP */
+  /* MODE_READ_STOP,   */     /* R: stop reading */
+  MODE_IDLE,
 };
-static volatile uint8_t mode = mode_idle;
+static volatile uint8_t mode = MODE_IDLE;
 
 static volatile uint8_t status = TWI_SUCCESS;
 
 static volatile uint8_t reg_buf = 0;
-static volatile uint8_t data_buf[TWI_WORD_SIZE];
+static volatile uint8_t data_buf = 0;
 
 static twi_write_callback write_cb;
 static twi_read_callback read_cb;
 
-static volatile uint8_t transfer_count = 0; /* in either direction */
-static volatile uint8_t transfer_limit = TRANSFER_BYTE;
+/* static volatile uint8_t transfer_count = 0; /\* in either direction *\/ */
+/* static volatile uint8_t transfer_limit = TRANSFER_BYTE; */
 
 void twi_init ()
 {
   write_cb = NULL;
   read_cb = NULL;
 
-  transfer_count = 0;
-  transfer_limit = TRANSFER_BYTE;
+  /* transfer_count = 0; */
+  /* transfer_limit = TRANSFER_BYTE; */
 
   /* bit rate: scl rate should 4*10^6 / (16 + 2 * TWBR * (4 ^TWPS)) */
   /* false: so 4*10^6 / (16 + 2 * 0x08 * 1)  = aprox 102kHz */
@@ -75,7 +71,7 @@ static uint8_t busy ()
 
 void twi_try ()
 {
-  if ((mode != mode_idle)
+  if ((mode != MODE_IDLE)
       || (busy () == 0))
     return;
 
@@ -90,7 +86,7 @@ void twi_try ()
 
 static void start (uint8_t new_mode)
 {
-  mode = (new_mode == mode_write_start) ? mode_write_start : mode_read_start;
+  mode = (new_mode == MODE_WRITE_START) ? MODE_WRITE_START : MODE_READ_START;
 
   TWCR |= (1 << TWSTA);
   TWCR &= ~(1 << TWSTO);
@@ -106,82 +102,49 @@ static void stop ()
 
   /* TWCR &= ~(1 << TWEN); */
 
-  mode = mode_idle;
+  mode = MODE_IDLE;
 }
 
-static uint8_t twi_read (uint8_t reg, twi_read_callback cb)
+uint8_t twi_read_byte (uint8_t reg, twi_read_callback cb)
 {
   if (busy () != 0)
     return 0;
 
   status = TWI_SUCCESS;
   read_cb = cb;
+
   reg_buf = reg;
+  data_buf = 111;
 
-  transfer_count = 0;
-
-  start (mode_write_start);
+  start (MODE_WRITE_START);
   
   return 1;
 }
 
-uint8_t twi_read_byte (uint8_t reg, twi_read_callback cb)
-{
-  transfer_limit = TRANSFER_BYTE;
-
-  data_buf[0] = 111;
-
-  return twi_read (reg, cb);
-}
-
-/* uint8_t twi_read_word (uint8_t reg, twi_read_callback cb) */
-/* { */
-/*   transfer_limit = TRANSFER_WORD; */
-
-/*   return twi_read (reg, cb); */
-/* } */
-
-static uint8_t twi_write (uint8_t reg, uint8_t value, twi_write_callback cb)
+uint8_t twi_write_byte (uint8_t reg, uint8_t value, twi_write_callback cb)
 {
   if (busy () != 0)
     return 0;
 
   status = TWI_SUCCESS;
   write_cb = cb;
+
   reg_buf = reg;
+  data_buf = value;
 
-  /* we don't need to write different values for word bytes now */
-  data_buf[0] = value;
-
-  transfer_count = 0;
-
-  start (mode_write_start);
+  start (MODE_WRITE_START);
 
   return 1;
 }
 
-uint8_t twi_write_byte (uint8_t reg, uint8_t value, twi_write_callback cb)
-{
-  transfer_limit = TRANSFER_BYTE;
-
-  return twi_write (reg, value, cb);
-}
-
-/* uint8_t twi_write_word (uint8_t reg, uint8_t value, twi_write_callback cb) */
-/* { */
-/*   transfer_limit = TRANSFER_WORD; */
-
-/*   return twi_write (reg, value, cb); */
-/* } */
-
 void twi_debug_cb ()
 {
   if (write_cb != NULL)
-    debug_0 (DEBUG_TWI, DEBUG_0);
+    debug_0 (DEBUG_TWI, 0);
   if (read_cb != NULL)
-    debug_0 (DEBUG_TWI, DEBUG_1);
+    debug_0 (DEBUG_TWI, 1);
   if ((write_cb == NULL) && (read_cb == NULL))
-    debug_0 (DEBUG_TWI, DEBUG_2);
+    debug_0 (DEBUG_TWI, 2);
 }
 
 static uint8_t reading ()
@@ -206,17 +169,17 @@ ISR (TWI_vect)
   /* TWCR |= (1 << TWEN) | (1 << TWIE); */
   
   uint8_t mode_old = mode;
-  if (mode < mode_idle)
+  if (mode < MODE_IDLE)
     ++mode;
 
-  /* if (mode != mode_idle) */
+  /* if (mode != MODE_IDLE) */
   /* encode_msg_1 (MSG_ID_DEBUG_H, SERIAL_ID_TO_IGNORE, mode_old); */
 
   switch (mode_old) {
-  case mode_write_start:
+  case MODE_WRITE_START:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 70); */
     if (check_status_register (TW_START) == 0) {
-      debug_1 (DEBUG_TWI, DEBUG_3, STATUS_MASK);
+      debug_1 (DEBUG_TWI, 3, STATUS_MASK);
       status = TWI_WRITE_START_ERROR;
       stop ();
     } else {
@@ -225,10 +188,10 @@ ISR (TWI_vect)
       TWCR &= ~(1 << TWSTA);
     }
     break;
-  case mode_write_slave:
+  case MODE_WRITE_SLAVE:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 80); */
     if (check_status_register (TW_MT_SLA_ACK) == 0) {
-      debug_1 (DEBUG_TWI, DEBUG_4, STATUS_MASK);
+      debug_1 (DEBUG_TWI, 4, STATUS_MASK);
       status = TWI_WRITE_SLAVE_ERROR;
       stop ();
     } else {
@@ -237,44 +200,45 @@ ISR (TWI_vect)
       TWDR = reg_buf;
     }
     break;
-  case mode_write_reg:
+  case MODE_WRITE_REG:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90); */
     if (check_status_register (TW_MT_DATA_ACK) == 0) {
       /* encode_msg_2 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90, 1); */
-      debug_1 (DEBUG_TWI, DEBUG_5, STATUS_MASK);
+      debug_1 (DEBUG_TWI, 5, STATUS_MASK);
       /* either reg error or value error */
       status = TWI_WRITE_REG_ERROR;
       stop ();
     } else {
       if (reading () != 0) {
         /* encode_msg_2 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90, 2); */
-        start (mode_read_start);
+        start (MODE_READ_START);
       } else {
         /* encode_msg_2 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90, 3); */
-        TWDR = data_buf[0];
+        TWDR = data_buf;
       }
     }
     break;
-  case mode_write_value:
+  case MODE_WRITE_VALUE:
     /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, STATUS_MASK); */
     if (check_status_register (TW_MT_DATA_ACK) == 0) {
       /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, 11); */
       status = TWI_WRITE_VALUE_ERROR;
       stop ();
-    } else if (transfer_count < transfer_limit) {
-      /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, 22); */
-      ++transfer_count;
-      mode -= 2;              /* go to write reg again */
-    } else {
+    } /* else if (transfer_count < transfer_limit) { */
+    /*   /\* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, 22); *\/ */
+    /*   ++transfer_count; */
+    /*   mode -= 2;              /\* go to write reg again *\/ */
+    /* }  */
+    else {
       /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, 33); */
       stop ();
     }
     break;
-  /* case mode_write_stop: */
-  /*   mode = mode_idle; */
+  /* case MODE_WRITE_STOP: */
+  /*   mode = MODE_IDLE; */
   /*   fixme; */
   /*   break; */
-  case mode_read_start:
+  case MODE_READ_START:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 100); */
     if (check_status_register (TW_REP_START) == 0) {
       status = TWI_READ_START_ERROR;
@@ -284,53 +248,54 @@ ISR (TWI_vect)
       TWDR = slave (1);         /* slave addr, reading */
     }
     break;
-  case mode_read_slave:
+  case MODE_READ_SLAVE:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 110); */
     if (check_status_register (TW_MR_SLA_ACK) == 0) {
-      debug_1 (DEBUG_TWI, DEBUG_6, STATUS_MASK);
+      debug_1 (DEBUG_TWI, 6, STATUS_MASK);
       status = TWI_READ_SLAVE_ERROR;
       stop ();
     } else {
        TWCR &= ~(1 << TWSTA);
-       if (transfer_count < transfer_limit)
-         TWCR |= (1 << TWEA);
+       /* if (transfer_count < transfer_limit) */
+       /*   TWCR |= (1 << TWEA); */
     }
     break;
-  case mode_read_value:
+  case MODE_READ_VALUE:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 120); */
     if (check_status_register (TW_MR_DATA_ACK) == 0) {
-      debug_1 (DEBUG_TWI, DEBUG_7, STATUS_MASK);
+      debug_1 (DEBUG_TWI, 7, STATUS_MASK);
       status = TWI_READ_VALUE_ERROR;
       stop ();
     } else {
-      data_buf[transfer_count] = TWDR;
-      if (transfer_count < transfer_limit) {
-        /* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, data_buf[transfer_count]); */
-        ++transfer_count;
-        --mode;                 /* the same mode */
-        TWCR |= (1 << TWEA);
-      } else {
+      /* data_buf[transfer_count] = TWDR; */
+      data_buf = TWDR;
+      /* if (transfer_count < transfer_limit) { */
+      /*   /\* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, data_buf[transfer_count]); *\/ */
+      /*   ++transfer_count; */
+      /*   --mode;                 /\* the same mode *\/ */
+      /*   TWCR |= (1 << TWEA); */
+      /* } else { */
         TWCR &= ~(1 << TWEA);   /* send nack - do we need this ? */
         /* stop (); */
-      }
+      /* } */
     }
     break;
-  case mode_read_done:
+  case MODE_READ_DONE:
     if (check_status_register (TW_MR_DATA_NACK) == 0) {
-      debug_1 (DEBUG_TWI, DEBUG_8, STATUS_MASK);
+      debug_1 (DEBUG_TWI, 8, STATUS_MASK);
       status = TWI_READ_DONE_ERROR;
     }
     stop ();
     break;
-  case mode_idle:
+  case MODE_IDLE:
     /* is it possible to get here? not sure */
-    mode = mode_idle;
+    mode = MODE_IDLE;
     break;
   default:
     break;
   }
 
-  /* if (mode != mode_idle) */
+  /* if (mode != MODE_IDLE) */
   /*   TWCR |= CONTROL_MASK; */
   /* interrupt is handled by writing 1 */
   TWCR |= (1 << TWINT);

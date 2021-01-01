@@ -97,6 +97,7 @@ enum {
   DEBUG_FLUSH,
   DEBUG_MENU,
   DEBUG_SPI,
+  DEBUG_TWI,
 };
 
 /* try to tune params */
