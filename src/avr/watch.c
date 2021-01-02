@@ -47,7 +47,7 @@
  * enable:  0   0 0 0 1     0    0   0
  * disable: 0   0 0 0 0     0    0   0
  *
- *   => 8 disables 32kHz
+ *   => 0 disables 32kHz
  */
 #define REG_VALUE_DISABLE_32KHZ 0
 
