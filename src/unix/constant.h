@@ -98,6 +98,7 @@ enum {
   DEBUG_MENU,
   DEBUG_SPI,
   DEBUG_TWI,
+  DEBUG_WATCH,
 };
 
 /* try to tune params */

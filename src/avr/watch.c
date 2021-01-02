@@ -144,7 +144,7 @@ static uint8_t rtc (uint8_t src, uint8_t direction, uint8_t unit)
     if ((unit != RTC_HOUR)
         && (src > 59))
       src = 59;
-      result = ((src / 10) << 4) | (src % 10);
+    result = ((src / 10) << 4) | (src % 10);
   } else {                      /* from rtc */
     const uint8_t tens_mask = (unit == RTC_HOUR) ? 0x3 : 0x7;
     result = ((src >> 4) & tens_mask) * 10 + (src & 0xf);
@@ -174,7 +174,7 @@ void watch_init ()
 static void write_callback (uint8_t status)
 {
   if (status != TWI_SUCCESS) {
-    debug_1 (DEBUG_TWI, 1, status);
+    debug_1 (DEBUG_WATCH, 0, status);
     return;
   }
 
@@ -218,7 +218,6 @@ static void write ()
     reg = REG_ENABLE_32KHZ;
     reg_value = REG_VALUE_DISABLE_32KHZ;
     break;
-  case EVENT_READ:
   case EVENT_WRITE:
     if (sub_event == SUB_EVENT_HOUR) {
       reg = REG_HOUR;
@@ -232,6 +231,7 @@ static void write ()
     }
     break;
   default:
+    debug_1 (DEBUG_WATCH, 1, event);
     break;
   }
 
@@ -265,7 +265,7 @@ static void render () /* send watch value into display */
 static void read_callback (uint8_t status, uint8_t value)
 {
   if (status != TWI_SUCCESS) {
-    debug_1 (DEBUG_TWI, 0, status);
+    debug_1 (DEBUG_WATCH, 2, status);
     return;
   }
 
@@ -290,6 +290,7 @@ static void read_callback (uint8_t status, uint8_t value)
       buffer[BUFFER_READ_SECOND] = value;
       break;
     default:
+      debug_1 (DEBUG_WATCH, 3, sub_event);
       break;
     }
   }
@@ -335,22 +336,15 @@ void watch_try ()
       /**/
       action = ACTION_IN_PROGRESS;
       /**/
-      switch (event) {
-      case EVENT_ENABLE:
-      case EVENT_DISABLE:
-      case EVENT_DISABLE_32KHZ:
-        write ();
-        break;
-      case EVENT_READ:
+      if (event == EVENT_READ)
         read ();
-        break;
-      case EVENT_WRITE:
+      else if ((event == EVENT_ENABLE)
+               || (event == EVENT_DISABLE)
+               || (event == EVENT_DISABLE_32KHZ)
+               || (event == EVENT_WRITE))
         write ();
-        break;
-      default:
-        /* fixme: debug */
-        break;
-      }
+      else
+        debug_1 (DEBUG_WATCH, 4, event);
     }
     return;
   }
