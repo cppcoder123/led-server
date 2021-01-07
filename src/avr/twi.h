@@ -34,7 +34,7 @@ void twi_init ();
 void twi_try ();
 
 /*
- * Read/write from/to button handler 
+ * Read/write from/to I2C slave
  * Functions return 0 in case of failure
  */
 

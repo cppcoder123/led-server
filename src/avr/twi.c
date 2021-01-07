@@ -20,8 +20,8 @@
 enum {
   MODE_WRITE_START,     /* W: start writing */
   MODE_WRITE_SLAVE,     /* W: slave device addr, w */
-  MODE_WRITE_REG,       /* W: LC717 register addr */
-  MODE_WRITE_VALUE,     /* W: LC717 register value */
+  MODE_WRITE_REG,       /* W: slave register addr */
+  MODE_WRITE_VALUE,     /* W: slave register value */
   /* MODE_WRITE_STOP,  */     /* W: end of writing */
   MODE_READ_START,      /* R: start reading */
   MODE_READ_SLAVE,      /* R: slave addr, r */
