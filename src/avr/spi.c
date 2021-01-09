@@ -10,41 +10,70 @@
 #include "buffer.h"
 #include "spi.h"
 
-#define SPI_MISO PORTB3
-/* irq pin is connected to pi's gpio-27 */
-#define SPI_IRQ PORTB4
+#define CHANNEL_MISO PORTB3
 
-#define FLAG_WRITE_INTERRUPT (1 << 0)
+/*
+ * irq pin is connected to pi's gpio-27
+ * This is an artificial interrupt to notify pi that
+ * avr wants to write smth into the channel
+ */
+#define CHANNEL_IRQ PORTB4
+
+/*
+ * Tell pi that avr is ready
+ */
+#define CHANNEL_CONFIRMATION PORTB5
+
+/*
+ * Enable avr => pi part of level shifter
+ */
+#define SHIFTER_ENABLE PORTC4
+
+/* 3rd bit of port D tracks pi spi enable signal */
+#define SHIFTER_NOTIFY PIND3
 
 static struct buffer_t read_buf;
 static struct buffer_t write_buf;
 
-static volatile uint8_t flag;
-
 void spi_interrupt_start ()
 {
   /*set irq pin 1*/
-  if ((flag & FLAG_WRITE_INTERRUPT) == 0) {
-    PORTB |= (1 << SPI_IRQ);
-    flag |= FLAG_WRITE_INTERRUPT;
-  }
+  PORTB |= (1 << CHANNEL_IRQ);
 }
 
 static void interrupt_stop ()
 {
-  if ((flag & FLAG_WRITE_INTERRUPT) != 0) {
-    PORTB &= ~(1 << SPI_IRQ);
-    flag &= ~FLAG_WRITE_INTERRUPT;
-  }
+  PORTB &= ~(1 << CHANNEL_IRQ);
+}
+
+static void channel_enable ()
+{
+  buffer_clear (&read_buf);
+  buffer_clear (&write_buf);
+
+  /* enable our part of the shifter */
+  PORTC &= ~(1 << SHIFTER_ENABLE);
+
+  /* send confirmation to pi */
+  PORTB |= (1 << CHANNEL_CONFIRMATION);
+}
+
+static void channel_disable ()
+{
+  /* 1 disables level shifter */
+  PORTC |= (1 << SHIFTER_ENABLE);
+
+  /* set confirmation signal to low*/
+  PORTB &= ~(1 << CHANNEL_CONFIRMATION);
 }
 
 void spi_init ()
 {
   /*
-   * Configure spi,
-   * MISO is output, all others are inputs
+   * Configure spi output signals
    */
-  DDRB |= (1 << SPI_MISO) | (1 << SPI_IRQ);
+  DDRB |= (1 << CHANNEL_MISO)
+    | (1 << CHANNEL_IRQ) | (1 << CHANNEL_CONFIRMATION);
 
   /*clear*/
   SPDR = 0;
@@ -52,8 +81,17 @@ void spi_init ()
   buffer_init (&read_buf);
   buffer_init (&write_buf);
 
-  flag = FLAG_WRITE_INTERRUPT;
-  interrupt_stop ();
+  /* configure level-shifter enable bit as output */
+  DDRC |= (1 << SHIFTER_ENABLE);
+
+  /* keep channel disabled for now */
+  channel_disable ();
+
+  /* attach interrupt to channel enable/disable */
+  EICRA |= (1 << ISC30);        /* both edges should generate interrupt */
+  EIMSK |= (1 << INT3);         /* enable INT3 interrupt */
+
+  interrupt_stop ();            /* NB: application level "interrupt" */
 
   /*enable spi and enable related interrupt*/
   SPCR = (1 << SPIE) | (1 << SPE);
@@ -110,4 +148,17 @@ ISR (SPI_STC_vect)
     SPDR = SPI_WRITE_UNDERFLOW;
     interrupt_stop ();
   }
+}
+
+ISR (INT3_vect)
+{
+  /*
+   * Is it rising or falling edge?
+   * falling => enable channel
+   * rising => disable channel
+   */
+  if (PIND & (1 << SHIFTER_NOTIFY))
+    channel_disable ();
+  else
+    channel_enable ();
 }
