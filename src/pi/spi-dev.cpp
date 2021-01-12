@@ -2,7 +2,6 @@
 //
 //
 
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +13,7 @@
 #include <linux/spi/spidev.h>
 
 #include <algorithm>
+#include <cstdint>
 
 #include "unix/constant.h"
 #include "unix/final-action.hpp"

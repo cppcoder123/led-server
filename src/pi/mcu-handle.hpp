@@ -4,10 +4,9 @@
 #ifndef MCU_HANDLE_HPP
 #define MCU_HANDLE_HPP
 
-#include <stdint.h>
-
 #include <atomic>
 #include <condition_variable>
+#include <cstdint>
 #include <mutex>
 #include <string>
 
