@@ -7,7 +7,6 @@ TARGET = led-d
 ROOT = $(shell pwd)
 
 LIB_ROOT = $(ROOT)/..
-LIB_ASIO = $(LIB_ROOT)/asio
 LIB_TCLAP = $(LIB_ROOT)/tclap
 
 COMMON_CFLAGS = -DVARRUN=\"/var/run/led\"
@@ -26,7 +25,7 @@ OBJECT_LIST = led-d.o arg.o base.o bash.o command.o content.o \
 #
 LDFLAGS = -lgpiod -lpthread
 
-CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_ASIO) -I $(LIB_ROOT) $(OPTIONAL_DEFINE)
+CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_ROOT) $(OPTIONAL_DEFINE)
 
 #
 #
