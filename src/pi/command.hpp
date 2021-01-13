@@ -10,7 +10,7 @@
 #include <list>
 #include <string>
 
-#include "asio/asio.hpp"
+#include "asio.hpp"
 
 #include "command-id.hpp"
 #include "popen.hpp"

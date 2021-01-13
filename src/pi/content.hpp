@@ -13,7 +13,7 @@
 #include <string>
 #include <utility>
 
-#include "asio/asio.hpp"
+#include "asio.hpp"
 
 #include "command-id.hpp"
 #include "command-queue.hpp"

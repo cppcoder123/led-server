@@ -9,7 +9,7 @@
 #include <map>
 #include <mutex>
 
-#include "asio/asio.hpp"
+#include "asio.hpp"
 
 #include "command-queue.hpp"
 #include "status-queue.hpp"
