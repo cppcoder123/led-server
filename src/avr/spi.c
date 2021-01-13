@@ -24,11 +24,6 @@
  */
 #define CHANNEL_CONFIRMATION PORTB5
 
-/*
- * Enable avr => pi part of level shifter
- */
-#define SHIFTER_ENABLE PORTC4
-
 /* 3rd bit of port D tracks pi spi enable signal */
 #define SHIFTER_NOTIFY PIND3
 
@@ -51,18 +46,12 @@ static void channel_enable ()
   buffer_clear (&read_buf);
   buffer_clear (&write_buf);
 
-  /* enable our part of the shifter */
-  PORTC &= ~(1 << SHIFTER_ENABLE);
-
   /* send confirmation to pi */
   PORTB |= (1 << CHANNEL_CONFIRMATION);
 }
 
 static void channel_disable ()
 {
-  /* 1 disables level shifter */
-  PORTC |= (1 << SHIFTER_ENABLE);
-
   /* set confirmation signal to low*/
   PORTB &= ~(1 << CHANNEL_CONFIRMATION);
 }
@@ -80,9 +69,6 @@ void spi_init ()
 
   buffer_init (&read_buf);
   buffer_init (&write_buf);
-
-  /* configure level-shifter enable bit as output */
-  DDRC |= (1 << SHIFTER_ENABLE);
 
   /* keep channel disabled for now */
   channel_disable ();
