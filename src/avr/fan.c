@@ -8,7 +8,6 @@
 
 #include "unix/constant.h"
 
-#include "boost.h"
 #include "counter.h"
 #include "cron.h"
 #include "debug.h"
@@ -63,7 +62,6 @@ void fan_try ()
   if (started == 0)
     return;
 
-  boost_try ();
   feedback_try (&feedback);
 }
 
@@ -160,7 +158,6 @@ void fan_start ()
 {
   started = 1;
 
-  boost_start ();
   feedback_init (&feedback, FEEDBACK_TARGET, FEEDBACK_DELTA,
                  /* FEEDBACK_DELAY, */ FEEDBACK_IGNORE, &control);
   start_pwm ();
@@ -173,7 +170,6 @@ void fan_stop ()
   /* fixme */
   stop_meter ();
   stop_pwm ();
-  boost_stop ();
 
   started = 0;
 }

@@ -9,7 +9,6 @@ TARGET_ELF = $(TARGET).elf
 OBJECT_LIST = \
   at.o \
   avr.o \
-  boost.o \
   boot.o \
   buf.o \
   buffer.o \
