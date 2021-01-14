@@ -13,7 +13,6 @@ OBJECT_LIST = \
   buf.o \
   buffer.o \
   buzz.o \
-  clock.o \
   counter.o \
   cron.o \
   debug.o \

@@ -7,7 +7,6 @@
 #include "at.h"
 #include "boot.h"
 #include "buzz.h"
-#include "clock.h"
 #include "counter.h"
 #include "cron.h"
 #include "decode.h"
@@ -19,6 +18,7 @@
 #include "postpone.h"
 #include "rotor.h"
 #include "spi.h"
+#include "watch.h"
 
 static void init ()
 {
@@ -34,7 +34,6 @@ static void init ()
   at_init ();
   boot_init ();
   buzz_init ();
-  clock_init ();
   decode_init ();
   fan_init ();
   flush_init ();
@@ -44,6 +43,7 @@ static void init ()
   rotor_init ();
   /* ! init menu after rotor */
   menu_init ();
+  watch_init ();
 
   mode_set (MODE_CLOCK);
 

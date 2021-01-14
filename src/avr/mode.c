@@ -2,15 +2,13 @@
  *
  */
 #include "buzz.h"
-#include "clock.h"
 #include "cron.h"
 #include "flush.h"
 #include "heartbeat.h"
 #include "mode.h"
 #include "spi.h"
+#include "watch.h"
 
-#define CLOCK_DELAY 50          /* 1 sec ? */
-#define CLOCK_RENDER_DELAY 250  /* 5 sec ? */
 #define SLAVE_DELAY 0           /* 0.02 sec */
 
 #define HB_DELAY 50     	/* 1 sec ? */
@@ -42,15 +40,6 @@ static void stop_mode ()
   }
 }
 
-static void render_clock ()
-{
-  struct buf_t buf;
-  buf_init (&buf);
-
-  clock_render (&buf);
-  flush_stable_display (&buf);
-}
-
 static void switch_to_clock ()
 {
   mode_set (MODE_CLOCK);
@@ -61,16 +50,13 @@ static void start_mode ()
 {
   switch (current_mode) {
   case MODE_MENU:
-    cron_enable (CRON_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
+    watch_disable ();
     break;
   case MODE_CLOCK:
-    /* buzz_stop (); */
-    cron_enable (CRON_ID_FLUSH, CLOCK_RENDER_DELAY, &render_clock);
-    cron_enable (CRON_ID_CLOCK, CLOCK_DELAY, &clock_advance_second);
+    watch_enable ();
     break;
   case MODE_RADIO:
-    /* buzz_start (); */
-    cron_disable (CRON_ID_CLOCK);
+    watch_disable ();
     cron_enable (CRON_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
     heartbeat_start (HB_DELAY, HB_MISS, &switch_to_clock, &spi_interrupt_start);
     is_connected = 1;

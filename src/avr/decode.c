@@ -6,7 +6,6 @@
 
 #include "unix/constant.h"
 
-#include "clock.h"
 #include "debug.h"
 #include "decode.h"
 #include "encode.h"
@@ -15,6 +14,7 @@
 #include "menu.h"
 #include "mode.h"
 #include "spi.h"
+#include "watch.h"
 
 #define IN_SIZE (LED_ARRAY_SIZE + MSG_OVERHEAD)
 
@@ -71,7 +71,7 @@ static void decode ()
     /* just ignore, other party tries to read smth */
     break;
   case MSG_ID_SYNC_CLOCK:
-    clock_set (in_buf[0], in_buf[1]);
+    watch_set (in_buf[0], in_buf[1], 0);
     encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_SUCCESS, MSG_ID_SYNC_CLOCK);
     break;
   case MSG_ID_VERSION:

@@ -8,7 +8,6 @@
 
 #include "at.h"
 #include "boot.h"
-#include "clock.h"
 #include "debug.h"
 #include "encode.h"
 #include "font.h"
@@ -17,6 +16,7 @@
 #include "mode.h"
 #include "render.h"
 #include "rotor.h"
+#include "watch.h"
 
 /* 5 seconds */
 #define MENU_DELAY 5
@@ -190,7 +190,7 @@ static void value_query ()
   case PARAM_ALARM_MINUTE:
     {
       uint8_t hour, min;
-      clock_alarm_get (&hour, &min);
+      watch_alarm_get (&hour, &min);
       /* debug_2 (DEBUG_MENU, 99, hour, min); */
       param_value[PARAM_ALARM_HOUR] = hour;
       param_value[PARAM_ALARM_MINUTE] = min;
@@ -210,7 +210,7 @@ static void value_query ()
   case PARAM_CLOCK_MINUTE:
     {
       uint8_t hour, min;
-      clock_get (&hour, &min);
+      watch_get (&hour, &min);
       param_value[PARAM_CLOCK_HOUR] = hour;
       param_value[PARAM_CLOCK_MINUTE] = min;
       param_flag |= PARAM_FLAG_CLOCK;
@@ -237,26 +237,26 @@ static void value_update ()
 {
   switch (param) {
     case PARAM_ALARM:
-      if (clock_alarm_state () == 0)
-        clock_alarm_control (1);
+      if (watch_alarm_state () == 0)
+        watch_alarm_control (1);
       else
-        clock_alarm_control (0);
+        watch_alarm_control (0);
       break;
     case PARAM_ALARM_HOUR:
-      clock_alarm_set (value_derive (), param_value[PARAM_ALARM_MINUTE]);
+      watch_alarm_set (value_derive (), param_value[PARAM_ALARM_MINUTE]);
       break;
     case PARAM_ALARM_MINUTE:
-      clock_alarm_set
+      watch_alarm_set
         (param_value[PARAM_ALARM_HOUR], value_derive ());
       break;
     case PARAM_BRIGHTNESS:
       flush_brightness_set (value_derive ());
       break;
     case PARAM_CLOCK_HOUR:
-      clock_set (value_derive (), param_value[PARAM_CLOCK_MINUTE]);
+      watch_set (value_derive (), param_value[PARAM_CLOCK_MINUTE], 0);
       break;
     case PARAM_CLOCK_MINUTE:
-      clock_set (param_value[PARAM_CLOCK_HOUR], value_derive ());
+      watch_set (param_value[PARAM_CLOCK_HOUR], value_derive (), 0);
       break;
     case PARAM_POWER:
       if (mode_is_connnected () == 0)
@@ -316,7 +316,7 @@ static void render_label (struct buf_t *buf)
 {
   switch (param) {
   case PARAM_ALARM:
-    if (clock_alarm_state () != 0) {
+    if (watch_alarm_state () != 0) {
       uint8_t tag[] =
         {FONT_A, FONT_l, FONT_MINUS, FONT_D, FONT_i,
          FONT_s, FONT_a, FONT_b, FONT_l, FONT_e};
@@ -610,9 +610,9 @@ void menu_init ()
   param_min[PARAM_BRIGHTNESS] = 0;
   param_min[PARAM_ALARM_MINUTE] = param_min[PARAM_CLOCK_MINUTE] = 0;
 
-  param_max[PARAM_ALARM_HOUR] = param_max[PARAM_CLOCK_HOUR] = CLOCK_HOUR_MAX;
+  param_max[PARAM_ALARM_HOUR] = param_max[PARAM_CLOCK_HOUR] = WATCH_HOUR_MAX;
   param_max[PARAM_BRIGHTNESS] = 0xF;
-  param_max[PARAM_ALARM_MINUTE] = param_max[PARAM_CLOCK_MINUTE] = CLOCK_MINUTE_MAX;
+  param_max[PARAM_ALARM_MINUTE] = param_max[PARAM_CLOCK_MINUTE] = WATCH_MINUTE_MAX;
 
   reset ();
 }

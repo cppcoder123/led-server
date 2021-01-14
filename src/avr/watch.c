@@ -372,13 +372,39 @@ void watch_disable ()
   buf_byte_fill (&event_queue, EVENT_DISABLE);
 }
 
-void watch_write (uint8_t hour, uint8_t minute, uint8_t second)
+void watch_set (uint8_t hour, uint8_t minute, uint8_t second)
 {
   buffer[BUFFER_WRITE_HOUR] = rtc (hour, RTC_TO, RTC_HOUR);
   buffer[BUFFER_WRITE_MINUTE] = rtc (minute, RTC_TO, RTC_MINUTE);
   buffer[BUFFER_WRITE_SECOND] = rtc (second, RTC_TO, RTC_SECOND);
 
   buf_byte_fill (&event_queue, EVENT_WRITE);
+}
+
+void watch_get (uint8_t *hour, uint8_t *minute)
+{
+  /* fixme */
+}
+
+void watch_alarm_set (uint8_t hour, uint8_t minute)
+{
+  /* fixme */
+}
+
+void watch_alarm_get (uint8_t *hour, uint8_t *minute)
+{
+  /*fixme*/
+}
+
+uint8_t watch_alarm_state ()
+{
+  /*fixme*/
+  return 0;
+}
+
+void watch_alarm_control (uint8_t arg)
+{
+  /*fixme*/
 }
 
 ISR (INT2_vect)
