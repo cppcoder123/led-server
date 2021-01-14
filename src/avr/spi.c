@@ -7,25 +7,29 @@
 
 #include "unix/constant.h"
 
+#include "at.h"
 #include "buffer.h"
 #include "spi.h"
 
-#define CHANNEL_MISO PORTB3
+#define MISO PORTB3
 
 /*
  * irq pin is connected to pi's gpio-27
  * This is an artificial interrupt to notify pi that
  * avr wants to write smth into the channel
  */
-#define CHANNEL_IRQ PORTB4
+#define IRQ PORTB4
 
 /*
  * Tell pi that avr is ready
  */
-#define CHANNEL_CONFIRMATION PORTB5
+#define CONFIRM PORTB5
 
-/* 3rd bit of port D tracks pi spi enable signal */
-#define SHIFTER_NOTIFY PIND3
+/*
+ * How long we should confirm?
+ *    ~ 2 seconds
+ */
+#define CONFIRM_HOLD_TIME 2
 
 static struct buffer_t read_buf;
 static struct buffer_t write_buf;
@@ -33,27 +37,18 @@ static struct buffer_t write_buf;
 void spi_interrupt_start ()
 {
   /*set irq pin 1*/
-  PORTB |= (1 << CHANNEL_IRQ);
+  PORTB |= (1 << IRQ);
 }
 
 static void interrupt_stop ()
 {
-  PORTB &= ~(1 << CHANNEL_IRQ);
+  PORTB &= ~(1 << IRQ);
 }
 
-static void channel_enable ()
-{
-  buffer_clear (&read_buf);
-  buffer_clear (&write_buf);
-
-  /* send confirmation to pi */
-  PORTB |= (1 << CHANNEL_CONFIRMATION);
-}
-
-static void channel_disable ()
+static void misconfirm ()
 {
   /* set confirmation signal to low*/
-  PORTB &= ~(1 << CHANNEL_CONFIRMATION);
+  PORTB &= ~(1 << CONFIRM);
 }
 
 void spi_init ()
@@ -61,8 +56,7 @@ void spi_init ()
   /*
    * Configure spi output signals
    */
-  DDRB |= (1 << CHANNEL_MISO)
-    | (1 << CHANNEL_IRQ) | (1 << CHANNEL_CONFIRMATION);
+  DDRB |= (1 << MISO) | (1 << IRQ) | (1 << CONFIRM);
 
   /*clear*/
   SPDR = 0;
@@ -70,11 +64,11 @@ void spi_init ()
   buffer_init (&read_buf);
   buffer_init (&write_buf);
 
-  /* keep channel disabled for now */
-  channel_disable ();
+  /* prepare for confirm */
+  misconfirm ();
 
-  /* attach interrupt to channel enable/disable */
-  EICRA |= (1 << ISC30);        /* both edges should generate interrupt */
+  /* attach interrupt to shifter enable/disable signal */
+  EICRA |= (1 << ISC31);        /* falling edge should generate interrupt */
   EIMSK |= (1 << INT3);         /* enable INT3 interrupt */
 
   interrupt_stop ();            /* NB: application level "interrupt" */
@@ -138,13 +132,10 @@ ISR (SPI_STC_vect)
 
 ISR (INT3_vect)
 {
-  /*
-   * Is it rising or falling edge?
-   * falling => enable channel
-   * rising => disable channel
-   */
-  if (PIND & (1 << SHIFTER_NOTIFY))
-    channel_disable ();
-  else
-    channel_enable ();
+  buffer_clear (&read_buf);
+  buffer_clear (&write_buf);
+
+  PORTB |= (1 << CONFIRM);
+
+  at_schedule (AT_SPI, CONFIRM_HOLD_TIME, &misconfirm);
 }

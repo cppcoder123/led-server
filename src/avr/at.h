@@ -15,6 +15,7 @@ enum {
   /* AT_BUZZ, */
   AT_MENU,
   AT_POWER,
+  AT_SPI,
   AT_MAX,                       /* keep it last */
 };
 
