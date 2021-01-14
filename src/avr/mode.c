@@ -23,47 +23,14 @@ void mode_init ()
   is_connected = 0;
 }
 
-static void stop_mode ()
-{
-  switch (current_mode) {
-  case MODE_MENU:
-    break;
-  case MODE_CLOCK:
-    cron_disable (CRON_ID_FLUSH);
-    break;
-  case MODE_RADIO:
-    heartbeat_cancel ();
-    cron_disable (CRON_ID_FLUSH);
-    break;
-  default:
-    break;
-  }
-}
-
 static void switch_to_clock ()
 {
   mode_set (MODE_CLOCK);
-  is_connected = 0;
 }
 
-static void start_mode ()
+uint8_t mode_get ()
 {
-  switch (current_mode) {
-  case MODE_MENU:
-    watch_disable ();
-    break;
-  case MODE_CLOCK:
-    watch_enable ();
-    break;
-  case MODE_RADIO:
-    watch_disable ();
-    cron_enable (CRON_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
-    heartbeat_start (HB_DELAY, HB_MISS, &switch_to_clock, &spi_interrupt_start);
-    is_connected = 1;
-    break;
-  default:
-    break;
-  }
+  return current_mode;
 }
 
 void mode_set (uint8_t new_mode)
@@ -71,14 +38,25 @@ void mode_set (uint8_t new_mode)
   if (current_mode == new_mode)
     return;
 
-  stop_mode ();
-  current_mode = new_mode;
-  start_mode ();
-}
+  /*
+   * Disable/stop everything
+   */
+  watch_disable ();
+  heartbeat_cancel ();
+  cron_disable (CRON_ID_FLUSH);
+  is_connected = 0;
 
-uint8_t mode_get ()
-{
-  return current_mode;
+  /*
+   * Enable new functionality
+   */
+  current_mode = new_mode;
+  if (current_mode == MODE_CLOCK) {
+    watch_enable ();
+  } else if (current_mode == MODE_RADIO) {
+    cron_enable (CRON_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
+    heartbeat_start (HB_DELAY, HB_MISS, &switch_to_clock, &spi_interrupt_start);
+    is_connected = 1;
+  }
 }
 
 uint8_t mode_is_connnected ()
