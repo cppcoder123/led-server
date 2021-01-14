@@ -23,7 +23,7 @@
 /* ignore first measurements */
 #define FEEDBACK_IGNORE 3
 
-#define PWM_COUNTER COUNTER_5
+#define PWM_COUNTER COUNTER_3
 #define PWM_PRESCALER COUNTER_PRESCALER_1
 #define PWM_FREQUENCY 160
 #define PWM_MAX PWM_FREQUENCY
@@ -32,7 +32,7 @@
 #define PWM_DELTA_FINE 1
 #define PWM_DELTA_ROUGH 5
 
-#define METER_COUNTER COUNTER_1
+#define METER_COUNTER COUNTER_5
 #define METER_PRESCALER COUNTER_PRESCALER_EXT_RISE
 /* measure frequency, once per 5 sec?*/
 #define METER_FREQUENCY 250

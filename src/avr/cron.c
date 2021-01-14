@@ -6,7 +6,7 @@
 #include "counter.h"
 #include "cron.h"
 
-#define CRON_COUNTER COUNTER_3
+#define CRON_COUNTER COUNTER_1
 #define CRON_PRESCALER COUNTER_PRESCALER_1024
 
 /*low-78, high-0 => 50 Hz*/

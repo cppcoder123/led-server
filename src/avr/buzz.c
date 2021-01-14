@@ -12,7 +12,7 @@
 #include "cron.h"
 #include "debug.h"
 
-#define BUZZ_COUNTER COUNTER_0
+#define BUZZ_COUNTER COUNTER_4
 #define BUZZ_PRESCALER COUNTER_PRESCALER_8
 #define BUZZ_PWM 1
 
