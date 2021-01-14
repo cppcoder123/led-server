@@ -5,6 +5,7 @@
 #include <avr/interrupt.h>
 
 #include "at.h"
+#include "boot.h"
 #include "buzz.h"
 #include "clock.h"
 #include "counter.h"
@@ -16,7 +17,6 @@
 #include "menu.h"
 #include "mode.h"
 #include "postpone.h"
-#include "power.h"
 #include "rotor.h"
 #include "spi.h"
 
@@ -32,6 +32,7 @@ static void init ()
   cron_init ();
 
   at_init ();
+  boot_init ();
   buzz_init ();
   clock_init ();
   decode_init ();
@@ -43,7 +44,6 @@ static void init ()
   rotor_init ();
   /* ! init menu after rotor */
   menu_init ();
-  power_init ();
 
   mode_set (MODE_CLOCK);
 

@@ -7,6 +7,7 @@
 #include "unix/constant.h"
 
 #include "at.h"
+#include "boot.h"
 #include "clock.h"
 #include "debug.h"
 #include "encode.h"
@@ -14,7 +15,6 @@
 #include "flush.h"
 #include "menu.h"
 #include "mode.h"
-#include "power.h"
 #include "render.h"
 #include "rotor.h"
 
@@ -260,7 +260,7 @@ static void value_update ()
       break;
     case PARAM_POWER:
       if (mode_is_connnected () == 0)
-        power_on ();
+        boot_pi ();
       else
         send_message_0 (MSG_ID_POWEROFF);
       break;

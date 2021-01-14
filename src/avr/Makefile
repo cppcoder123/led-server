@@ -10,6 +10,7 @@ OBJECT_LIST = \
   at.o \
   avr.o \
   boost.o \
+  boot.o \
   buf.o \
   buffer.o \
   buzz.o \
@@ -28,7 +29,6 @@ OBJECT_LIST = \
   menu.o \
   mode.o \
   postpone.o \
-  power.o \
   render.o \
   ring.o \
   rotor.o \

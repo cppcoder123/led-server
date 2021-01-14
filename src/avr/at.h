@@ -10,11 +10,11 @@
 void at_init ();
 
 enum {
+  AT_BOOT,
   AT_BOUNCE_0,
   AT_BOUNCE_1,
   /* AT_BUZZ, */
   AT_MENU,
-  AT_POWER,
   AT_SPI,
   AT_MAX,                       /* keep it last */
 };
