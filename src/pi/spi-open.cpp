@@ -45,7 +45,7 @@ namespace led_d
 
     auto confirm_line = gpiod_chip_get_line (m_chip, confirm_offset);
     if (confirm_line == NULL)
-      throw std::runtime_error ("spi-open: Failed to open confirm ilne");
+      throw std::runtime_error ("spi-open: Failed to open confirm line");
 
     if (gpiod_line_request_rising_edge_events (confirm_line, consumer ()) != 0)
       throw std::runtime_error
@@ -74,6 +74,7 @@ namespace led_d
       throw std::runtime_error
         ("spi-open: Unknown return code in \"event_wait\"");
 
+    // Do we need to tell gpiod we are no longer interested in confirm events?
     gpiod_line_release (confirm_line);
   }
 

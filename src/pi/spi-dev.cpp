@@ -27,8 +27,8 @@ namespace
   constexpr const char* path = "/dev/spidev0.0";
   constexpr uint8_t mode = SPI_MODE_0;
   constexpr uint8_t word_size = 8;      // 8 bits per word
-  constexpr uint32_t speed = 10;       // 1kHz ?
-  constexpr uint16_t delay = 10000;      // 1 millisecond ?
+  constexpr uint32_t speed = 10;        // 1kHz ?
+  constexpr uint16_t delay = 10000;     // 1 millisecond ?
 }
 
 namespace led_d
