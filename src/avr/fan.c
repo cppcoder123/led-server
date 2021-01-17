@@ -46,8 +46,6 @@
 #define PWM_BIT PORTE4
 /* #define PWM_PORT PORTE */
 #define PWM_DDR DDRE
-#define PWM_ENABLE 1
-#define PWM_DISABLE 0
 /* negative polarity? it needs to be checked */
 #define PWM_POLARITY 0
 
@@ -84,7 +82,7 @@ static void start_pwm ()
     (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_A, PWM_FREQUENCY, FAN_ZERO);
   counter_register_write
     (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_B, pwm, FAN_ZERO);
-  counter_pwm (PWM_ENABLE, PWM_COUNTER, PWM_POLARITY);
+  counter_pwm_enable (PWM_COUNTER, PWM_POLARITY);
   counter_enable (PWM_COUNTER, PWM_PRESCALER);
 
   /* configure power wire as output */
@@ -101,7 +99,7 @@ static void stop_pwm ()
   POWER_DDR &= ~(1 << POWER_BIT);
 
   counter_disable (PWM_COUNTER);
-  counter_pwm (PWM_DISABLE, PWM_COUNTER, PWM_POLARITY);
+  counter_pwm_disable (PWM_COUNTER, PWM_POLARITY);
 
   /* release pwm wire */
   PWM_DDR &= ~(1 << PWM_BIT);

@@ -156,7 +156,7 @@ void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_callback fun
   handle (counter_id, CONTROL_REGISTER_INTERRUPT, FLAG_INTERRUPT_COMPARE_A);
 }
 
-void counter_pwm (uint8_t enable, uint8_t counter_id, uint8_t positive)
+static void counter_pwm (uint8_t enable, uint8_t counter_id, uint8_t positive)
 {
   handle_flag handle = (enable != 0)
     ? &control_register_set : &control_register_clear;
@@ -173,6 +173,16 @@ void counter_pwm (uint8_t enable, uint8_t counter_id, uint8_t positive)
 
   handle (counter_id, CONTROL_REGISTER_A, flag_a);
   handle (counter_id, CONTROL_REGISTER_B, flag_b);
+}
+
+void counter_pwm_enable (uint8_t counter_id, uint8_t positive)
+{
+  counter_pwm (1, counter_id, positive);
+}
+
+void counter_pwm_disable (uint8_t counter_id, uint8_t positive)
+{
+  counter_pwm (0, counter_id, positive);
 }
 
 static void value_register_get (uint8_t counter_id, uint8_t reg_id,

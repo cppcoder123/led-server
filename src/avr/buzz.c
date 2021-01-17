@@ -22,9 +22,6 @@
 #define BUZZ_PITCH 255
 #define BUZZ_VOLUME 127
 
-#define PWM_ENABLE 1
-#define PWM_DISABLE 0
-
 #define BUZZ_ZERO 0
 
 void set_output_zero ()
@@ -45,14 +42,14 @@ void buzz_start ()
     (BUZZ_COUNTER, COUNTER_OUTPUT_COMPARE_A, BUZZ_PITCH, BUZZ_ZERO);
   counter_register_write
     (BUZZ_COUNTER, COUNTER_OUTPUT_COMPARE_B, BUZZ_VOLUME, BUZZ_ZERO);
-  counter_pwm (PWM_ENABLE, BUZZ_COUNTER, BUZZ_PWM_POLARITY);
+  counter_pwm_enable (BUZZ_COUNTER, BUZZ_PWM_POLARITY);
   counter_enable (BUZZ_COUNTER, BUZZ_PRESCALER);
 }
 
 void buzz_stop ()
 {
   counter_disable (BUZZ_COUNTER);
-  counter_pwm (PWM_DISABLE, BUZZ_COUNTER, BUZZ_PWM_POLARITY);
+  counter_pwm_disable (BUZZ_COUNTER, BUZZ_PWM_POLARITY);
 
   set_output_zero ();
 }
