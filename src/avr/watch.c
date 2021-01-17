@@ -6,7 +6,9 @@
 
 #include "unix/constant.h"
 
+#include "at.h"
 #include "buf.h"
+#include "buzz.h"
 #include "debug.h"
 #include "flush.h"
 #include "font.h"
@@ -113,6 +115,15 @@ enum {
       RTC_SECOND,
 };
 
+/*
+ * Alarm related
+ */
+#define ALARM_DURATION 10
+
+static uint8_t alarm_engaged = 0;
+static uint8_t alarm_hour = 0;
+static uint8_t alarm_minute = 0;
+
 static void init_interrupt ()
 {
    /* 1 & 1 => rising edge */
@@ -153,6 +164,44 @@ static uint8_t rtc (uint8_t src, uint8_t direction, uint8_t unit)
   return result;
 }
 
+uint8_t watch_alarm_set (uint8_t hour, uint8_t minute)
+{
+  if ((hour > WATCH_HOUR_MAX)
+      || (minute > WATCH_MINUTE_MAX))
+    return 0;
+
+  alarm_hour = hour;
+  alarm_minute = minute;
+
+  return 1;
+}
+
+void watch_alarm_get (uint8_t *hour, uint8_t *minute)
+{
+  *hour = alarm_hour;
+  *minute = alarm_minute;
+}
+
+uint8_t watch_alarm_state ()
+{
+  return alarm_engaged;
+}
+
+/* 0 disables the alarm */
+void watch_alarm_control (uint8_t engage)
+{
+  alarm_engaged = (engage == 0) ? 0 : 1;
+}
+
+static void alarm_check (uint8_t hour, uint8_t minute)
+{
+  if ((alarm_hour != hour) || (alarm_minute != minute))
+    return;
+
+  buzz_start ();
+  at_schedule (AT_WATCH, ALARM_DURATION, &buzz_stop);
+}
+
 void watch_init ()
 {
   for (uint8_t i = 0; i < BUFFER_SIZE; ++i)
@@ -169,6 +218,9 @@ void watch_init ()
   buffer[BUFFER_WRITE_MINUTE] = rtc (INITIAL_TIME, RTC_TO, RTC_MINUTE);
   buffer[BUFFER_WRITE_SECOND] = rtc (INITIAL_TIME, RTC_TO, RTC_SECOND);
   buf_byte_fill (&event_queue, EVENT_WRITE);
+
+  watch_alarm_set (0, 0);
+  watch_alarm_control (0);      /* disengage */
 }
 
 static void write_callback (uint8_t status)
@@ -288,6 +340,9 @@ static void read_callback (uint8_t status, uint8_t value)
       break;
     case SUB_EVENT_SECOND:
       buffer[BUFFER_READ_SECOND] = value;
+      if ((value == 0)
+          && (watch_alarm_state ()))
+        alarm_check (buffer[BUFFER_READ_HOUR], buffer[BUFFER_READ_MINUTE]);
       break;
     default:
       debug_1 (DEBUG_WATCH, 3, sub_event);
@@ -383,29 +438,11 @@ void watch_set (uint8_t hour, uint8_t minute, uint8_t second)
 
 void watch_get (uint8_t *hour, uint8_t *minute)
 {
-  /* fixme */
+  /* fixme: remove this */
+  *hour = 11;
+  *minute = 11;
 }
 
-void watch_alarm_set (uint8_t hour, uint8_t minute)
-{
-  /* fixme */
-}
-
-void watch_alarm_get (uint8_t *hour, uint8_t *minute)
-{
-  /*fixme*/
-}
-
-uint8_t watch_alarm_state ()
-{
-  /*fixme*/
-  return 0;
-}
-
-void watch_alarm_control (uint8_t arg)
-{
-  /*fixme*/
-}
 
 ISR (INT2_vect)
 {

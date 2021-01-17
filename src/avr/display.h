@@ -17,10 +17,6 @@ struct display_t
 /* init internals & start matrix*/
 void display_init (struct display_t *display, uint8_t cs, uint8_t clk, uint8_t data);
 
-/* init led matrix */
-void display_start (struct display_t *display);
-void display_stop (struct display_t *display);
-
 /*transfer data to led matrix*/
 void display_data_start (struct display_t *display);
 /*call 'display_column' 32 times, for each column*/

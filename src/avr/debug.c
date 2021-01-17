@@ -2,11 +2,32 @@
  *
  */
 
+#include <avr/io.h>
+
 #include "unix/constant.h"
 
 #include "debug.h"
 #include "encode.h"
 #include "mode.h"
+
+#define LED PORTA6
+
+void debug_led_on ()
+{
+  PORTA |= (1 << LED);
+}
+
+void debug_led_off ()
+{
+  PORTA &= ~(1 << LED);
+}
+
+void debug_init ()
+{
+  /* configure A6 as output set to 0 */
+  DDRA |= (1 << LED);
+  debug_led_off ();
+}
 
 void debug_0 (uint8_t domain, uint8_t key)
 {
