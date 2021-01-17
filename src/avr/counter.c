@@ -21,9 +21,10 @@
 #define FLAG_16_ENABLE_COMPARE_A (1 << 3)
 /*
  * Define Fast PWM with OCRA and switch OCRB output
- */
-/*
+ *
+ *
  * 8 bit counters
+ * --------------
  *
  *
  * Register A:
@@ -45,6 +46,7 @@
 
 /*
  * 16 bit counters
+ * ---------------
  *
  * (1 << 0) - WGMx0 one of fast pwm flags
  * (1 << 1) - WGMx1
@@ -58,6 +60,7 @@
  * (1 << 4) - WGMx3
  */
 #define FLAG_16_ENABLE_PWM_B ((1 << 3) | (1 << 4))
+
 /* enable interrupt */
 #define FLAG_INTERRUPT_COMPARE_A (1 << 1)
 

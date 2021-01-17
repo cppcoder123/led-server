@@ -18,7 +18,6 @@ typedef void (*cron_callback) ();
 
 enum {
   CRON_ID_AT,
-  CRON_ID_BUZZ,
   CRON_ID_FAN,
   CRON_ID_FLUSH,
   CRON_ID_HEARTBEAT,

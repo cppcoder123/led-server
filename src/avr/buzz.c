@@ -6,7 +6,6 @@
 
 #include "unix/constant.h"
 
-/* #include "at.h" */
 #include "buzz.h"
 #include "counter.h"
 #include "cron.h"
@@ -14,10 +13,54 @@
 
 #define BUZZ_COUNTER COUNTER_4
 #define BUZZ_PRESCALER COUNTER_PRESCALER_8
-#define BUZZ_PWM 1
+#define BUZZ_PWM_POLARITY 1
+
+#define BUZZ_PORT PORTH
+#define BUZZ_BIT PORTH4
+#define BUZZ_DDR DDRH
+
+#define BUZZ_PITCH 255
+#define BUZZ_VOLUME 127
+
+#define PWM_ENABLE 1
+#define PWM_DISABLE 0
+
+#define BUZZ_ZERO 0
+
+void set_output_zero ()
+{
+  BUZZ_PORT &= ~(1 << BUZZ_BIT);
+}
+
+void buzz_init ()
+{
+  /* enable buzz output */
+  BUZZ_DDR |= (1 << BUZZ_BIT);
+  set_output_zero ();
+}
+
+void buzz_start ()
+{
+  counter_register_write
+    (BUZZ_COUNTER, COUNTER_OUTPUT_COMPARE_A, BUZZ_PITCH, BUZZ_ZERO);
+  counter_register_write
+    (BUZZ_COUNTER, COUNTER_OUTPUT_COMPARE_B, BUZZ_VOLUME, BUZZ_ZERO);
+  counter_pwm (PWM_ENABLE, BUZZ_COUNTER, BUZZ_PWM_POLARITY);
+  counter_enable (BUZZ_COUNTER, BUZZ_PRESCALER);
+}
+
+void buzz_stop ()
+{
+  counter_disable (BUZZ_COUNTER);
+  counter_pwm (PWM_DISABLE, BUZZ_COUNTER, BUZZ_PWM_POLARITY);
+
+  set_output_zero ();
+}
+
+
+#if 0
 
 /* 2 seconds */
-/* #define BUZZ_DELAY 2            /\* 2 seconds *\/ */
 #define BUZZ_DELAY 100            /* 2 seconds */
 
 #define BUZZ_ZERO 0
@@ -113,3 +156,5 @@ void buzz_stop ()
   cron_disable (CRON_ID_BUZZ);
   /* counter_disable (BUZZ_COUNTER); */
 }
+
+#endif
