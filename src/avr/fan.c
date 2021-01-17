@@ -43,8 +43,17 @@
 
 #define FAN_ZERO 0
 
-#define FAN_PORT PORTL4
-/* #define METER_PIN PORTD6 */
+#define PWM_BIT PORTE4
+/* #define PWM_PORT PORTE */
+#define PWM_DDR DDRE
+#define PWM_ENABLE 1
+#define PWM_DISABLE 0
+/* negative polarity? it needs to be checked */
+#define PWM_POLARITY 0
+
+#define POWER_BIT PORTH1
+#define POWER_PORT PORTH
+#define POWER_DDR DDRH
 
 static struct feedback_t feedback;
 static uint8_t started = 0;
@@ -67,23 +76,35 @@ void fan_try ()
 
 static void start_pwm ()
 {
-  DDRL |= (1 << FAN_PORT);
+  /* configure as output */
+  PWM_DDR |= (1 << PWM_BIT);
 
   pwm = PWM_START;
   counter_register_write
     (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_A, PWM_FREQUENCY, FAN_ZERO);
   counter_register_write
     (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_B, pwm, FAN_ZERO);
-  counter_pwm (1, PWM_COUNTER, 0);
+  counter_pwm (PWM_ENABLE, PWM_COUNTER, PWM_POLARITY);
   counter_enable (PWM_COUNTER, PWM_PRESCALER);
+
+  /* configure power wire as output */
+  POWER_DDR |= (1 << POWER_BIT);
+  /* turn on power */
+  POWER_PORT |= (1 << POWER_BIT);
 }
 
 static void stop_pwm ()
 {
-  counter_disable (PWM_COUNTER);
-  counter_pwm (0, PWM_COUNTER, 0);
+  /* turn off power */
+  POWER_PORT &= ~(1 << POWER_BIT);
+  /* configure power wire as input */
+  POWER_DDR &= ~(1 << POWER_BIT);
 
-  DDRL &= ~(1 << FAN_PORT);
+  counter_disable (PWM_COUNTER);
+  counter_pwm (PWM_DISABLE, PWM_COUNTER, PWM_POLARITY);
+
+  /* release pwm wire */
+  PWM_DDR &= ~(1 << PWM_BIT);
 }
 
 static void measure ()
