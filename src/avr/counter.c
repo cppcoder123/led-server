@@ -14,11 +14,18 @@
 #define PRESCALER_MASK (COUNTER_PRESCALER_1 | COUNTER_PRESCALER_8 \
   | COUNTER_PRESCALER_256)
 
-/* enable CTC something */
-/* either WGM01 or WGM21*/
+/*
+ * enable CTC
+ * ----------
+ *
+ * WGM01, WGM21
+ */
 #define FLAG_8_ENABLE_CTC_COMPARE_A (1 << 1)
-/* WGM12, WGM32, WGM42, WGM52 */
+/*
+ * WGM12, WGM32, WGM42, WGM52
+ */
 #define FLAG_16_ENABLE_CTC_COMPARE_A (1 << 3)
+
 /*
  * Define Fast PWM with OCRA and switch OCRB output
  *
@@ -61,7 +68,10 @@
  */
 #define FLAG_16_ENABLE_PWM_B ((1 << 3) | (1 << 4))
 
-/* enable interrupt */
+/*
+ * enable interrupt
+ * ----------------
+ */
 #define FLAG_INTERRUPT_COMPARE_A (1 << 1)
 
 enum {
