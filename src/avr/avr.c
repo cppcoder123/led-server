@@ -8,7 +8,6 @@
 #include "boot.h"
 #include "counter.h"
 #include "cron.h"
-#include "debug.h"
 #include "decode.h"
 #include "fan.h"
 #include "flush.h"
@@ -33,7 +32,6 @@ static void init ()
 
   at_init ();
   boot_init ();
-  debug_init ();
   decode_init ();
   fan_init ();
   flush_init ();

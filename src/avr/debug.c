@@ -10,24 +10,9 @@
 #include "encode.h"
 #include "mode.h"
 
-#define LED PORTA6
-
-void debug_led_on ()
-{
-  PORTA |= (1 << LED);
-}
-
-void debug_led_off ()
-{
-  PORTA &= ~(1 << LED);
-}
-
-void debug_init ()
-{
-  /* configure A6 as output set to 0 */
-  DDRA |= (1 << LED);
-  debug_led_off ();
-}
+#define LED_BIT PORTA6
+#define LED_PORT PORTA
+#define LED_DDR DDRA
 
 void debug_0 (uint8_t domain, uint8_t key)
 {
@@ -63,4 +48,16 @@ void debug_4 (uint8_t domain, uint8_t key, uint8_t value_1,
     encode_msg_6 (MSG_ID_DEBUG,
                   SERIAL_ID_TO_IGNORE, domain, key,
                   value_1, value_2, value_3, value_4);
+}
+
+void debug_led_on ()
+{
+  LED_DDR |= (1 << LED_BIT);
+  LED_PORT |= (1 << LED_BIT);
+}
+
+void debug_led_off ()
+{
+  LED_PORT &= ~(1 << LED_BIT);
+  LED_DDR &= ~(1 << LED_BIT);
 }
