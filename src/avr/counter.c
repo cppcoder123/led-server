@@ -163,10 +163,11 @@ static void counter_pwm (uint8_t enable, uint8_t counter_id, uint8_t positive)
 
   const uint8_t eight = eight_bits (counter_id);
 
-  uint8_t flag_a = (eight != 0) ? FLAG_8_ENABLE_PWM_A : FLAG_16_ENABLE_PWM_A;
-  if (positive == 0)
-    flag_a |= (eight != 0)
-      ? FLAG_8_ENABLE_PWM_A_INVERT : FLAG_16_ENABLE_PWM_A_INVERT;
+  const uint8_t invert = (positive > 0) ? 0
+    : (eight != 0) ? FLAG_8_ENABLE_PWM_A_INVERT : FLAG_16_ENABLE_PWM_A_INVERT;
+
+  const uint8_t flag_a
+    = ((eight != 0) ? FLAG_8_ENABLE_PWM_A : FLAG_16_ENABLE_PWM_A) | invert;
 
   const uint8_t flag_b = (eight != 0)
     ? FLAG_8_ENABLE_PWM_B : FLAG_16_ENABLE_PWM_B;
