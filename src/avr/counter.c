@@ -14,11 +14,11 @@
 #define PRESCALER_MASK (COUNTER_PRESCALER_1 | COUNTER_PRESCALER_8 \
   | COUNTER_PRESCALER_256)
 
-/* enable something */
+/* enable CTC something */
 /* either WGM01 or WGM21*/
-#define FLAG_8_ENABLE_COMPARE_A (1 << 1)
+#define FLAG_8_ENABLE_CTC_COMPARE_A (1 << 1)
 /* WGM12, WGM32, WGM42, WGM52 */
-#define FLAG_16_ENABLE_COMPARE_A (1 << 3)
+#define FLAG_16_ENABLE_CTC_COMPARE_A (1 << 3)
 /*
  * Define Fast PWM with OCRA and switch OCRB output
  *
@@ -135,7 +135,8 @@ void counter_disable (uint8_t id)
   control_register_clear (id, CONTROL_REGISTER_B, PRESCALER_MASK);
 }
 
-void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_callback fun)
+static void counter_interrupt (uint8_t enable,
+                               uint8_t counter_id, counter_callback fun)
 {
   if ((counter_id > MAX_ID)
       || ((enable != 0)
@@ -143,7 +144,7 @@ void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_callback fun
     return;
 
   uint8_t flag = (eight_bits (counter_id) != 0)
-    ? FLAG_8_ENABLE_COMPARE_A : FLAG_16_ENABLE_COMPARE_A;
+    ? FLAG_8_ENABLE_CTC_COMPARE_A : FLAG_16_ENABLE_CTC_COMPARE_A;
   uint8_t control_reg = (eight_bits (counter_id) != 0)
     ? CONTROL_REGISTER_A : CONTROL_REGISTER_B;
   handle_flag handle = (enable != 0)
@@ -154,6 +155,16 @@ void counter_interrupt (uint8_t enable, uint8_t counter_id, counter_callback fun
 
   handle (counter_id, control_reg, flag);
   handle (counter_id, CONTROL_REGISTER_INTERRUPT, FLAG_INTERRUPT_COMPARE_A);
+}
+
+void counter_interrupt_enable (uint8_t counter_id, counter_callback fun)
+{
+  counter_interrupt (1, counter_id, fun);
+}
+
+void counter_interrupt_disable (uint8_t counter_id)
+{
+  counter_interrupt (0, counter_id, 0);
 }
 
 static void counter_pwm (uint8_t enable, uint8_t counter_id, uint8_t positive)

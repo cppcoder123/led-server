@@ -48,8 +48,8 @@ void counter_disable (uint8_t counter_id);
 /* only ctc compare-a interrupts are used now, */
 /* so output-compare-a register should be updated before */
 /* calling counter_enable */
-void counter_interrupt (uint8_t enable,
-                        uint8_t counter_id, counter_callback fun);
+void counter_interrupt_enable (uint8_t counter_id, counter_callback fun);
+void counter_interrupt_disable (uint8_t counter_id);
 
 /* fast pwm with output-compare-a & output-compare-b */
 /* these registers should be set and !!! b <= a !!! */
