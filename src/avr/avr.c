@@ -6,7 +6,6 @@
 
 #include "at.h"
 #include "boot.h"
-#include "buzz.h"
 #include "counter.h"
 #include "cron.h"
 #include "debug.h"
@@ -34,7 +33,6 @@ static void init ()
 
   at_init ();
   boot_init ();
-  buzz_init ();
   debug_init ();
   decode_init ();
   fan_init ();

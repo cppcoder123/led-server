@@ -4,18 +4,14 @@
 
 #include <avr/io.h>
 
-#include "unix/constant.h"
-
 #include "buzz.h"
 #include "counter.h"
-#include "cron.h"
-#include "debug.h"
 
 #define BUZZ_COUNTER COUNTER_4
 #define BUZZ_PRESCALER COUNTER_PRESCALER_8
-#define BUZZ_PWM_POLARITY 1
+/* pwm polarity */
+#define BUZZ_POLARITY 1
 
-#define BUZZ_PORT PORTH
 #define BUZZ_BIT PORTH4
 #define BUZZ_DDR DDRH
 
@@ -24,34 +20,26 @@
 
 #define BUZZ_ZERO 0
 
-void set_output_zero ()
-{
-  BUZZ_PORT &= ~(1 << BUZZ_BIT);
-}
-
-void buzz_init ()
-{
-  /* enable buzz output */
-  BUZZ_DDR |= (1 << BUZZ_BIT);
-  set_output_zero ();
-}
-
 void buzz_start ()
 {
+  /* configure buzz bit as output */
+  BUZZ_DDR |= (1 << BUZZ_BIT);
+
   counter_register_write
     (BUZZ_COUNTER, COUNTER_OUTPUT_COMPARE_A, BUZZ_PITCH, BUZZ_ZERO);
   counter_register_write
     (BUZZ_COUNTER, COUNTER_OUTPUT_COMPARE_B, BUZZ_VOLUME, BUZZ_ZERO);
-  counter_pwm_enable (BUZZ_COUNTER, BUZZ_PWM_POLARITY);
+  counter_pwm_enable (BUZZ_COUNTER, BUZZ_POLARITY);
   counter_enable (BUZZ_COUNTER, BUZZ_PRESCALER);
 }
 
 void buzz_stop ()
 {
   counter_disable (BUZZ_COUNTER);
-  counter_pwm_disable (BUZZ_COUNTER, BUZZ_PWM_POLARITY);
+  counter_pwm_disable (BUZZ_COUNTER, BUZZ_POLARITY);
 
-  set_output_zero ();
+  /* configure buzz bit as input */
+  BUZZ_DDR &= ~(1 << BUZZ_BIT);
 }
 
 
