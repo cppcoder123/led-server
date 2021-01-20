@@ -16,7 +16,7 @@
 
 static void release_wire ()
 {
-  /* configure as input */
+  /* configure as input and let it to go high due to pull up*/
   BOOT_DDR &= ~(1 << BOOT_WIRE);
 }
 

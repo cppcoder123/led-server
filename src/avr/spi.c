@@ -26,6 +26,16 @@
 #define CONFIRM PORTB5
 
 /*
+ * Port we are using
+ */
+#define SPI_PORT PORTB
+
+/*
+ * Direction register
+ */
+#define SPI_DDR DDRB
+
+/*
  * How long we should confirm?
  *    ~ 2 seconds
  */
@@ -37,18 +47,18 @@ static struct buffer_t write_buf;
 void spi_interrupt_start ()
 {
   /*set irq pin 1*/
-  PORTB |= (1 << IRQ);
+  SPI_PORT |= (1 << IRQ);
 }
 
 static void interrupt_stop ()
 {
-  PORTB &= ~(1 << IRQ);
+  SPI_PORT &= ~(1 << IRQ);
 }
 
 static void misconfirm ()
 {
   /* set confirmation signal to low*/
-  PORTB &= ~(1 << CONFIRM);
+  SPI_PORT &= ~(1 << CONFIRM);
 }
 
 void spi_init ()
@@ -56,7 +66,7 @@ void spi_init ()
   /*
    * Configure spi output signals
    */
-  DDRB |= (1 << MISO) | (1 << IRQ) | (1 << CONFIRM);
+  SPI_DDR |= (1 << MISO) | (1 << IRQ) | (1 << CONFIRM);
 
   /*clear*/
   SPDR = 0;
@@ -135,7 +145,7 @@ ISR (INT3_vect)
   buffer_clear (&read_buf);
   buffer_clear (&write_buf);
 
-  PORTB |= (1 << CONFIRM);
+  SPI_PORT |= (1 << CONFIRM);
 
   at_schedule (AT_SPI, CONFIRM_HOLD_TIME, &misconfirm);
 }
