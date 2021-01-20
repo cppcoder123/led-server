@@ -5,7 +5,6 @@
 #include <avr/interrupt.h>
 
 #include "at.h"
-#include "boot.h"
 #include "counter.h"
 #include "cron.h"
 #include "decode.h"
@@ -31,7 +30,6 @@ static void init ()
   cron_init ();
 
   at_init ();
-  boot_init ();
   decode_init ();
   fan_init ();
   flush_init ();

@@ -7,30 +7,27 @@
 #include "at.h"
 #include "boot.h"
 
-#define LINE PORTB6
+#define BOOT_PORT PORTB
+#define BOOT_WIRE PORTB6
+#define BOOT_DDR DDRB
 
 /* hold line approx 2 seconds */
-#define LINE_HOLD 2
+#define HOLD_TIME 2
 
-static void line_release ()
+static void release_wire ()
 {
-  PORTB |= (1 << LINE);
+  /* configure as input */
+  BOOT_DDR &= ~(1 << BOOT_WIRE);
 }
-
-void boot_init ()
-{
-  /* B6 => output  */
-  DDRB |= (1 << LINE);
-
-  /* set line to high-z state */
-  line_release ();
-}
-
 
 void boot_pi ()
 {
-  /* drive line to zero to initiate the boot and wait sometime */
-  PORTB &= ~(1 << LINE);
+  /* 1. configure as output */
+  BOOT_DDR |= (1 << BOOT_WIRE);
 
-  at_schedule (AT_BOOT, LINE_HOLD, &line_release);
+  /* 2. set 0 to wire to start pi boot */
+  BOOT_PORT &= ~(1 << BOOT_WIRE);
+
+  /* 3. release wire after some time */
+  at_schedule (AT_BOOT, HOLD_TIME, &release_wire);
 }
