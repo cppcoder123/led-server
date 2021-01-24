@@ -58,7 +58,7 @@
 
 static struct feedback_t feedback;
 static uint8_t started = 0;
-static uint8_t pwm = PWM_MAX;
+static uint8_t pwm_value = PWM_MAX;
 
 void fan_init ()
 {
@@ -90,27 +90,25 @@ static void power (uint8_t arg)
   }
 }
 
-static void start_pwm ()
+static void pwm (uint8_t arg)
 {
-  /* configure as output */
-  PWM_DDR |= (1 << PWM_BIT);
+  if (arg == ON) {
+    /* configure as output */
+    PWM_DDR |= (1 << PWM_BIT);
 
-  pwm = PWM_START;
-  counter_register_write
-    (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_A, PWM_FREQUENCY, FAN_ZERO);
-  counter_register_write
-    (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_B, pwm, FAN_ZERO);
-  counter_pwm_enable (PWM_COUNTER, PWM_POLARITY);
-  counter_enable (PWM_COUNTER, PWM_PRESCALER);
-
-}
-
-static void stop_pwm ()
-{
-  counter_disable (PWM_COUNTER);
-  counter_pwm_disable (PWM_COUNTER, PWM_POLARITY);
-  /* release pwm wire */
-  PWM_DDR &= ~(1 << PWM_BIT);
+    pwm_value = PWM_START;
+    counter_register_write
+      (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_A, PWM_FREQUENCY, FAN_ZERO);
+    counter_register_write
+      (PWM_COUNTER, COUNTER_OUTPUT_COMPARE_B, pwm_value, FAN_ZERO);
+    counter_pwm_enable (PWM_COUNTER, PWM_POLARITY);
+    counter_enable (PWM_COUNTER, PWM_PRESCALER);
+  } else {                      /* off */
+    counter_disable (PWM_COUNTER);
+    counter_pwm_disable (PWM_COUNTER, PWM_POLARITY);
+    /* release pwm wire */
+    PWM_DDR &= ~(1 << PWM_BIT);
+  }
 }
 
 static void measure ()
@@ -128,19 +126,16 @@ static void measure ()
   /* debug_1 (DEBUG_FAN, 222, high); */
 }
 
-static void start_meter ()      /* frequency-meter */
+static void meter (uint8_t arg) /* frequency-meter */
 {
-  /* DDRD &= ~(1 << METER_PIN); */
-
-  counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
-  counter_enable (METER_COUNTER, METER_PRESCALER);
-  cron_enable (CRON_ID_FAN, METER_FREQUENCY, &measure);
-}
-
-static void stop_meter ()
-{
-  cron_disable (CRON_ID_FAN);
-  counter_disable (METER_COUNTER);
+  if (arg == ON) {
+    counter_register_write (METER_COUNTER, COUNTER_VALUE, FAN_ZERO, FAN_ZERO);
+    counter_enable (METER_COUNTER, METER_PRESCALER);
+    cron_enable (CRON_ID_FAN, METER_FREQUENCY, &measure);
+  } else {                      /* off */
+    cron_disable (CRON_ID_FAN);
+    counter_disable (METER_COUNTER);
+  }
 }
 
 static uint8_t get_pwm_delta (uint8_t meter_delta)
@@ -167,10 +162,10 @@ static void control (uint8_t current)
   }
 
   if (need_more > 0)
-    pwm = (pwm + pwm_delta < PWM_MAX) ? pwm + pwm_delta : PWM_MAX;
+    pwm_value = (pwm_value + pwm_delta < PWM_MAX) ? pwm_value + pwm_delta : PWM_MAX;
   else
-    pwm = ((pwm > pwm_delta) && (pwm - pwm_delta > PWM_MIN))
-      ? pwm - pwm_delta : PWM_MIN;
+    pwm_value = ((pwm_value > pwm_delta) && (pwm_value - pwm_delta > PWM_MIN))
+      ? pwm_value - pwm_delta : PWM_MIN;
 
   /* debug_1 (DEBUG_FAN, 123, pwm); */
 
@@ -178,7 +173,7 @@ static void control (uint8_t current)
   /* pwm = 160; */
 
   counter_register_write (PWM_COUNTER,
-                          COUNTER_OUTPUT_COMPARE_B, pwm, FAN_ZERO);
+                          COUNTER_OUTPUT_COMPARE_B, pwm_value, FAN_ZERO);
 }
 
 void fan_start ()
@@ -188,16 +183,16 @@ void fan_start ()
   feedback_init (&feedback, FEEDBACK_TARGET, FEEDBACK_DELTA,
                  /* FEEDBACK_DELAY, */ FEEDBACK_IGNORE, &control);
   power (ON);
-  start_pwm ();
-  start_meter ();
+  pwm (ON);
+  meter (ON);
   /* fixme */
 }
 
 void fan_stop ()
 {
   /* fixme */
-  stop_meter ();
-  stop_pwm ();
+  meter (OFF);
+  pwm (OFF);
   power (OFF);
 
   started = 0;
