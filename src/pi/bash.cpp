@@ -50,13 +50,6 @@ namespace led_d
     m_command_queue.notify_one<true> ();
   }
 
-  // void bash_t::issue_command (command_id_t id,
-  //                             std::string text, command_t::timeout_t timeout)
-  // {
-  //   auto command = std::make_shared<command_t>(id, text, timeout);
-  //   m_command_queue.push (command);
-  // }
-
   void bash_t::execute_command (command_ptr_t command)
   {
     auto body = (command->wrap ())

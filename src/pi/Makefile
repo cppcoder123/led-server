@@ -25,7 +25,7 @@ OBJECT_LIST = led-d.o arg.o base.o bash.o command.o content.o \
 #
 LDFLAGS = -lgpiod -lpthread
 
-CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_ROOT) $(OPTIONAL_DEFINE)
+CPPFLAGS = $(COMMON_CPPFLAGS) -I $(LIB_ROOT)
 
 #
 #

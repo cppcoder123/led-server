@@ -1,5 +1,5 @@
 /*
- * Queue of commands for invoke bash
+ * Queue of commands to invoke bash
  */
 
 #ifndef COMMAND_QUEUE_HPP
