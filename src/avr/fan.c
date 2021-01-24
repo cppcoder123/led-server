@@ -76,8 +76,8 @@ static void start_pwm ()
 {
   /* configure power wire as output */
   POWER_DDR |= (1 << POWER_BIT);
-  /* turn on power */
-  POWER_PORT |= (1 << POWER_BIT);
+  /* turn on power, assign 0 */
+  POWER_PORT &= ~(1 << POWER_BIT);
 
   /* configure as output */
   PWM_DDR |= (1 << PWM_BIT);
@@ -99,8 +99,8 @@ static void stop_pwm ()
   /* release pwm wire */
   PWM_DDR &= ~(1 << PWM_BIT);
 
-  /* turn off power */
-  POWER_PORT &= ~(1 << POWER_BIT);
+  /* turn off power, assign 1 */
+  POWER_PORT |= (1 << POWER_BIT);
   /* configure power wire as input */
   POWER_DDR &= ~(1 << POWER_BIT);
 }
