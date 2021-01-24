@@ -53,6 +53,9 @@
 #define POWER_PORT PORTH
 #define POWER_DDR DDRH
 
+#define ON 1
+#define OFF 0
+
 static struct feedback_t feedback;
 static uint8_t started = 0;
 static uint8_t pwm = PWM_MAX;
@@ -72,13 +75,23 @@ void fan_try ()
   feedback_try (&feedback);
 }
 
+static void power (uint8_t arg)
+{
+  if (arg == ON) {
+    /* configure power wire as output */
+    POWER_DDR |= (1 << POWER_BIT);
+    /* turn on power, assign 0 */
+    POWER_PORT &= ~(1 << POWER_BIT);
+  } else {                      /* off */
+    /* turn off power, assign 1 */
+    POWER_PORT |= (1 << POWER_BIT);
+    /* configure power wire as input */
+    POWER_DDR &= ~(1 << POWER_BIT);
+  }
+}
+
 static void start_pwm ()
 {
-  /* configure power wire as output */
-  POWER_DDR |= (1 << POWER_BIT);
-  /* turn on power, assign 0 */
-  POWER_PORT &= ~(1 << POWER_BIT);
-
   /* configure as output */
   PWM_DDR |= (1 << PWM_BIT);
 
@@ -98,11 +111,6 @@ static void stop_pwm ()
   counter_pwm_disable (PWM_COUNTER, PWM_POLARITY);
   /* release pwm wire */
   PWM_DDR &= ~(1 << PWM_BIT);
-
-  /* turn off power, assign 1 */
-  POWER_PORT |= (1 << POWER_BIT);
-  /* configure power wire as input */
-  POWER_DDR &= ~(1 << POWER_BIT);
 }
 
 static void measure ()
@@ -179,6 +187,7 @@ void fan_start ()
 
   feedback_init (&feedback, FEEDBACK_TARGET, FEEDBACK_DELTA,
                  /* FEEDBACK_DELAY, */ FEEDBACK_IGNORE, &control);
+  power (ON);
   start_pwm ();
   start_meter ();
   /* fixme */
@@ -189,6 +198,7 @@ void fan_stop ()
   /* fixme */
   stop_meter ();
   stop_pwm ();
+  power (OFF);
 
   started = 0;
 }
