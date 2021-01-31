@@ -45,24 +45,29 @@ void counter_init ();
 void counter_enable (uint8_t counter_id, uint8_t prescaler);
 void counter_disable (uint8_t counter_id);
 
-/* only ctc compare-a interrupts are used now, */
-/* so output-compare-a register should be updated before */
-/* calling counter_enable */
+/*
+ * Note:
+ *    Only ctc compare-a interrupts are used now,
+ *    so output-compare-a register should be updated before
+ *    calling counter_enable
+ */
 void counter_interrupt_enable (uint8_t counter_id, counter_callback fun);
 void counter_interrupt_disable (uint8_t counter_id);
 
-/* fast pwm with output-compare-a & output-compare-b */
-/* these registers should be set and !!! b <= a !!! */
-/* before counter_enable call */
-/* if positive > 0 then positive pwm else negative */
+/*
+ * Fast pwm with output-compare-a & output-compare-b
+ * these registers should be set and !!! b <= a !!!
+ * before counter_enable call
+ * if positive > 0 then positive pwm else negative
+ */
 void counter_pwm_enable (uint8_t counter_id, uint8_t positive);
 void counter_pwm_disable (uint8_t counter_id, uint8_t positive);
 
 /* only low is valid for counter 0, 2*/
 void counter_register_write (uint8_t counter_id, uint8_t reg_id,
-			     uint8_t low, uint8_t high);
+                             uint8_t low, uint8_t high);
 void counter_register_read (uint8_t counter_id, uint8_t reg_id,
-			    uint8_t *low, uint8_t *high);
+                            uint8_t *low, uint8_t *high);
 
 /* perform tasks scheduled by interrupts */
 void counter_try ();

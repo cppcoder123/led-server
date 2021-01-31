@@ -11,8 +11,8 @@
 
 #define MAX_ID COUNTER_5
 
-#define PRESCALER_MASK (COUNTER_PRESCALER_1 | COUNTER_PRESCALER_8 \
-  | COUNTER_PRESCALER_256)
+#define PRESCALER_MASK \
+  (COUNTER_PRESCALER_1 | COUNTER_PRESCALER_8 | COUNTER_PRESCALER_256)
 
 /*
  * enable CTC
@@ -232,7 +232,7 @@ static void value_register_get (uint8_t counter_id, uint8_t reg_id,
      &TCNT5L, &TCNT5H,
   };
 
-  uint8_t shift = (reg_id == COUNTER_OUTPUT_COMPARE_B) ? 12
+  const uint8_t shift = (reg_id == COUNTER_OUTPUT_COMPARE_B) ? 12
     : (reg_id == COUNTER_VALUE) ? 24 : 0;
 
   const uint8_t reg_array_id = counter_id * 2 + shift;

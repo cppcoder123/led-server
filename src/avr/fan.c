@@ -161,11 +161,10 @@ static void control (uint8_t current)
     return;
   }
 
-  if (need_more > 0)
-    pwm_value = (pwm_value + pwm_delta < PWM_MAX) ? pwm_value + pwm_delta : PWM_MAX;
-  else
-    pwm_value = ((pwm_value > pwm_delta) && (pwm_value - pwm_delta > PWM_MIN))
-      ? pwm_value - pwm_delta : PWM_MIN;
+  pwm_value = (need_more > 0)
+    ? ((pwm_value + pwm_delta < PWM_MAX) ? pwm_value + pwm_delta : PWM_MAX)
+    : (((pwm_value > pwm_delta) && (pwm_value - pwm_delta > PWM_MIN))
+       ? pwm_value - pwm_delta : PWM_MIN);
 
   /* debug_1 (DEBUG_FAN, 123, pwm); */
 
