@@ -13,9 +13,11 @@ namespace
 
   auto chip_name = "gpiochip0";
 
-  auto enable_offset = 24;      // fixme: check
+  auto enable_offset = 27;      // check
 
   auto confirm_offset = 12;     // check
+
+  auto reset_offset = 22;       // check
 
 } // anonymous
 
@@ -42,6 +44,14 @@ namespace led_d
     m_enable = gpiod_chip_get_line (m_chip, enable_offset);
     if (m_enable == NULL)
       throw std::runtime_error ("spi-open: Failed to open enable line");
+
+    // set reset to 1 first
+    m_reset = gpiod_chip_get_line (m_chip, reset_offset);
+    if (m_reset == NULL)
+      throw std::runtime_error ("spi-open: Failed to open reset line");
+
+    if (gpiod_line_request_output (m_reset, consumer (), 1) != 0)
+      throw std::runtime_error ("spi-open: Failed to set high level to RESET");
 
     auto confirm_line = gpiod_chip_get_line (m_chip, confirm_offset);
     if (confirm_line == NULL)
@@ -83,6 +93,11 @@ namespace led_d
     if (m_enable) {
       gpiod_line_release (m_enable);
       m_enable = nullptr;
+    }
+
+    if (m_reset) {
+      gpiod_line_release (m_reset);
+      m_reset = nullptr;
     }
 
     if (m_chip) {

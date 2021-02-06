@@ -28,6 +28,7 @@ namespace led_d
     gpiod_chip *m_chip;
 
     gpiod_line *m_enable;
+    gpiod_line *m_reset;
   };
   
 } // led_d
