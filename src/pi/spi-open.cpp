@@ -69,15 +69,16 @@ namespace led_d
         ("spi-open: Failed to configure enable for output");
 
     struct timespec spec;
-    spec.tv_sec = 1;            // wait no more than 1 second
+    spec.tv_sec = 5;            // wait no more than 1 second
     spec.tv_nsec = 0;
     auto code = gpiod_line_event_wait (confirm_line, &spec);
     if (code == -1)
       throw std::runtime_error
         ("spi-open: Failed to start waiting for confirmation");
     else if (code == 0)
-      throw std::runtime_error
-        ("spi-open: Timed out while waiting for confirmation");
+      // throw std::runtime_error
+      //   ("spi-open: Timed out while waiting for confirmation");
+      ;
     else if (code == 1)
       log_t::info ("spi-open: Spi channel is confirmed!");
     else

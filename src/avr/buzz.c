@@ -4,6 +4,7 @@
 
 #include <avr/io.h>
 
+#include "at.h"
 #include "buzz.h"
 #include "counter.h"
 
@@ -19,6 +20,8 @@
 #define BUZZ_VOLUME 127
 
 #define BUZZ_ZERO 0
+
+#define BUZZ_INIT_DURATION 5
 
 void buzz_start ()
 {
@@ -40,6 +43,12 @@ void buzz_stop ()
 
   /* configure buzz bit as input */
   BUZZ_DDR &= ~(1 << BUZZ_BIT);
+}
+
+void buzz_init ()
+{
+  buzz_start ();
+  at_schedule (AT_BUZZ, BUZZ_INIT_DURATION, &buzz_stop);
 }
 
 

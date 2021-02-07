@@ -257,6 +257,7 @@ static void write_callback (uint8_t status)
 
 static void write ()
 {
+  /* debug_led_on (); */
   uint8_t reg = REG_ENABLE;
   uint8_t reg_value = REG_VALUE_ENABLE;
 

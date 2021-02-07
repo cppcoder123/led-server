@@ -3,8 +3,10 @@
  */
 
 #include <avr/interrupt.h>
+#include <avr/io.h>
 
 #include "at.h"
+#include "buzz.h"
 #include "counter.h"
 #include "cron.h"
 #include "decode.h"
@@ -16,7 +18,19 @@
 #include "postpone.h"
 #include "rotor.h"
 #include "spi.h"
+#include "twi.h"
 #include "watch.h"
+
+static void decelerate ()
+{
+  /* enable clock change */
+  CLKPR |= (1 << CLKPCE);
+
+  /* set new clock prescaler => divide clock speed by 4*/
+  /* CLKPR |= (1 << CLKPS1); */
+  CLKPR |= (1 << CLKPS3);
+  /* CLKPR |= (1 << CLKPS0) | (1 << CLKPS0); */
+}
 
 static void init ()
 {
@@ -30,6 +44,8 @@ static void init ()
   cron_init ();
 
   at_init ();
+  /* check buzz */
+  buzz_init ();
   decode_init ();
   fan_init ();
   flush_init ();
@@ -39,6 +55,7 @@ static void init ()
   rotor_init ();
   /* ! init menu after rotor */
   menu_init ();
+  twi_init ();
   watch_init ();
 
   mode_set (MODE_CLOCK);
@@ -48,6 +65,9 @@ static void init ()
 
 int main ()
 {
+  /* reduce the speed, we don't need it */
+  decelerate ();
+  
   init ();
 
   /* debug */
@@ -61,6 +81,8 @@ int main ()
     fan_try ();
     postpone_try ();
     rotor_try ();
+    twi_try ();
+    watch_try ();
   }
 
   return 0;

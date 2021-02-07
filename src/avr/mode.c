@@ -9,7 +9,7 @@
 #include "spi.h"
 #include "watch.h"
 
-#define SLAVE_DELAY 0           /* 0.02 sec */
+#define SLAVE_DELAY 5           /* 0.02 sec */
 
 #define HB_DELAY 50     	/* 1 sec ? */
 #define HB_MISS 3		/* we can miss 3 heartbeats */
