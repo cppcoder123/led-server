@@ -1,5 +1,6 @@
 /*
- *
+ * Handle I2C communication
+ *   (Note: arrays are not implemented)
  */
 
 #ifndef TWI_H
@@ -9,14 +10,11 @@
 
 enum {                          /* read/write status */
       TWI_SUCCESS,
-      TWI_WRITE_START_ERROR,
-      TWI_WRITE_SLAVE_ERROR,
-      TWI_WRITE_REG_ERROR,
-      TWI_WRITE_VALUE_ERROR,
-      TWI_READ_START_ERROR,
-      TWI_READ_SLAVE_ERROR,
-      TWI_READ_VALUE_ERROR,
-      TWI_READ_DONE_ERROR,
+      TWI_START_ERROR,
+      TWI_SLAVE_ERROR,
+      TWI_REG_ERROR,
+      TWI_VALUE_ERROR,
+      TWI_STOP_ERROR,
 };
 
 enum {                          /* slave ids */
@@ -44,8 +42,8 @@ uint8_t twi_slave (uint8_t id,      /* TWI_ID_XXX */
  */
 uint8_t twi_write_byte (uint8_t id, uint8_t reg, uint8_t value);
 
-/* 
- * Read one byte from the register 
+/*
+ * Read one byte from the register
  */
 uint8_t twi_read_byte (uint8_t id, uint8_t reg);
 

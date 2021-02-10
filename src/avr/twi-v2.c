@@ -1,4 +1,6 @@
-
+/*
+ *
+ */
 #include <avr/interrupt.h>
 #include <stdint.h>
 #include <util/twi.h>
@@ -57,13 +59,11 @@ static void start (uint8_t new_mode)
 
   TWCR |= (1 << TWSTA);
   TWCR &= ~(1 << TWSTO);
-  
+
   /* TWCR |= (1 << TWEN) | (1 << TWIE) | (1 << TWEA); */
   TWCR |= (1 << TWEN) | (1 << TWIE);
 }
 
-#if 0
-/* FIXME: uncomment me !! */
 static void stop ()
 {
   TWCR |= (1 << TWSTO);
@@ -73,7 +73,6 @@ static void stop ()
 
   mode = MODE_IDLE;
 }
-#endif
 
 uint8_t twi_slave (uint8_t id, uint8_t address,
                    twi_write_callback write_cb, twi_read_callback read_cb)
@@ -114,14 +113,11 @@ uint8_t twi_read_byte (uint8_t id, uint8_t reg)
     ? 1 : 0;
 }
 
-#if 0
-/* FIXME: uncomment me !! */
 static uint8_t is_writing ()
 {
   return (m_action == ACTION_WRITE) ? 1 : 0;
 }
 
-/* FIXME: uncomment me !! */
 static uint8_t slave_address (uint8_t read)
 {
   uint8_t addr = (m_address[m_id] << 1) | ((read != 0) ? 1 : 0);
@@ -129,17 +125,15 @@ static uint8_t slave_address (uint8_t read)
   return addr;
 }
 
-/* FIXME: uncomment me !! */
 static uint8_t check_status_register (uint8_t mask)
 {
   return ((STATUS_MASK & mask) == mask) ? 1 : 0;
 }
 
-/* FIXME: uncomment me !! */
 ISR (TWI_vect)
 {
   /* TWCR |= (1 << TWEN) | (1 << TWIE); */
-  
+
   uint8_t mode_old = mode;
   if (mode < MODE_IDLE)
     ++mode;
@@ -152,7 +146,7 @@ ISR (TWI_vect)
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 70); */
     if (check_status_register (TW_START) == 0) {
       debug_1 (DEBUG_TWI, 3, STATUS_MASK);
-      status = TWI_WRITE_START_ERROR;
+      status = TWI_START_ERROR;
       stop ();
     } else {
       TWDR = slave_address (0);         /* slave addr, writing */
@@ -164,7 +158,7 @@ ISR (TWI_vect)
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 80); */
     if (check_status_register (TW_MT_SLA_ACK) == 0) {
       debug_1 (DEBUG_TWI, 4, STATUS_MASK);
-      status = TWI_WRITE_SLAVE_ERROR;
+      status = TWI_SLAVE_ERROR;
       stop ();
     } else {
       /* encode_msg_1 (MSG_ID_DEBUG_G, SERIAL_ID_TO_IGNORE, buf[0]); */
@@ -178,7 +172,7 @@ ISR (TWI_vect)
       /* encode_msg_2 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 90, 1); */
       debug_1 (DEBUG_TWI, 5, STATUS_MASK);
       /* either reg error or value error */
-      status = TWI_WRITE_REG_ERROR;
+      status = TWI_REG_ERROR;
       stop ();
     } else {
       if (is_writing () != 0) {
@@ -194,7 +188,7 @@ ISR (TWI_vect)
     /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, STATUS_MASK); */
     if (check_status_register (TW_MT_DATA_ACK) == 0) {
       /* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, 11); */
-      status = TWI_WRITE_VALUE_ERROR;
+      status = TWI_VALUE_ERROR;
       stop ();
     } /* else if (transfer_count < transfer_limit) { */
     /*   /\* encode_msg_1 (MSG_ID_DEBUG_O, SERIAL_ID_TO_IGNORE, 22); *\/ */
@@ -213,7 +207,7 @@ ISR (TWI_vect)
   case MODE_READ_START:
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 100); */
     if (check_status_register (TW_REP_START) == 0) {
-      status = TWI_READ_START_ERROR;
+      status = TWI_START_ERROR;
       stop ();
     } else {
       /* TWCR &= ~(1 << TWSTA); */
@@ -224,7 +218,7 @@ ISR (TWI_vect)
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 110); */
     if (check_status_register (TW_MR_SLA_ACK) == 0) {
       debug_1 (DEBUG_TWI, 6, STATUS_MASK);
-      status = TWI_READ_SLAVE_ERROR;
+      status = TWI_SLAVE_ERROR;
       stop ();
     } else {
        TWCR &= ~(1 << TWSTA);
@@ -236,26 +230,17 @@ ISR (TWI_vect)
     /* encode_msg_1 (MSG_ID_DEBUG_X, SERIAL_ID_TO_IGNORE, 120); */
     if (check_status_register (TW_MR_DATA_ACK) == 0) {
       debug_1 (DEBUG_TWI, 7, STATUS_MASK);
-      status = TWI_READ_VALUE_ERROR;
+      status = TWI_VALUE_ERROR;
       stop ();
     } else {
-      /* m_data[transfer_count] = TWDR; */
       m_data = TWDR;
-      /* if (transfer_count < transfer_limit) { */
-      /*   /\* encode_msg_1 (MSG_ID_DEBUG_Z, SERIAL_ID_TO_IGNORE, m_data[transfer_count]); *\/ */
-      /*   ++transfer_count; */
-      /*   --mode;                 /\* the same mode *\/ */
-      /*   TWCR |= (1 << TWEA); */
-      /* } else { */
-        TWCR &= ~(1 << TWEA);   /* send nack - do we need this ? */
-        /* stop (); */
-      /* } */
+      TWCR &= ~(1 << TWEA);   /* send nack - do we need this ? */
     }
     break;
   case MODE_READ_DONE:
     if (check_status_register (TW_MR_DATA_NACK) == 0) {
       debug_1 (DEBUG_TWI, 8, STATUS_MASK);
-      status = TWI_READ_DONE_ERROR;
+      status = TWI_STOP_ERROR;
     }
     stop ();
     break;
@@ -272,7 +257,6 @@ ISR (TWI_vect)
   /* interrupt is handled by writing 1 */
   TWCR |= (1 << TWINT);
 }
-#endif
 
 static void action_reset ()
 {
