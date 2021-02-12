@@ -14,6 +14,7 @@ enum {
   AT_BOUNCE_0,
   AT_BOUNCE_1,
   AT_BUZZ,
+  AT_FAN,
   AT_MENU,
   AT_SPI,
   AT_WATCH,                     /* stop alarm */

@@ -41,6 +41,7 @@ void buzz_stop ()
 
   /* set buzz bit to zero */
   BUZZ_PORT &= ~(1 << BUZZ_BIT);
+  BUZZ_DDR &= ~(1 << BUZZ_BIT);
 }
 
 void buzz_init ()

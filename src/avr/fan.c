@@ -8,6 +8,7 @@
 
 #include "unix/constant.h"
 
+#include "at.h"
 #include "counter.h"
 #include "cron.h"
 #include "debug.h"
@@ -28,7 +29,8 @@
 #define PWM_FREQUENCY 160
 #define PWM_MAX PWM_FREQUENCY
 #define PWM_MIN 2
-#define PWM_START ((PWM_MAX + PWM_MIN) / 2)
+/* #define PWM_START ((PWM_MAX + PWM_MIN) / 2)*/
+#define PWM_START PWM_MIN
 #define PWM_DELTA_FINE 1
 #define PWM_DELTA_ROUGH 5
 
@@ -56,15 +58,11 @@
 #define ON 1
 #define OFF 0
 
+#define FAN_INIT_DURATION 255
+
 static struct feedback_t feedback;
 static uint8_t started = 0;
 static uint8_t pwm_value = PWM_MAX;
-
-void fan_init ()
-{
-  /* fixme */
-  started = 0;
-}
 
 void fan_try ()
 {
@@ -195,4 +193,13 @@ void fan_stop ()
   power (OFF);
 
   started = 0;
+}
+
+void fan_init ()
+{
+  /* fixme */
+  started = 0;
+
+  fan_start ();
+  at_schedule (AT_FAN, FAN_INIT_DURATION, &fan_stop);
 }
