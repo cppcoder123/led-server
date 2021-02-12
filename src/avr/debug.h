@@ -18,4 +18,6 @@ void debug_4 (uint8_t domain, uint8_t key, uint8_t value_1,
 void debug_led_on ();
 void debug_led_off ();
 
+void debug_matrix (uint8_t pattern);
+
 #endif

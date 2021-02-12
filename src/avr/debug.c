@@ -6,9 +6,12 @@
 
 #include "unix/constant.h"
 
+#include "buf.h"
 #include "debug.h"
 #include "encode.h"
+#include "flush.h"
 #include "mode.h"
+#include "watch.h"
 
 #define LED_BIT PORTA6
 #define LED_PORT PORTA
@@ -60,4 +63,17 @@ void debug_led_off ()
 {
   LED_PORT &= ~(1 << LED_BIT);
   LED_DDR &= ~(1 << LED_BIT);
+}
+
+void debug_matrix (uint8_t pattern)
+{
+  watch_disable ();
+
+  struct buf_t image;
+  buf_init (&image);
+
+  for (uint8_t i = 0; i < BUF_SIZE; ++i)
+    buf_byte_fill (&image, pattern);
+
+  flush_stable_display (&image);
 }
