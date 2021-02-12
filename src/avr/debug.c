@@ -11,7 +11,6 @@
 #include "encode.h"
 #include "flush.h"
 #include "mode.h"
-#include "watch.h"
 
 #define LED_BIT PORTA6
 #define LED_PORT PORTA
@@ -67,8 +66,6 @@ void debug_led_off ()
 
 void debug_matrix (uint8_t pattern)
 {
-  watch_disable ();
-
   struct buf_t image;
   buf_init (&image);
 

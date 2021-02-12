@@ -14,6 +14,8 @@
 #include "twi.h"
 #include "watch.h"
 
+#define RTC_ADDRESS 0x68
+
 #define REG_CONTROL 0x0e
 #define REG_ENABLE REG_CONTROL
 
@@ -200,27 +202,6 @@ static void alarm_check (uint8_t hour, uint8_t minute)
   at_schedule (AT_WATCH, ALARM_DURATION, &buzz_stop);
 }
 
-void watch_init ()
-{
-  for (uint8_t i = 0; i < BUFFER_SIZE; ++i)
-    buffer[i] = 0;
-  event = EVENT_IDLE;
-  sub_event = SUB_EVENT_IDLE;
-  action = ACTION_IDLE;
-  buf_init (&event_queue);
-  init_interrupt ();            /* register for 1Hz signal */
-
-  buf_byte_fill (&event_queue, EVENT_DISABLE_32KHZ);
-
-  buffer[BUFFER_WRITE_HOUR] = rtc (INITIAL_TIME, RTC_TO, RTC_HOUR);
-  buffer[BUFFER_WRITE_MINUTE] = rtc (INITIAL_TIME, RTC_TO, RTC_MINUTE);
-  buffer[BUFFER_WRITE_SECOND] = rtc (INITIAL_TIME, RTC_TO, RTC_SECOND);
-  buf_byte_fill (&event_queue, EVENT_WRITE);
-
-  watch_alarm_set (0, 0);
-  watch_alarm_control (0);      /* disengage */
-}
-
 static void write_callback (uint8_t status)
 {
   if (status != TWI_SUCCESS)
@@ -282,7 +263,7 @@ static void write ()
     break;
   }
 
-  twi_write_byte (reg, reg_value, &write_callback);
+  twi_write_byte (TWI_ID_RTC, reg, reg_value);
 }
 
 static void render () /* send watch value into display */
@@ -368,7 +349,7 @@ static void read ()
     ? REG_MINUTE
     : REG_SECOND;
 
-  twi_read_byte (reg, &read_callback);
+  twi_read_byte (TWI_ID_RTC, reg);
 }
 
 void watch_try ()
@@ -433,6 +414,28 @@ void watch_get (uint8_t *hour, uint8_t *minute)
   *minute = 11;
 }
 
+void watch_init ()
+{
+  for (uint8_t i = 0; i < BUFFER_SIZE; ++i)
+    buffer[i] = 0;
+  event = EVENT_IDLE;
+  sub_event = SUB_EVENT_IDLE;
+  action = ACTION_IDLE;
+  buf_init (&event_queue);
+  init_interrupt ();            /* register for 1Hz signal */
+
+  buf_byte_fill (&event_queue, EVENT_DISABLE_32KHZ);
+
+  buffer[BUFFER_WRITE_HOUR] = rtc (INITIAL_TIME, RTC_TO, RTC_HOUR);
+  buffer[BUFFER_WRITE_MINUTE] = rtc (INITIAL_TIME, RTC_TO, RTC_MINUTE);
+  buffer[BUFFER_WRITE_SECOND] = rtc (INITIAL_TIME, RTC_TO, RTC_SECOND);
+  buf_byte_fill (&event_queue, EVENT_WRITE);
+
+  watch_alarm_set (0, 0);
+  watch_alarm_control (0);      /* disengage */
+
+  twi_slave (TWI_ID_RTC, RTC_ADDRESS, &write_callback, &read_callback);
+}
 
 ISR (INT2_vect)
 {
