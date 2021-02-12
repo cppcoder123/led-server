@@ -4,8 +4,6 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 
-#include "unix/constant.h"
-
 #include "at.h"
 #include "buf.h"
 #include "buzz.h"
@@ -225,10 +223,8 @@ void watch_init ()
 
 static void write_callback (uint8_t status)
 {
-  if (status != TWI_SUCCESS) {
-    debug_1 (DEBUG_WATCH, 0, status);
+  if (status != TWI_SUCCESS)
     return;
-  }
 
   action = ACTION_IDLE;
 
@@ -257,7 +253,6 @@ static void write_callback (uint8_t status)
 
 static void write ()
 {
-  /* debug_led_on (); */
   uint8_t reg = REG_ENABLE;
   uint8_t reg_value = REG_VALUE_ENABLE;
 
@@ -284,7 +279,6 @@ static void write ()
     }
     break;
   default:
-    debug_1 (DEBUG_WATCH, 1, event);
     break;
   }
 
@@ -317,10 +311,8 @@ static void render () /* send watch value into display */
 
 static void read_callback (uint8_t status, uint8_t value)
 {
-  if (status != TWI_SUCCESS) {
-    debug_1 (DEBUG_WATCH, 2, status);
+  if (status != TWI_SUCCESS)
     return;
-  }
 
   action = ACTION_IDLE;
 
@@ -346,7 +338,6 @@ static void read_callback (uint8_t status, uint8_t value)
         alarm_check (buffer[BUFFER_READ_HOUR], buffer[BUFFER_READ_MINUTE]);
       break;
     default:
-      debug_1 (DEBUG_WATCH, 3, sub_event);
       break;
     }
   }
@@ -399,8 +390,6 @@ void watch_try ()
                || (event == EVENT_DISABLE_32KHZ)
                || (event == EVENT_WRITE))
         write ();
-      else
-        debug_1 (DEBUG_WATCH, 4, event);
     }
     return;
   }
