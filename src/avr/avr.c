@@ -79,7 +79,7 @@ int main ()
     postpone_try ();
     rotor_try ();
     twi_try ();
-    watch_try ();
+    /* watch_try (); */
   }
 
   return 0;

@@ -33,8 +33,9 @@ enum {                          /* slave ids */
       TWI_ID_SIZE,              /* keep last ! */
 };
 
-typedef void (*twi_write_callback) (uint8_t /*status*/);
-typedef void (*twi_read_callback) (uint8_t /*status*/, uint8_t /*value*/);
+typedef void (*twi_write_callback) (uint8_t /*event*/, uint8_t /*status*/);
+typedef void (*twi_read_callback) (uint8_t /*event*/,
+                                   uint8_t /*status*/, uint8_t /*value*/);
 
 /*
  *
@@ -48,14 +49,17 @@ uint8_t twi_slave (uint8_t id,      /* TWI_ID_XXX */
                    twi_write_callback write_cb, twi_read_callback read_cb);
 
 /*
+ * 'event' is an abitrary value that will be returned in callback
+ *
+ *
  * Write one byte to the register
  */
-uint8_t twi_write_byte (uint8_t id, uint8_t reg, uint8_t value);
+uint8_t twi_write_byte (uint8_t id, uint8_t event, uint8_t reg, uint8_t value);
 
 /*
  * Read one byte from the register
  */
-uint8_t twi_read_byte (uint8_t id, uint8_t reg);
+uint8_t twi_read_byte (uint8_t id, uint8_t event, uint8_t reg);
 
 void twi_init ();
 

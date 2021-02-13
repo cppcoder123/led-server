@@ -18,7 +18,7 @@ uint8_t watch_alarm_state ();
 /* 1 - engage, 0 - disengage */
 void watch_alarm_control (uint8_t arg);
 
-void watch_try ();
+/* void watch_try (); */
 
 void watch_enable ();
 void watch_disable ();

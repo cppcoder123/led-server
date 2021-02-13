@@ -43,7 +43,8 @@ static volatile uint8_t mode = MODE_IDLE;
 
 static volatile uint8_t status = TWI_SUCCESS;
 
-static volatile uint8_t m_action = ACTION_IDLE;
+static uint8_t m_action = ACTION_IDLE;
+static uint8_t m_event = 0;
 static volatile uint8_t m_id = TWI_ID_SIZE;
 static volatile uint8_t m_reg = 0;
 static volatile uint8_t m_data = 0;
@@ -84,26 +85,28 @@ uint8_t twi_slave (uint8_t id, uint8_t address,
 }
 
 /* 1 is OK */
-uint8_t twi_write_byte (uint8_t id, uint8_t reg, uint8_t value)
+uint8_t twi_write_byte (uint8_t id, uint8_t event, uint8_t reg, uint8_t value)
 {
   if (id >= TWI_ID_SIZE)
     return 0;
 
   return ((buf_byte_fill (&queue, ACTION_WRITE) > 0)
           && (buf_byte_fill (&queue, id) > 0)
+          && (buf_byte_fill (&queue, event) > 0)
           && (buf_byte_fill (&queue, reg) > 0)
           && (buf_byte_fill (&queue, value) > 0))
     ? 1 : 0;
 }
 
 /* 1 is OK */
-uint8_t twi_read_byte (uint8_t id, uint8_t reg)
+uint8_t twi_read_byte (uint8_t id, uint8_t event, uint8_t reg)
 {
   if (id >= TWI_ID_SIZE)
     return 0;
 
   return ((buf_byte_fill (&queue, ACTION_READ) > 0)
           && (buf_byte_fill (&queue, id) > 0)
+          && (buf_byte_fill (&queue, event) > 0)
           && (buf_byte_fill (&queue, reg) > 0)
           && (buf_byte_fill (&queue, 0) > 0))
     ? 1 : 0;
@@ -232,6 +235,7 @@ static void action_reset ()
   status = TWI_SUCCESS;
   m_action = ACTION_IDLE;
   /* m_id = 0; either SIZE or 0 is dangerous :( */
+  m_event = 0;
   m_reg = 0;
   m_data = 0;
 }
@@ -264,14 +268,17 @@ static void action_set ()
 {
   uint8_t action = ACTION_IDLE;
   uint8_t id = TWI_ID_SIZE;
+  uint8_t event = 0;
   uint8_t reg = 0;
   uint8_t data = 0;
   if ((buf_byte_drain (&queue, &action) > 0)
       && (buf_byte_drain (&queue, &id) > 0)
+      && (buf_byte_drain (&queue, &event) > 0)
       && (buf_byte_drain (&queue, &reg) > 0)
       && (buf_byte_drain (&queue, &data) > 0)) {
     m_action = action;
     m_id = id;
+    m_event = event;
     m_reg = reg;
     m_data = data;
   }
@@ -286,9 +293,9 @@ void twi_try ()
   if (m_action != ACTION_IDLE) {
     /* we need to report result */
     if (m_action == ACTION_WRITE) {
-      m_write_cb[m_id] (status);
+      m_write_cb[m_id] (m_event, status);
     } else { /* READ */
-      m_read_cb[m_id] (status, m_data);
+      m_read_cb[m_id] (m_event, status, m_data);
     }
     action_reset ();
     return;
