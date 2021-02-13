@@ -56,6 +56,7 @@ static void init ()
   /* ! init menu after rotor */
   menu_init ();
   twi_init ();
+  /* ! watch after twi */
   watch_init ();
 
   mode_set (MODE_CLOCK);

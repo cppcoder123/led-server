@@ -14,8 +14,8 @@
 
 #define STATUS_MASK (TWSR & 0xF8)
 
-#define WRITE_ADDRESS 0
-#define READ_ADDRESS 1
+#define FOR_WRITE 0
+#define FOR_READ 1
 
 #define GO_AHEAD ((1 << TWINT) | (1 << TWEN) | (1 << TWIE))
 
@@ -109,10 +109,9 @@ uint8_t twi_read_byte (uint8_t id, uint8_t reg)
     ? 1 : 0;
 }
 
-static uint8_t slave_address (uint8_t read)
+static uint8_t slave_address (uint8_t action)
 {
-  uint8_t addr = (m_address[m_id] << 1) | ((read != 0) ? 1 : 0);
-  return addr;
+  return (m_address[m_id] << 1) | ((action == FOR_READ) ? 1 : 0);
 }
 
 static uint8_t check_status_register (uint8_t mask)
@@ -133,7 +132,7 @@ ISR (TWI_vect)
       status = TWI_WRITE_START_ERROR;
       stop ();
     } else {
-      TWDR = slave_address (WRITE_ADDRESS); /* slave addr, writing */
+      TWDR = slave_address (FOR_WRITE); /* slave addr, writing */
       TWCR = GO_AHEAD;
     }
     break;
@@ -170,7 +169,7 @@ ISR (TWI_vect)
       stop ();
     } else {
       /* we need to write register first */
-      TWDR = slave_address (WRITE_ADDRESS);
+      TWDR = slave_address (FOR_WRITE);
       TWCR = GO_AHEAD;
     }
     break;
@@ -198,7 +197,7 @@ ISR (TWI_vect)
       status = TWI_READ_RESTART_ERROR;
       stop ();
     } else {
-      TWDR = slave_address (READ_ADDRESS);
+      TWDR = slave_address (FOR_READ);
       TWCR = GO_AHEAD;
     }
     break;
@@ -235,11 +234,6 @@ static void action_reset ()
   /* m_id = 0; either SIZE or 0 is dangerous :( */
   m_reg = 0;
   m_data = 0;
-  /* for (uint8_t i = 0; i < TWI_ID_SIZE; ++i) { */
-  /*   m_address[i] = 0; */
-  /*   m_write_cb[i] = NULL; */
-  /*   m_read_cb[i] = NULL; */
-  /* } */
 }
 
 void twi_init ()
