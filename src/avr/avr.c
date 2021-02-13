@@ -9,6 +9,7 @@
 #include "buzz.h"
 #include "counter.h"
 #include "cron.h"
+/* #include "dac.h" */
 #include "decode.h"
 #include "fan.h"
 #include "flush.h"
@@ -56,6 +57,8 @@ static void init ()
   /* ! init menu after rotor */
   menu_init ();
   twi_init ();
+  /* ! dac after twi_init */
+  /* dac_init (); */
   /* ! watch after twi */
   watch_init ();
 
