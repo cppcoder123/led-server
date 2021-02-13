@@ -267,12 +267,15 @@ void watch_init ()
   for (uint8_t i = 0; i < BUFFER_SIZE; ++i)
     buffer[i] = 0;
 
-  watch_set (INITIAL_TIME, INITIAL_TIME, INITIAL_TIME);
-
   watch_alarm_set (0, 0);
   watch_alarm_control (0);      /* disengage */
 
   twi_slave (TWI_ID_RTC, RTC_ADDRESS, &write_callback, &read_callback);
+
+  twi_write_byte (TWI_ID_RTC, EVENT_DISABLE_32KHZ,
+                  REG_ENABLE_32KHZ, REG_VALUE_DISABLE_32KHZ);
+
+  watch_set (INITIAL_TIME, INITIAL_TIME, INITIAL_TIME);
 }
 
 ISR (INT2_vect)
