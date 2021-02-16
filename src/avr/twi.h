@@ -1,6 +1,5 @@
 /*
  * Handle I2C communication
- *   (Note: arrays are not implemented)
  */
 
 #ifndef TWI_H
@@ -29,13 +28,13 @@ enum {                          /* read/write status */
 
 enum {                          /* slave ids */
       TWI_ID_RTC,
-      /* TWI_ID_DAC, */
       TWI_ID_SIZE,              /* keep last ! */
 };
 
-typedef void (*twi_write_callback) (uint8_t /*event*/, uint8_t /*status*/);
-typedef void (*twi_read_callback) (uint8_t /*event*/,
-                                   uint8_t /*status*/, uint8_t /*value*/);
+typedef void (*twi_write_callback) (uint8_t /*tag*/, uint8_t /*status*/);
+typedef void (*twi_read_callback) (uint8_t /*tag*/, uint8_t /*status*/,
+                                   uint8_t /*len*/,
+                                   volatile uint8_t* /*value*/);
 
 /*
  *
@@ -43,23 +42,44 @@ typedef void (*twi_read_callback) (uint8_t /*event*/,
  *
  *
  * Define slave address & r/w callbacks
+ *
+ * twi_slave    -> no callbacks will be called, suitable for writing
+ *                 no status check is required
+ * twi_slave_r  -> read & no write status check
+ * twi_slave_rw -> read & write status check
+ *
  */
 uint8_t twi_slave (uint8_t id,      /* TWI_ID_XXX */
-                   uint8_t address, /* slave address */
-                   twi_write_callback write_cb, twi_read_callback read_cb);
+                   uint8_t address /* slave address */);
+uint8_t twi_slave_r (uint8_t id,      /* TWI_ID_XXX */
+                     uint8_t address, /* slave address */
+                     twi_read_callback read_cb);
+uint8_t twi_slave_rw (uint8_t id,      /* TWI_ID_XXX */
+                      uint8_t address, /* slave address */
+                      twi_write_callback write_cb, twi_read_callback read_cb);
 
 /*
- * 'event' is an abitrary value that will be returned in callback
+ * 'tag' is an abitrary value that will be returned in callback
  *
  *
  * Write one byte to the register
  */
-uint8_t twi_write_byte (uint8_t id, uint8_t event, uint8_t reg, uint8_t value);
+uint8_t twi_write_byte (uint8_t id, uint8_t tag, uint8_t reg, uint8_t value);
 
 /*
  * Read one byte from the register
  */
-uint8_t twi_read_byte (uint8_t id, uint8_t event, uint8_t reg);
+uint8_t twi_read_byte (uint8_t id, uint8_t tag, uint8_t reg);
+
+/*
+ * Write array starting with register
+ */
+uint8_t twi_write_array (uint8_t id, uint8_t tag, uint8_t len /*1-128*/,
+                         uint8_t reg, uint8_t *data);
+/*
+ * Read array starting with register
+ */
+uint8_t twi_read_array (uint8_t id, uint8_t tag, uint8_t len /*1-128*/, uint8_t reg);
 
 void twi_init ();
 

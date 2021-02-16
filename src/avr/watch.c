@@ -22,9 +22,9 @@
 #define REG_STATUS 0x0f
 #define REG_ENABLE_32KHZ REG_STATUS
 
-#define REG_HOUR 2
-#define REG_MINUTE 1
 #define REG_SECOND 0
+#define REG_MINUTE 1
+#define REG_HOUR 2
 
 /*
  *     Bit: 7     6     5    4   3   2     1    0
@@ -63,9 +63,9 @@
  * Buffer, only for read
  */
 enum {
-      BUFFER_HOUR,
-      BUFFER_MINUTE,
       BUFFER_SECOND,
+      BUFFER_MINUTE,
+      BUFFER_HOUR,
       BUFFER_SIZE               /* ! Keep it last */
 };
 
@@ -170,11 +170,6 @@ static void alarm_check (uint8_t hour, uint8_t minute)
   at_schedule (AT_WATCH, ALARM_DURATION, &buzz_stop);
 }
 
-static void write_callback (uint8_t event, uint8_t status)
-{
-  /* do we need to handle something here? */
-}
-
 static void render () /* send watch value into display */
 {
   struct buf_t image;
@@ -199,29 +194,33 @@ static void render () /* send watch value into display */
   flush_stable_display (&image);
 }
 
-static void read_callback (uint8_t event, uint8_t status, uint8_t value)
+static void read_callback (uint8_t tag, uint8_t status, uint8_t len,
+                           volatile uint8_t *value)
 {
-  if (status != TWI_SUCCESS)
+  if ((status != TWI_SUCCESS)
+      || (len < BUFFER_SIZE))
     return;
 
-  switch (event) {
-  case EVENT_HOUR:
-    buffer[BUFFER_HOUR] = value;
-    break;
-  case EVENT_MINUTE:
-    buffer[BUFFER_MINUTE] = value;
-    break;
-  case EVENT_SECOND:
-    buffer[BUFFER_SECOND] = value;
-    if ((value == 0)
-        && (watch_alarm_state ()))
-      alarm_check (buffer[BUFFER_HOUR], buffer[BUFFER_MINUTE]);
-    render ();
-    break;
-  default:
-    /* we are reading only time */
-    break;
-  }
+  for (uint8_t i = 0; i < BUFFER_SIZE; ++i)
+    buffer[i] = value[i];
+
+  if ((buffer[BUFFER_SECOND] == 0)
+      && (watch_alarm_state ()))
+    alarm_check (buffer[BUFFER_HOUR], buffer[BUFFER_MINUTE]);
+
+  render ();
+
+  /* switch (tag) { */
+  /* case EVENT_HOUR: */
+  /*   break; */
+  /* case EVENT_MINUTE: */
+  /*   break; */
+  /* case EVENT_SECOND: */
+  /*   break; */
+  /* default: */
+  /*   /\* we are reading only time *\/ */
+  /*   break; */
+  /* } */
 }
 
 void watch_enable ()
@@ -270,7 +269,7 @@ void watch_init ()
   watch_alarm_set (0, 0);
   watch_alarm_control (0);      /* disengage */
 
-  twi_slave (TWI_ID_RTC, RTC_ADDRESS, &write_callback, &read_callback);
+  twi_slave_r (TWI_ID_RTC, RTC_ADDRESS, &read_callback);
 
   twi_write_byte (TWI_ID_RTC, EVENT_DISABLE_32KHZ,
                   REG_ENABLE_32KHZ, REG_VALUE_DISABLE_32KHZ);
@@ -281,7 +280,8 @@ void watch_init ()
 ISR (INT2_vect)
 {
   /* ! second should be the last one */
-  twi_read_byte (TWI_ID_RTC, EVENT_HOUR, REG_HOUR);
-  twi_read_byte (TWI_ID_RTC, EVENT_MINUTE, REG_MINUTE);
-  twi_read_byte (TWI_ID_RTC, EVENT_SECOND, REG_SECOND);
+  /* twi_read_byte (TWI_ID_RTC, EVENT_HOUR, REG_HOUR); */
+  /* twi_read_byte (TWI_ID_RTC, EVENT_MINUTE, REG_MINUTE); */
+  /* twi_read_byte (TWI_ID_RTC, EVENT_SECOND, REG_SECOND); */
+  twi_read_array (TWI_ID_RTC, 0, BUFFER_SIZE, REG_SECOND);
 }
