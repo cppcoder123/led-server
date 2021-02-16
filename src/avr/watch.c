@@ -232,13 +232,6 @@ void watch_set (uint8_t hour, uint8_t minute, uint8_t second)
                   REG_SECOND, rtc (second, RTC_TO, RTC_SECOND));
 }
 
-void watch_get (uint8_t *hour, uint8_t *minute)
-{
-  /* fixme: remove this */
-  *hour = 11;
-  *minute = 11;
-}
-
 void watch_init ()
 {
   /*

@@ -53,6 +53,7 @@ void mode_set (uint8_t new_mode)
   current_mode = new_mode;
   if (current_mode == MODE_WATCH) {
     watch_enable ();
+    is_connected = 0;
   } else if (current_mode == MODE_RADIO) {
     cron_enable (CRON_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
     heartbeat_start (HB_DELAY, HB_MISS, &switch_to_watch, &spi_interrupt_start);

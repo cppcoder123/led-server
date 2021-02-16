@@ -19,7 +19,7 @@
 #include "watch.h"
 
 /* 5 seconds */
-#define MENU_DELAY 20
+#define MENU_DELAY 10
 
 /* left knob */
 #define PARAM_ROTOR ROTOR_1
@@ -27,11 +27,10 @@
 
 #define PARAM_FLAG_ALARM (1 << 0)
 #define PARAM_FLAG_BRIGNHTNESS (1 << 1)
-#define PARAM_FLAG_CLOCK (1 << 2)
-#define PARAM_FLAG_VOLUME (1 << 3)
-#define PARAM_FLAG_TRACK (1 << 4)
-#define PARAM_FLAG_VOLUME_SENT (1 << 5)
-#define PARAM_FLAG_TRACK_SENT (1 << 6)
+#define PARAM_FLAG_VOLUME (1 << 2)
+#define PARAM_FLAG_TRACK (1 << 3)
+#define PARAM_FLAG_VOLUME_SENT (1 << 4)
+#define PARAM_FLAG_TRACK_SENT (1 << 5)
 
 #define DELTA_MIN 0
 #define DELTA_MIDDLE 0x7F
@@ -46,8 +45,6 @@ enum {
   PARAM_ALARM_HOUR,
   PARAM_ALARM_MINUTE,
   PARAM_BRIGHTNESS,
-  PARAM_CLOCK_HOUR,
-  PARAM_CLOCK_MINUTE,
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
   PARAM_CANCEL,                 /* cancel param change */
@@ -66,7 +63,6 @@ enum {
 static const uint8_t change_param_array[] =
   {PARAM_CANCEL, PARAM_ALARM,
    PARAM_ALARM_HOUR, PARAM_ALARM_MINUTE,
-   PARAM_CLOCK_HOUR, PARAM_CLOCK_MINUTE,
    PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER};
 
 static uint8_t backup_mode = MODE_MENU;
@@ -145,10 +141,6 @@ static uint8_t value_is_valid ()
   case PARAM_TRACK:
     mask = PARAM_FLAG_TRACK;
     break;
-  case PARAM_CLOCK_HOUR:
-  case PARAM_CLOCK_MINUTE:
-    mask = PARAM_FLAG_CLOCK;
-    break;
   case PARAM_ALARM_HOUR:
   case PARAM_ALARM_MINUTE:
     mask = PARAM_FLAG_ALARM;
@@ -206,16 +198,6 @@ static void value_query ()
       param_flag |= PARAM_FLAG_BRIGNHTNESS;
     }
     break;
-  case PARAM_CLOCK_HOUR:
-  case PARAM_CLOCK_MINUTE:
-    {
-      uint8_t hour, min;
-      watch_get (&hour, &min);
-      param_value[PARAM_CLOCK_HOUR] = hour;
-      param_value[PARAM_CLOCK_MINUTE] = min;
-      param_flag |= PARAM_FLAG_CLOCK;
-    }
-    break;
   case PARAM_TRACK:
     if ((param_flag & PARAM_FLAG_TRACK_SENT) == 0) {
       send_message_1 (MSG_ID_PARAM_QUERY, PARAMETER_TRACK);
@@ -251,12 +233,6 @@ static void value_update ()
       break;
     case PARAM_BRIGHTNESS:
       flush_brightness_set (value_derive ());
-      break;
-    case PARAM_CLOCK_HOUR:
-      watch_set (value_derive (), param_value[PARAM_CLOCK_MINUTE], 0);
-      break;
-    case PARAM_CLOCK_MINUTE:
-      watch_set (param_value[PARAM_CLOCK_HOUR], value_derive (), 0);
       break;
     case PARAM_POWER:
       if (mode_is_connnected () == 0)
@@ -295,8 +271,6 @@ static uint8_t render_source_needed ()
 static uint8_t render_destination_needed ()
 {
   return ((param == PARAM_TRACK)
-          || (param == PARAM_CLOCK_HOUR)
-          || (param == PARAM_CLOCK_MINUTE)
           || (param == PARAM_ALARM_HOUR)
           || (param == PARAM_ALARM_MINUTE)
           || (param == PARAM_BRIGHTNESS)) ? 1 : 0;
@@ -345,20 +319,6 @@ static void render_label (struct buf_t *buf)
     {
       uint8_t tag[] =
         {FONT_B, FONT_r, FONT_i, FONT_g, FONT_h, FONT_MINUS, FONT_s};
-      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
-    }
-    break;
-  case PARAM_CLOCK_HOUR:
-    {
-      uint8_t tag[]
-        = {FONT_C, FONT_l, FONT_MINUS, FONT_H};
-      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
-    }
-    break;
-  case PARAM_CLOCK_MINUTE:
-    {
-      uint8_t tag[] =
-        {FONT_C, FONT_l, FONT_MINUS, FONT_M};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
@@ -606,13 +566,13 @@ void menu_init ()
   /* rotor_register (&start); */
   backup_mode = MODE_MENU;
 
-  param_min[PARAM_ALARM_HOUR] = param_min[PARAM_CLOCK_HOUR] = 0;
+  param_min[PARAM_ALARM_HOUR] = 0;
   param_min[PARAM_BRIGHTNESS] = 0;
-  param_min[PARAM_ALARM_MINUTE] = param_min[PARAM_CLOCK_MINUTE] = 0;
+  param_min[PARAM_ALARM_MINUTE] = 0;
 
-  param_max[PARAM_ALARM_HOUR] = param_max[PARAM_CLOCK_HOUR] = WATCH_HOUR_MAX;
+  param_max[PARAM_ALARM_HOUR] = WATCH_HOUR_MAX;
   param_max[PARAM_BRIGHTNESS] = 0xF;
-  param_max[PARAM_ALARM_MINUTE] = param_max[PARAM_CLOCK_MINUTE] = WATCH_MINUTE_MAX;
+  param_max[PARAM_ALARM_MINUTE] = WATCH_MINUTE_MAX;
 
   reset ();
 }
