@@ -6,6 +6,7 @@
 #include <util/twi.h>
 
 #include "buffer.h"
+#include "debug.h"
 #include "twi.h"
 
 #define MAX_LEN 128
@@ -52,9 +53,9 @@ static uint8_t m_action = ACTION_IDLE;
 static uint8_t m_tag = 0;
 static volatile uint8_t m_id = TWI_ID_SIZE;
 static volatile uint8_t m_reg = 0;
-static volatile uint8_t m_data[MAX_LEN];
 static volatile uint8_t m_index = 0;
 static volatile uint8_t m_max_index = 0;
+static volatile uint8_t m_data[MAX_LEN];
 
 static uint8_t m_address[TWI_ID_SIZE];
 static twi_write_callback m_write_cb[TWI_ID_SIZE];
@@ -335,6 +336,8 @@ static void action_reset ()
   m_reg = 0;
   for (uint8_t i = 0; i < MAX_LEN; ++i)
     m_data[i] = 0;
+  m_index = 0;
+  m_max_index = 0;
 }
 
 void twi_init ()
@@ -374,6 +377,7 @@ static void action_set ()
     return;
 
   m_action = action & ACTION_MASK;
+  m_index = 0;
   m_max_index = (action & LEN_MASK) >> 1;
   m_id = id;
   m_tag = tag;
