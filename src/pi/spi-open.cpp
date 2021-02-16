@@ -69,7 +69,7 @@ namespace led_d
         ("spi-open: Failed to configure enable for output");
 
     struct timespec spec;
-    spec.tv_sec = 5;            // wait no more than 1 second
+    spec.tv_sec = 1;            // wait no more than 1 second
     spec.tv_nsec = 0;
     auto code = gpiod_line_event_wait (confirm_line, &spec);
     if (code == -1)

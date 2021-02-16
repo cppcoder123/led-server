@@ -23,9 +23,9 @@ void mode_init ()
   is_connected = 0;
 }
 
-static void switch_to_clock ()
+static void switch_to_watch ()
 {
-  mode_set (MODE_CLOCK);
+  mode_set (MODE_WATCH);
 }
 
 uint8_t mode_get ()
@@ -44,17 +44,18 @@ void mode_set (uint8_t new_mode)
   watch_disable ();
   heartbeat_cancel ();
   cron_disable (CRON_ID_FLUSH);
-  is_connected = 0;
+  /* 'is_connected' should keep its value, otherwise param_query doesn't work */
+  /* is_connected = 0; */
 
   /*
    * Enable new functionality
    */
   current_mode = new_mode;
-  if (current_mode == MODE_CLOCK) {
+  if (current_mode == MODE_WATCH) {
     watch_enable ();
   } else if (current_mode == MODE_RADIO) {
     cron_enable (CRON_ID_FLUSH, SLAVE_DELAY, &flush_shift_display);
-    heartbeat_start (HB_DELAY, HB_MISS, &switch_to_clock, &spi_interrupt_start);
+    heartbeat_start (HB_DELAY, HB_MISS, &switch_to_watch, &spi_interrupt_start);
     is_connected = 1;
   }
 }

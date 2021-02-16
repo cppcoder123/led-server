@@ -19,7 +19,7 @@
 #include "watch.h"
 
 /* 5 seconds */
-#define MENU_DELAY 5
+#define MENU_DELAY 20
 
 /* left knob */
 #define PARAM_ROTOR ROTOR_1

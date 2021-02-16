@@ -10,7 +10,7 @@ void mode_init ();
 
 enum {
   MODE_MENU,
-  MODE_CLOCK,
+  MODE_WATCH,
   MODE_RADIO,
 };
 

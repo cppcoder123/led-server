@@ -52,14 +52,13 @@ static void init ()
   heartbeat_init ();
   mode_init ();
   postpone_init ();
-  rotor_init ();
-  /* ! init menu after rotor */
   menu_init ();
+  rotor_init ();
   twi_init ();
   /* ! watch after twi */
   watch_init ();
 
-  mode_set (MODE_CLOCK);
+  mode_set (MODE_WATCH);
 
   sei ();
 }

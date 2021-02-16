@@ -8,7 +8,7 @@
 #include "debug.h"
 #include "cron.h"
 
-#define AT_DELAY 50         /* ~ 1 sec */
+#define AT_DELAY 200         /* ~ 1 sec */
 
 static uint8_t current[AT_MAX];
 static uint8_t max[AT_MAX];
@@ -51,7 +51,7 @@ void at_schedule (uint8_t id, uint8_t delay, at_callback cb)
   if ((id >= AT_MAX) || (cb == 0))
     return;
 
-  debug_0 (DEBUG_BUZZ, 31);
+  /* debug_0 (DEBUG_BUZZ, 31); */
 
   /* uint8_t it_was_empty = empty (); */
 
@@ -62,9 +62,9 @@ void at_schedule (uint8_t id, uint8_t delay, at_callback cb)
   callback[id] = cb;
 
   /* if (it_was_empty != 0) */
-  debug_0 (DEBUG_BUZZ, 32);
+  /* debug_0 (DEBUG_BUZZ, 32); */
   cron_enable (CRON_ID_AT, AT_DELAY, &verify);
-  debug_0 (DEBUG_BUZZ, 33);
+  /* debug_0 (DEBUG_BUZZ, 33); */
 }
 
 void at_postpone (uint8_t id)
