@@ -36,7 +36,7 @@
 #define SPI_DDR DDRB
 
 /*
- * How long we should confirm?
+ * How long should we confirm?
  *    ~ 2 seconds
  */
 #define CONFIRM_HOLD_TIME 2

@@ -214,9 +214,9 @@ void watch_set (uint8_t hour, uint8_t minute, uint8_t second)
 {
   uint8_t epoch[BUFFER_SIZE];
 
-  epoch[BUFFER_SECOND] = second;
-  epoch[BUFFER_MINUTE] = minute;
-  epoch[BUFFER_HOUR] = hour;
+  epoch[BUFFER_SECOND] = rtc (second, RTC_TO, RTC_SECOND);
+  epoch[BUFFER_MINUTE] = rtc (minute, RTC_TO, RTC_MINUTE);;
+  epoch[BUFFER_HOUR] = rtc (hour, RTC_TO, RTC_HOUR);
 
   twi_write_array (TWI_ID_RTC, 0, BUFFER_SIZE, REG_SECOND, epoch);
 }
