@@ -7,7 +7,6 @@ TARGET = led-d
 ROOT = $(shell pwd)
 
 LIB_ROOT = $(ROOT)/..
-LIB_TCLAP = $(LIB_ROOT)/tclap
 
 COMMON_CFLAGS = -DVARRUN=\"/var/run/led\"
 COMMON_CPPFLAGS = -DASIO_STANDALONE -std=c++17 -Wall -pedantic -g
