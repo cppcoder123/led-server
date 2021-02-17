@@ -1,10 +1,10 @@
 //
 //
 //
-#ifndef UNIX_FORMAT_ENTRY_HPP
-#define UNIX_FORMAT_ENTRY_HPP
+#ifndef UTIL_FORMAT_ENTRY_HPP
+#define UTIL_FORMAT_ENTRY_HPP
 
-namespace unix
+namespace util
 {
   namespace format
   {
@@ -27,6 +27,6 @@ namespace unix
     };
     
   } // namespace format
-} // namespace unix
+} // namespace util
 
 #endif

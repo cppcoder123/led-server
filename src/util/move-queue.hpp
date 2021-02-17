@@ -2,13 +2,13 @@
  *
  *
  */
-#ifndef UNIX_MOVE_QUEUE_HPP
-#define UNIX_MOVE_QUEUE_HPP
+#ifndef UTIL_MOVE_QUEUE_HPP
+#define UTIL_MOVE_QUEUE_HPP
 
 #include <list>
 #include <optional>
 
-namespace unix
+namespace util
 {
 
   template <typename record_t>
@@ -71,6 +71,6 @@ namespace unix
     return m_holder.size ();
   }
 
-} // unix
+} // util
 
 #endif

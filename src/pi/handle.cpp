@@ -6,7 +6,7 @@
 #include <functional>
 #include <iterator>
 
-#include "unix/log.hpp"
+#include "util/log.hpp"
 
 #include "handle.hpp"
 #include "matrix.hpp"

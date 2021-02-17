@@ -13,7 +13,7 @@
 
 #include "asio.hpp"
 
-#include "unix/condition-queue.hpp"
+#include "util/condition-queue.hpp"
 
 #include "command-queue.hpp"
 #include "content.hpp"

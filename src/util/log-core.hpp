@@ -1,15 +1,15 @@
 //
 //
 //
-#ifndef UNIX_LOG_CORE_HPP
-#define UNIX_LOG_CORE_HPP
+#ifndef UTIL_LOG_CORE_HPP
+#define UTIL_LOG_CORE_HPP
 
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <string>
 
-namespace unix
+namespace util
 {
   namespace log
   {
@@ -108,6 +108,6 @@ namespace unix
     }
 
   } // namespace log
-} // namespace unix
+} // namespace util
 
 #endif

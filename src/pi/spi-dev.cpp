@@ -15,9 +15,10 @@
 #include <algorithm>
 #include <cstdint>
 
-#include "unix/constant.h"
-#include "unix/final-action.hpp"
-#include "unix/log.hpp"
+#include "const/constant.h"
+
+#include "util/final-action.hpp"
+#include "util/log.hpp"
 
 #include "mcu-msg.hpp"
 #include "spi-dev.hpp"
@@ -85,7 +86,7 @@ namespace led_d
 
     // the only purpose of this object is to free memory
     // allocated for the r/w buffers at the end of app execution
-    static auto remove_buf = unix::make_final_action
+    static auto remove_buf = util::make_final_action
       ([&] ()
        {
          delete [] write_buf;

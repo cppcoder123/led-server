@@ -2,8 +2,8 @@
 //
 //
 
-#include "unix/format.hpp"
-#include "unix/log.hpp"
+#include "util/format.hpp"
+#include "util/log.hpp"
 
 #include "content.hpp"
 #include "mcu-encode.hpp"
@@ -78,7 +78,7 @@ namespace led_d
 
   info_t content_t::out ()
   {
-    static const auto format = unix::format_t::encode_empty ();
+    static const auto format = util::format_t::encode_empty ();
 
     if (m_top_info.empty () == false)
       return info_t (m_top_info, format, 1);

@@ -10,7 +10,7 @@
 #include <mutex>
 #include <string>
 
-#include "unix/condition-queue.hpp"
+#include "util/condition-queue.hpp"
 
 #include "command.hpp"
 
@@ -18,7 +18,7 @@ namespace led_d
 {
   using command_ptr_t = std::shared_ptr<command_t>;
   using command_queue_t =
-    unix::condition_queue_t<command_ptr_t, std::mutex, std::condition_variable>;
+    util::condition_queue_t<command_ptr_t, std::mutex, std::condition_variable>;
   
 } // led_d
 

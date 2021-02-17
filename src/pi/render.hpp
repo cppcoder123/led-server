@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "unix/format.hpp"
+#include "util/format.hpp"
 
 #include "arg.hpp"
 #include "font.hpp"
@@ -28,7 +28,7 @@ namespace led_d
 
   private:
 
-    using format_t = unix::format_t;
+    using format_t = util::format_t;
     bool pixelize (matrix_t &matrix,
                    const std::string &text, const format_t &format) const;
 

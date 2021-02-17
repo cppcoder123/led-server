@@ -5,7 +5,7 @@
 #include <chrono>
 #include <functional>
 
-#include "unix/log.hpp"
+#include "util/log.hpp"
 
 #include "bash.hpp"
 #include "popen.hpp"

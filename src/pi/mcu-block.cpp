@@ -3,8 +3,9 @@
 //
 #include <cstdint>
 
-#include "unix/constant.h"
-#include "unix/log.hpp"
+#include "const/constant.h"
+
+#include "util/log.hpp"
 
 #include "mcu-block.hpp"
 

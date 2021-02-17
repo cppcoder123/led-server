@@ -10,7 +10,7 @@
 #include <mutex>
 #include <string>
 
-#include "unix/condition-queue.hpp"
+#include "util/condition-queue.hpp"
 
 #include "status.hpp"
 
@@ -19,7 +19,7 @@ namespace led_d
   using status_ptr_t = std::shared_ptr<status_t>;
 
   using status_queue_t =
-    unix::condition_queue_t<status_ptr_t,
+    util::condition_queue_t<status_ptr_t,
                             std::reference_wrapper<std::mutex>,
                             std::reference_wrapper<std::condition_variable>>;
 }

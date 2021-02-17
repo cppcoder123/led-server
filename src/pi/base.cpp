@@ -2,8 +2,8 @@
 //
 //
 
-#include "unix/final-action.hpp"
-#include "unix/log.hpp"
+#include "util/final-action.hpp"
+#include "util/log.hpp"
 
 #include "base.hpp"
 
@@ -27,7 +27,7 @@ namespace led_d
   bool base_t::start ()
   {
     try {
-      unix::final_action_t cleanup (std::bind (&base_t::stop, this));
+      util::final_action_t cleanup (std::bind (&base_t::stop, this));
 
       m_spi_open.start ();
       m_interrupt.start ();

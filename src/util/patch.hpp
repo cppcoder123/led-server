@@ -1,12 +1,12 @@
 //
 //
 //
-#ifndef UNIX_PATCH_HPP
-#define UNIX_PATCH_HPP
+#ifndef UTIL_PATCH_HPP
+#define UTIL_PATCH_HPP
 
 #include <sstream>
 
-namespace unix
+namespace util
 {
   namespace patch
   {
@@ -20,6 +20,6 @@ namespace unix
     }
     
   } // namespace patch
-} // namespace unix
+} // namespace util
 
 #endif

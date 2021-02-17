@@ -4,7 +4,7 @@
 
 #include <stdexcept>
 
-#include "unix/log.hpp"
+#include "util/log.hpp"
 
 #include "spi-open.hpp"
 

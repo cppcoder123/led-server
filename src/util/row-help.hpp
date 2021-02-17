@@ -1,10 +1,10 @@
 //
 //
 //
-#ifndef UNIX_ROW_HELP_HPP
-#define UNIX_ROW_HELP_HPP
+#ifndef UTIL_ROW_HELP_HPP
+#define UTIL_ROW_HELP_HPP
 
-namespace unix
+namespace util
 {
   namespace row
   {
@@ -26,6 +26,6 @@ namespace unix
     // };
 
   } // namespace row
-} // namespace unix
+} // namespace util
 
 #endif

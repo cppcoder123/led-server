@@ -21,7 +21,7 @@
 
 #include "log.hpp"
 
-namespace unix
+namespace util
 {
 
   class launch_t
@@ -170,6 +170,6 @@ namespace unix
     stop (true, true);
   }
 
-}// namespace unix
+}// namespace util
 
 #endif

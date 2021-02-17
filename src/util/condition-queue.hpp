@@ -1,8 +1,8 @@
 /*
  *
  */
-#ifndef UNIX_CONDITION_QUEUE_HPP
-#define UNIX_CONDITION_QUEUE_HPP
+#ifndef UTIL_CONDITION_QUEUE_HPP
+#define UTIL_CONDITION_QUEUE_HPP
 
 #include <condition_variable>
 #include <mutex>
@@ -10,7 +10,7 @@
 
 #include "move-queue.hpp"
 
-namespace unix
+namespace util
 {
 
   // mutex_t is either std::mutex or std::ref(std::mutex)
@@ -134,6 +134,6 @@ namespace unix
     m_condition.notify_one ();
   }
 
-} // unix
+} // util
 
 #endif

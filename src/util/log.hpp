@@ -1,11 +1,11 @@
 //
 //
 //
-#ifndef UNIX_LOG_HPP
-#define UNIX_LOG_HPP
+#ifndef UTIL_LOG_HPP
+#define UTIL_LOG_HPP
 
 #include "log-core.hpp"
 
-using log_t = unix::log::core_t;
+using log_t = util::log::core_t;
 
 #endif

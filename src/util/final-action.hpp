@@ -1,10 +1,10 @@
 //
 //
 //
-#ifndef UNIX_FINAL_ACTION_HPP
-#define UNIX_FINAL_ACTION_HPP
+#ifndef UTIL_FINAL_ACTION_HPP
+#define UTIL_FINAL_ACTION_HPP
 
-namespace unix
+namespace util
 {
   template <typename action_t>
   struct final_action_t
@@ -25,6 +25,6 @@ namespace unix
     return final_action_t<action_t>(action);
   }
   
-} // namespace unix
+} // namespace util
 
 #endif

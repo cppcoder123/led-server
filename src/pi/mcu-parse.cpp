@@ -2,8 +2,9 @@
  *
  */
 
-#include "unix/constant.h"
-#include "unix/log.hpp"
+#include "const/constant.h"
+
+#include "util/log.hpp"
 
 #include "mcu-decode.hpp"
 #include "mcu-parse.hpp"

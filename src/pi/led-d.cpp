@@ -8,8 +8,8 @@
 
 #include "asio.hpp"
 
-#include "unix/final-action.hpp"
-#include "unix/log.hpp"
+#include "util/final-action.hpp"
+#include "util/log.hpp"
 
 #include "arg.hpp"
 #include "base.hpp"
@@ -57,7 +57,7 @@ int main (int argc, char **argv)
       (std::bind (&signal_handler, std::ref (context),
                   std::placeholders::_1, std::placeholders::_2));
 
-    auto cleanup = unix::make_final_action
+    auto cleanup = util::make_final_action
       ([&base, &signal_set] () {base.stop (); signal_set.cancel ();});
 
     context.run ();

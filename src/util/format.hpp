@@ -1,8 +1,8 @@
 //
 //
 //
-#ifndef UNIX_FORMAT_HPP
-#define UNIX_FORMAT_HPP
+#ifndef UTIL_FORMAT_HPP
+#define UTIL_FORMAT_HPP
 
 #include <list>
 #include <memory>
@@ -11,7 +11,7 @@
 #include "refsymbol.hpp"
 #include "token.hpp"
 
-namespace unix
+namespace util
 {
 
   class format_t
@@ -140,6 +140,6 @@ namespace unix
     m_inversion.reset ();
   }
   
-} // namespace unix
+} // namespace util
 
 #endif

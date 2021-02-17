@@ -12,7 +12,7 @@
 
 #include "asio.hpp"
 
-#include "unix/condition-queue.hpp"
+#include "util/condition-queue.hpp"
 
 #include "spi-open.hpp"
 
@@ -23,7 +23,7 @@ namespace led_d
   {
   public:
 
-    using queue_t = unix::condition_queue_t
+    using queue_t = util::condition_queue_t
       <bool,
        std::reference_wrapper<std::mutex>,
        std::reference_wrapper<std::condition_variable>>;
