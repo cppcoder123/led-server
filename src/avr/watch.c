@@ -71,18 +71,6 @@ enum {
 
 static uint8_t buffer[BUFFER_SIZE];
 
-/*
- * Event: just tags for callbacks
- */
-enum {
-      TAG_ENABLE,
-      TAG_DISABLE,
-      TAG_DISABLE_32KHZ,
-      TAG_HOUR,
-      TAG_MINUTE,
-      TAG_SECOND,
-};
-
 enum {
       RTC_TO,                   /* convert time to ds3231 format */
       RTC_FROM,                 /* from */
@@ -214,22 +202,23 @@ static void read_callback (uint8_t tag, uint8_t status, uint8_t len,
 
 void watch_enable ()
 {
-  twi_write_byte (TWI_ID_RTC, TAG_ENABLE, REG_ENABLE, REG_VALUE_ENABLE);
+  twi_write_byte (TWI_ID_RTC, 0, REG_ENABLE, REG_VALUE_ENABLE);
 }
 
 void watch_disable ()
 {
-  twi_write_byte (TWI_ID_RTC, TAG_DISABLE, REG_ENABLE, REG_VALUE_DISABLE);
+  twi_write_byte (TWI_ID_RTC, 0, REG_ENABLE, REG_VALUE_DISABLE);
 }
 
 void watch_set (uint8_t hour, uint8_t minute, uint8_t second)
 {
-  twi_write_byte (TWI_ID_RTC, TAG_HOUR,
-                  REG_HOUR, rtc (hour, RTC_TO, RTC_HOUR));
-  twi_write_byte (TWI_ID_RTC, TAG_MINUTE,
-                  REG_MINUTE, rtc (minute, RTC_TO, RTC_MINUTE));
-  twi_write_byte (TWI_ID_RTC, TAG_SECOND,
-                  REG_SECOND, rtc (second, RTC_TO, RTC_SECOND));
+  uint8_t epoch[BUFFER_SIZE];
+
+  epoch[BUFFER_SECOND] = second;
+  epoch[BUFFER_MINUTE] = minute;
+  epoch[BUFFER_HOUR] = hour;
+
+  twi_write_array (TWI_ID_RTC, 0, BUFFER_SIZE, REG_SECOND, epoch);
 }
 
 void watch_init ()
@@ -253,8 +242,7 @@ void watch_init ()
 
   twi_slave_r (TWI_ID_RTC, RTC_ADDRESS, &read_callback);
 
-  twi_write_byte (TWI_ID_RTC, TAG_DISABLE_32KHZ,
-                  REG_ENABLE_32KHZ, REG_VALUE_DISABLE_32KHZ);
+  twi_write_byte (TWI_ID_RTC, 0, REG_ENABLE_32KHZ, REG_VALUE_DISABLE_32KHZ);
 
   watch_set (INITIAL_TIME, INITIAL_TIME, INITIAL_TIME);
 }
@@ -263,9 +251,6 @@ ISR (INT2_vect)
 {
   /* ! second should be the last one */
   /*
-   * It would be better to use TAG_HOUR/MINUTE/SECOND here
-   * but then we will need to convert tag to BUFFER_XXX in read_callback,
-   * so lets try to use this approach
    */
   twi_read_byte (TWI_ID_RTC, BUFFER_HOUR, REG_HOUR);
   twi_read_byte (TWI_ID_RTC, BUFFER_MINUTE, REG_MINUTE);
