@@ -5,7 +5,6 @@ TARGET = avr
 TARGET_HEX = $(TARGET).hex
 TARGET_ELF = $(TARGET).elf
 
-#  sync.o
 OBJECT_LIST = \
   at.o \
   avr.o \
@@ -19,8 +18,6 @@ OBJECT_LIST = \
   decode.o \
   display.o \
   encode.o \
-  fan.o \
-  feedback.o \
   flush.o \
   font.o \
   heartbeat.o \
