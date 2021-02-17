@@ -3,7 +3,7 @@
  */
 #include <util/atomic.h>
 
-#include "unix/constant.h"
+#include "const/constant.h"
 
 #include "flush.h"
 #include "postpone.h"

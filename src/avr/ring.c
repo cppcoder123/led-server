@@ -4,7 +4,7 @@
 
 #include <util/atomic.h>
 
-#include "unix/constant.h"
+#include "const/constant.h"
 
 #include "ring.h"
 
