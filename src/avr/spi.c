@@ -78,8 +78,8 @@ void spi_init ()
   misconfirm ();
 
   /* attach interrupt to shifter enable/disable signal */
-  EICRA |= (1 << ISC31);        /* falling edge should generate interrupt */
-  EIMSK |= (1 << INT3);         /* enable INT3 interrupt */
+  EICRA |= (1 << ISC31);  /* falling edge should generate interrupt */
+  EIMSK |= (1 << INT3);   /* enable INT3 interrupt */
 
   interrupt_stop ();            /* NB: application level "interrupt" */
 
@@ -112,6 +112,12 @@ uint8_t spi_read_size ()
   return buffer_size (&read_buf);
 }
 
+void spi_confirm ()
+{
+  SPI_DDR |= (1 << CONFIRM);
+  SPI_PORT |= (1 << CONFIRM);
+}
+
 uint8_t spi_write_array (uint8_t *array, uint8_t array_size)
 {
   uint8_t status = buffer_array_fill (&write_buf, array, array_size);
@@ -142,9 +148,11 @@ ISR (SPI_STC_vect)
 
 ISR (INT3_vect)
 {
+  /*this interrupt is not called, why? */
   buffer_clear (&read_buf);
   buffer_clear (&write_buf);
 
+  SPI_DDR |= (1 << CONFIRM);
   SPI_PORT |= (1 << CONFIRM);
 
   at_schedule (AT_SPI, CONFIRM_HOLD_TIME, &misconfirm);

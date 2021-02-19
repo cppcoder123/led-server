@@ -20,4 +20,6 @@ uint8_t spi_write_space ();
 
 uint8_t spi_read_size ();
 
+void spi_confirm ();
+
 #endif
