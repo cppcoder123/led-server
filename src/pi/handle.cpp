@@ -337,7 +337,7 @@ namespace led_d
         ("handle: Pi & Mcu protocol version mismatch, can't continue...");
 
     log_t::buffer_t buf;
-    buf << "handle: Protocol version is confirmed!";
+    buf << "handle: Protocol version is OK!";
     log_t::info (buf);
 
     m_to_mcu_queue->push
@@ -356,11 +356,11 @@ namespace led_d
     auto info = content_info.text + " ";
     auto &format = content_info.format;
 
-    {
-      log_t::buffer_t buf;
-      buf << "info: " << info;
-      log_t::info (buf);
-    }
+    // {
+    //   log_t::buffer_t buf;
+    //   buf << "info: " << info;
+    //   log_t::info (buf);
+    // }
     
     matrix_t matrix;
     if (m_render.pixelize (matrix, info, format) == false) {
@@ -392,12 +392,12 @@ namespace led_d
          (mcu_id::get (), MSG_ID_LED_ARRAY, tmp));
     }
 
-    {
-      // debug
-      log_t::buffer_t buf;
-      buf << "handle: To-mcu-queue size is: " << m_to_mcu_queue->size<true> ();
-      log_t::info (buf);
-    }
+    // {
+    //   // debug
+    //   log_t::buffer_t buf;
+    //   buf << "handle: To-mcu-queue size is: " << m_to_mcu_queue->size<true> ();
+    //   log_t::info (buf);
+    // }
   }
 
   bool handle_t::filter_system (const std::string &info)

@@ -63,7 +63,7 @@ namespace led_d
       log_t::info ("spi-open: Failed to configure confirm line as input");
     auto status = gpiod_line_get_value (confirm_line);
     if (status != 1)
-      log_t::info ("spi-open: Spi confirm line has a bad value!");
+      throw std::runtime_error ("spi-open: Spi confirm line has a bad value!");
     else
       log_t::info ("spi-open: Spi confirm line is OK!");
 
