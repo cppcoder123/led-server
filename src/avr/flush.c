@@ -25,7 +25,7 @@ static struct display_t display_left;
 
 static uint8_t drain;
 
-static volatile uint8_t brightness;
+static uint8_t brightness = FLUSH_BRIGHTNESS_MIN;
 
 void flush_init ()
 {
@@ -37,7 +37,7 @@ void flush_init ()
   display_init (&display_left, PORTC5, PORTC3, PORTC1);
   display_init (&display_right, PORTC4, PORTC2, PORTC0);
 
-  brightness = FLUSH_BRIGHTNESS_MAX;
+  brightness = FLUSH_BRIGHTNESS_MIN;
   flush_brightness_set (brightness);
 
   drain = 0;

@@ -67,7 +67,7 @@ int main ()
 {
   /* reduce the speed, we don't need it */
   decelerate ();
-  
+
   init ();
 
   while (1) {
