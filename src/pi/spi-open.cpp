@@ -10,15 +10,10 @@
 
 namespace
 {
-
   auto chip_name = "gpiochip0";
-
   auto enable_offset = 27;      // check
-
   auto confirm_offset = 12;     // check
-
   auto reset_offset = 22;       // check
-
 } // anonymous
 
 namespace led_d
@@ -53,17 +48,13 @@ namespace led_d
     if (gpiod_line_request_output (m_reset, consumer (), 1) != 0)
       throw std::runtime_error ("spi-open: Failed to set high level to RESET");
 
-
-    // if (gpiod_line_request_rising_edge_events (confirm_line, consumer ()) != 0)
-    //   throw std::runtime_error
-    //     ("spi-open: Failed to request rising event on confirm line");
-
-    // log_t::info ("spi-open: Waiting for spi channel confirmation ...");
-
     // configure enable for output and set to 1
     if (gpiod_line_request_output (m_enable, consumer (), 1) != 0)
       throw std::runtime_error
         ("spi-open: Failed to configure enable for output");
+    if (gpiod_line_set_value (m_enable, 1) != 0)
+      throw std::runtime_error
+        ("spi-open: Failed to set enable line to 1");
 
     auto confirm_line = gpiod_chip_get_line (m_chip, confirm_offset);
     if (confirm_line == NULL)
@@ -82,6 +73,8 @@ namespace led_d
   void spi_open_t::stop ()
   {
     if (m_enable) {
+      // set level shifter to Z state
+      // gpiod_line_set_value (m_enable, 0);
       gpiod_line_release (m_enable);
       m_enable = nullptr;
     }
