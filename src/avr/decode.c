@@ -74,9 +74,9 @@ static void decode ()
     watch_set (in_buf[0], in_buf[1], 0);
     encode_msg_2 (MSG_ID_STATUS, msg_serial, STATUS_SUCCESS, MSG_ID_SYNC_CLOCK);
     break;
-  case MSG_ID_VERSION:
-    status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL;
-    encode_msg_1 (MSG_ID_VERSION, msg_serial, status);
+  case MSG_ID_HANDSHAKE:
+    /* status = (in_buf[0] == PROTOCOL_VERSION) ? STATUS_SUCCESS : STATUS_FAIL; */
+    /* encode_msg_1 (MSG_ID_HANDSHAKE, msg_serial, status); */
     mode_set (MODE_RADIO);
     /* if (status == STATUS_SUCCESS) { */
     /*   flush_shift_enable (); */

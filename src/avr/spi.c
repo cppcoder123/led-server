@@ -9,6 +9,7 @@
 
 #include "at.h"
 #include "buffer.h"
+#include "encode.h"
 #include "spi.h"
 
 #define MISO PORTB3
@@ -154,6 +155,8 @@ ISR (INT3_vect)
 
   SPI_DDR |= (1 << CONFIRM);
   SPI_PORT |= (1 << CONFIRM);
+
+  encode_msg_1 (MSG_ID_VERSION, SERIAL_ID_TO_IGNORE, PROTOCOL_VERSION);
 
   at_schedule (AT_SPI, CONFIRM_HOLD_TIME, &misconfirm);
 }

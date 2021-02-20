@@ -25,7 +25,7 @@ namespace led_d
   private:
 
     // clear spi channel as last step in 'start'
-    void drain ();
+    // void drain ();
 
     int m_device;               // unix device
 

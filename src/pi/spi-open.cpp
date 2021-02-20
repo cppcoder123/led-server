@@ -74,7 +74,7 @@ namespace led_d
   {
     if (m_enable) {
       // set level shifter to Z state
-      // gpiod_line_set_value (m_enable, 0);
+      gpiod_line_set_value (m_enable, 0);
       gpiod_line_release (m_enable);
       m_enable = nullptr;
     }

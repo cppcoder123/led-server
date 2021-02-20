@@ -324,21 +324,24 @@ namespace led_d
 
   void handle_t::mcu_version (const mcu_msg_t &msg)
   {
-    uint8_t status = 0;
-    if (mcu::decode::split_payload (msg, status) == false) {
+    uint8_t version = 0;
+    if (mcu::decode::split_payload (msg, version) == false) {
       log_t::buffer_t buf;
       buf << "handle: Failed to decode \"version\" message";
       log_t::error (buf);
       return;
     }
 
-    if (status != STATUS_SUCCESS)
+    if (version != PROTOCOL_VERSION)
       throw std::runtime_error
         ("handle: Pi & Mcu protocol version mismatch, can't continue...");
 
     log_t::buffer_t buf;
     buf << "handle: Protocol version is confirmed!";
     log_t::info (buf);
+
+    m_to_mcu_queue->push
+      (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_HANDSHAKE));
 
     info_push ();
   }

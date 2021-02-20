@@ -68,7 +68,7 @@ namespace led_d
     if (ioctl (m_device, SPI_IOC_RD_MAX_SPEED_HZ, &ioc_speed) < 0)
       throw std::runtime_error ("Failed to set spi read speed");
 
-    drain ();
+    // drain ();
   }
 
   void spi_dev_t::stop ()
@@ -131,6 +131,7 @@ namespace led_d
       in.push_back (read_buf[i]);
   }
 
+#if 0
   void spi_dev_t::drain ()
   {
     static const std::size_t max_attempt = 1000;
@@ -168,5 +169,6 @@ namespace led_d
 
     throw std::runtime_error ("spi-dev: Failed to drain Spi channel");
   }
+#endif
 
 } // namespace led_d

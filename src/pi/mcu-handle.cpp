@@ -38,8 +38,8 @@ namespace led_d
     // open unix device
     m_device.start ();
 
-    m_to_queue.push
-      (mcu::encode::join (mcu_id::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
+    // m_to_queue.push
+    //   (mcu::encode::join (mcu_id::get (), MSG_ID_VERSION, PROTOCOL_VERSION));
 
     while (m_go.load () == true) {
       // 1. if we have an interrupt, try to handle it first
@@ -132,7 +132,7 @@ namespace led_d
       }
       m_block.relax (serial);
       if ((m_show_msg == true)
-          && (serial != SERIAL_ID_TO_IGNORE)) {
+          /*&& (serial != SERIAL_ID_TO_IGNORE)*/) {
         log_t::buffer_t buf;
         buf << "serial in: " << (int) serial;
         log_t::info (buf);

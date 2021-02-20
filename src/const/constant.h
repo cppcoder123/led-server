@@ -37,6 +37,9 @@ enum {
   /*should not be sent in either direction, initialization*/
   MSG_ID_EMPTY,
 
+  /* pi=>avr, confirm the version was ok */
+  MSG_ID_HANDSHAKE,
+
   /*pi=>avr: one column as payload,*/
   /*avr=>pi: STATUS*/
   /* MSG_ID_LED, */
