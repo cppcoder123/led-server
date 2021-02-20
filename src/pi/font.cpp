@@ -70,11 +70,11 @@ namespace led_d
     auto &symbol = find_symbol (to_uint16 (to_uint8 (s), m_first_byte));
     // m_first_byte = (symbol.empty () == true) ? to_uint8 (s) : 0;
     if (symbol.empty () == true) {
-      log_t::buffer_t buf;
-      buf << "font: Failed to map 2-byte symbol"
-          << std::hex << (unsigned) m_first_byte << " - "
-          << std::hex << (unsigned) to_uint8 (s);
-      log_t::error (buf);
+      // log_t::buffer_t buf;
+      // buf << "font: Failed to map 2-byte symbol"
+      //     << std::hex << (unsigned) m_first_byte << " - "
+      //     << std::hex << (unsigned) to_uint8 (s);
+      // log_t::error (buf);
       m_first_byte = 0;
       return find_symbol (to_uint16 ('*'));
     }
