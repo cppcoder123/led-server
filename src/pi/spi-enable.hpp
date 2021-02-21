@@ -1,20 +1,20 @@
 /*
  * Enable level converter (and spi)
  */
-#ifndef SPI_OPEN_HPP
-#define SPI_OPEN_HPP
+#ifndef SPI_ENABLE_HPP
+#define SPI_ENABLE_HPP
 
 #include <gpiod.h>
 
 namespace led_d
 {
 
-  class spi_open_t
+  class spi_enable_t
   {
   public:
 
-    spi_open_t ();
-    ~spi_open_t ();
+    spi_enable_t ();
+    ~spi_enable_t ();
 
     void start ();
     void stop ();
@@ -28,7 +28,7 @@ namespace led_d
     gpiod_chip *m_chip;
 
     gpiod_line *m_enable;
-    gpiod_line *m_reset;
+    // gpiod_line *m_reset;
   };
   
 } // led_d

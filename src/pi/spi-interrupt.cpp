@@ -17,9 +17,9 @@ namespace
 
 namespace led_d
 {
-  spi_interrupt_t::spi_interrupt_t (spi_open_t &spi_open,
+  spi_interrupt_t::spi_interrupt_t (spi_enable_t &spi_enable,
                         queue_t &interrupt_queue, asio::io_context &context)
-    : m_spi_open (spi_open),
+    : m_spi_enable (spi_enable),
       m_interrupt (NULL),
       m_queue (interrupt_queue),
       m_descriptor (context)
@@ -30,15 +30,17 @@ namespace led_d
   {
     stop ();
   }
-  
+
   void spi_interrupt_t::start ()
   {
-    m_interrupt = gpiod_chip_get_line (m_spi_open.chip (), interrupt_offset);
+    m_interrupt = gpiod_chip_get_line (m_spi_enable.chip (), interrupt_offset);
     if (m_interrupt == NULL)
       throw std::runtime_error ("spi_interrupt: Failed to open interrupt line");
 
-    if (gpiod_line_request_both_edges_events (m_interrupt, m_spi_open.consumer ()) != 0)
-      throw std::runtime_error ("spi_interrupt: Failed to request interrupt events");
+    if (gpiod_line_request_both_edges_events
+        (m_interrupt, m_spi_enable.consumer ()) != 0)
+      throw std::runtime_error
+        ("spi_interrupt: Failed to request interrupt events");
 
     auto fd = gpiod_line_event_get_fd (m_interrupt);
     if (fd < 0)

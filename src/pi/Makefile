@@ -14,7 +14,7 @@ COMMON_CPPFLAGS = -DASIO_STANDALONE -std=c++17 -Wall -pedantic -g
 #
 OBJECT_LIST = led-d.o arg.o base.o bash.o command.o content.o \
   font.o handle.o mcu-block.o mcu-handle.o mcu-parse.o \
-  popen.o render.o spi-dev.o spi-interrupt.o spi-open.o \
+  popen.o render.o spi-dev.o spi-enable.o spi-interrupt.o \
   status.o
 
 #

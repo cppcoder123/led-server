@@ -14,7 +14,7 @@
 
 #include "util/condition-queue.hpp"
 
-#include "spi-open.hpp"
+#include "spi-enable.hpp"
 
 namespace led_d
 {
@@ -31,7 +31,7 @@ namespace led_d
     // static constexpr char interrupt_rised = 'r';
     // static constexpr char interrupt_cleared = 'c';
 
-    spi_interrupt_t (spi_open_t &spi_open,
+    spi_interrupt_t (spi_enable_t &spi_enable,
                      queue_t &interrupt_queue, asio::io_context &context);
     ~spi_interrupt_t ();
 
@@ -43,7 +43,7 @@ namespace led_d
     // handle fd event
     void handle_event (const asio::error_code &errc);
 
-    spi_open_t &m_spi_open;
+    spi_enable_t &m_spi_enable;
 
     gpiod_line *m_interrupt;
 
