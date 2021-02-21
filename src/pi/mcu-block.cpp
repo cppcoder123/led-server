@@ -11,23 +11,22 @@
 
 namespace led_d
 {
+  mcu_block_t::mcu_block_t ()
+    : m_pending_id (SERIAL_ID_TO_IGNORE)
+  {
+  }
+
   bool mcu_block_t::is_engaged () const
   {
-    // std::lock_guard<std::mutex> guard (m_mutex);
-
-    return m_pending;
+    return !(m_pending_id == SERIAL_ID_TO_IGNORE);
   }
 
   void mcu_block_t::engage (uint8_t id)
   {
-    if (id == SERIAL_ID_TO_IGNORE) //{
-      // log_t::buffer_t buf;
-      // buf << "mcu-block: Found avr serial id";
-      // log_t::error (buf);
+    if (id == SERIAL_ID_TO_IGNORE)
       return;
-    // }
 
-    if ((m_pending == true)
+    if ((is_engaged () == true)
         && (m_pending_id != id)) {
       log_t::buffer_t buf;
       buf << "mcu-block: Trying to tighten with new id \"" << (int) id
@@ -36,14 +35,13 @@ namespace led_d
       return;
     }
 
-    m_pending = true;
     m_pending_id = id;
   }
 
   void mcu_block_t::relax (uint8_t id)
   {
     if ((id == SERIAL_ID_TO_IGNORE)
-        || (m_pending == false))
+        || (is_engaged () == false))
       // not an error
       return;
 
@@ -56,8 +54,7 @@ namespace led_d
       return;
     }
 
-    m_pending = false;
-    m_pending_id = 0;
+    m_pending_id = SERIAL_ID_TO_IGNORE;
   }
 } // namespace led_d
 
