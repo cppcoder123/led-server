@@ -19,7 +19,7 @@
 #include "watch.h"
 
 /* 5 seconds */
-#define MENU_DELAY 10
+#define MENU_DELAY 5
 
 /* left knob */
 #define PARAM_ROTOR ROTOR_1
@@ -50,7 +50,8 @@ enum {
   PARAM_CANCEL,                 /* cancel param change */
   PARAM_VALUE_MAX = PARAM_CANCEL,
   PARAM_ALARM,                  /* enable or disable */
-  PARAM_POWER,                  /* 'On' or 'Off' */
+  PARAM_POWER_OFF,              /* 'Off' */
+  PARAM_POWER_ON,               /* 'On' */
   PARAM_REBOOT,                 /* reboot pi */
 };
 
@@ -60,15 +61,17 @@ enum {
   WAY_COMPLEX,                  /* the rest of params */
 };
 
-static const uint8_t change_param_array[] =
-  {PARAM_CANCEL, PARAM_ALARM,
-   PARAM_ALARM_HOUR, PARAM_ALARM_MINUTE,
-   PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER};
+static const uint8_t change_param_array_radio[] =
+  {PARAM_CANCEL, PARAM_ALARM, PARAM_ALARM_HOUR,
+   PARAM_ALARM_MINUTE, PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER_OFF};
+static const uint8_t change_param_array_watch[] =
+  {PARAM_CANCEL, PARAM_ALARM, PARAM_ALARM_HOUR,
+   PARAM_ALARM_MINUTE, PARAM_BRIGHTNESS, PARAM_POWER_ON};
 
 static uint8_t backup_mode = MODE_MENU;
 static uint8_t chunk = CHUNK_MIDDLE;
 static uint8_t delta = DELTA_MIDDLE;
-static uint8_t param = PARAM_POWER;
+static uint8_t param = PARAM_POWER_ON;
 static uint8_t param_flag = 0;
 static uint8_t param_max[PARAM_VALUE_MAX];
 static uint8_t param_min[PARAM_VALUE_MAX];
@@ -234,11 +237,11 @@ static void value_update ()
     case PARAM_BRIGHTNESS:
       flush_brightness_set (value_derive ());
       break;
-    case PARAM_POWER:
-      if (mode_is_connnected () == 0)
-        boot_pi ();
-      else
-        send_message_0 (MSG_ID_POWEROFF);
+    case PARAM_POWER_OFF:
+      send_message_0 (MSG_ID_POWEROFF);
+      break;
+    case PARAM_POWER_ON:
+      boot_pi ();
       break;
     case PARAM_REBOOT:
       send_message_0 (MSG_ID_REBOOT);
@@ -328,14 +331,16 @@ static void render_label (struct buf_t *buf)
       render_word (buf, cancel, sizeof (cancel) / sizeof (uint8_t));
     }
     break;
-  case PARAM_POWER:
+  case PARAM_POWER_OFF:
+    {
+      uint8_t off[]  = {FONT_O, FONT_f, FONT_f};
+      render_word (buf, off, sizeof (off) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_POWER_ON:
     {
       uint8_t on[] = {FONT_O, FONT_n};
-      uint8_t off[]  = {FONT_O, FONT_f, FONT_f};
-      if (mode_is_connnected () != 0)
-        render_word (buf, off, sizeof (off) / sizeof (uint8_t));
-      else
-        render_word (buf, on, sizeof (on) / sizeof (uint8_t));
+      render_word (buf, on, sizeof (on) / sizeof (uint8_t));
     }
     break;
   case PARAM_REBOOT:
@@ -448,17 +453,21 @@ static void change_param_set (uint8_t new_param)
 
 static void change_param (uint8_t action)
 {
-  const uint8_t max_id = sizeof (change_param_array) / sizeof (uint8_t) - 1;
+  const uint8_t tmp = (mode_is_connnected () != 0)
+    ? sizeof (change_param_array_radio) : sizeof (change_param_array_watch);
+  const uint8_t max_id = (tmp / sizeof (uint8_t)) - 1;
+  const uint8_t *param_array = (mode_is_connnected () != 0)
+    ? change_param_array_radio : change_param_array_watch;
 
   uint8_t id = 0;
   for (id = 0; id <= max_id; ++id)
-    if (param == change_param_array[id])
+    if (param == param_array[id])
       break;
 
   uint8_t new_id = change (id, action, 0, max_id);
 
   if (new_id != id)
-    change_param_set (change_param_array[new_id]);
+    change_param_set (param_array[new_id]);
 }
 
 static void change_delta (uint8_t action)
@@ -509,7 +518,7 @@ static void stop ()
 static void reset ()
 {
   delta_reset ();
-  param = change_param_array[0];
+  param = change_param_array_radio[0];
   param_flag = 0;
   for (uint8_t i = 0; i < PARAM_VALUE_MAX; ++i)
     param_value[i] = 0;
