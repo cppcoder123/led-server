@@ -5,6 +5,9 @@
 #include "buf.h"
 #include "ring.h"
 
+/* keep this constant here to avoid name conflicts */
+#define BUF_SIZE 64
+
 void buf_init (struct buf_t *buf)
 {
   ring_init (BUF_SIZE, buf->data, &buf->start, &buf->finish);

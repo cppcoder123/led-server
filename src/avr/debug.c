@@ -69,7 +69,7 @@ void debug_matrix (uint8_t pattern)
   struct buf_t image;
   buf_init (&image);
 
-  for (uint8_t i = 0; i < BUF_SIZE; ++i)
+  for (uint8_t i = 0; i < 64 /*?*/; ++i)
     buf_byte_fill (&image, pattern);
 
   flush_stable_display (&image);

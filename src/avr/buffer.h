@@ -6,11 +6,9 @@
 
 #include <stdint.h>
 
-#define BUFFER_SIZE 255
-
 struct buffer_t
 {
-  uint8_t data[BUFFER_SIZE];
+  uint8_t data[255];
   uint8_t start;
   uint8_t finish;
 };

@@ -5,6 +5,9 @@
 #include "buffer.h"
 #include "ring.h"
 
+/* we do not want to expose this constant in .h file */
+#define BUFFER_SIZE 255
+
 void buffer_init (struct buffer_t *buffer)
 {
   ring_init (BUFFER_SIZE, buffer->data, &buffer->start, &buffer->finish);

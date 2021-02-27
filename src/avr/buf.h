@@ -6,11 +6,9 @@
 
 #include <stdint.h>
 
-#define BUF_SIZE 64
-
 struct buf_t
 {
-  uint8_t data[BUF_SIZE];
+  uint8_t data[64];
   uint8_t start;
   uint8_t finish;
 };
