@@ -186,7 +186,6 @@ static void value_query ()
     {
       uint8_t hour, min;
       watch_alarm_get (&hour, &min);
-      /* debug_2 (DEBUG_MENU, 99, hour, min); */
       param_value[PARAM_ALARM_HOUR] = hour;
       param_value[PARAM_ALARM_MINUTE] = min;
       param_flag |= PARAM_FLAG_ALARM;
@@ -196,7 +195,6 @@ static void value_query ()
     {
       uint8_t brightness = 0;
       flush_brightness_get (&brightness);
-      /* debug_1 (DEBUG_MENU, 22, brightness); */
       param_value[PARAM_BRIGHTNESS] = brightness;
       param_flag |= PARAM_FLAG_BRIGNHTNESS;
     }
@@ -245,7 +243,6 @@ static void value_update ()
       break;
     case PARAM_REBOOT:
       send_message_0 (MSG_ID_REBOOT);
-      /* debug_0 (DEBUG_MENU, 123); */
       break;
     case PARAM_TRACK:
       send_param_change (PARAMETER_TRACK);
@@ -367,50 +364,33 @@ static void render_label (struct buf_t *buf)
   }
 }
 
-/* static void debug_position (struct render_t *buf, uint8_t mark) */
-/* { */
-/*   debug_2 (DEBUG_MENU, 111, *(buf->position), mark); */
-/* } */
-
 static void render ()
 {
   struct buf_t buf;
   buf_init (&buf);
 
-  /* debug_position (&buf, 1); */
-
   buf_byte_fill (&buf, 0);
-  /* debug_position (&buf, 2); */
   
   render_label (&buf);
-  /* debug_position (&buf, 3); */
 
   uint8_t positive, abs = delta_abs (&positive);
 
   if (render_delta_needed () != 0) {
     render_symbol (&buf, FONT_COLON);
-    /* debug_position (&buf, 4); */
     render_delta (positive, abs, &buf);
-    /* debug_position (&buf, 5); */
   }
   if (value_is_valid () != 0) {
     if (render_source_needed () != 0) {
       render_symbol (&buf, FONT_COLON);
-      /* debug_position (&buf, 6); */
       render_number (&buf, param_value[param], RENDER_LEADING_DISABLE);
-      /* debug_position (&buf, 7); */
     } else if (render_destination_needed () != 0) {
       render_symbol (&buf, FONT_COLON);
-      /* debug_position (&buf, 8); */
       uint8_t dst = value_derive ();
       render_number (&buf, dst, RENDER_LEADING_DISABLE);
-      /* debug_position (&buf, 9); */
     }
   }
 
   render_tail (&buf);
-  /* debug_position (&buf, 10); */
-
   flush_stable_display (&buf);
 }
 
@@ -420,8 +400,6 @@ static void render ()
 
 static uint8_t change (uint8_t old, uint8_t action, uint8_t min, uint8_t max)
 {
-  /* debug_2 (DEBUG_MENU, 88, new, chunk); */
-
   if (++chunk < CHUNK_MAX)
     return old;
 
@@ -435,7 +413,6 @@ static uint8_t change (uint8_t old, uint8_t action, uint8_t min, uint8_t max)
     --new;
 
   chunk = CHUNK_MIN;
-  /* debug_2 (DEBUG_MENU, 99, new, chunk); */
 
   return new;
 }
@@ -528,10 +505,7 @@ static void reset ()
 /* start menu handling */
 void menu_handle_rotor (uint8_t id, uint8_t action)
 {
-  /* debug_2 (DEBUG_MENU, 111, id, action); */
-
   if (at_empty (AT_MENU) != 0) {
-    /* debug_0 (DEBUG_MENU, 11); */
     reset ();
     way = ((mode_is_connnected () != 0)
            && (action != ROTOR_PUSH)) ? WAY_SIMPLE : WAY_COMPLEX;
@@ -543,10 +517,7 @@ void menu_handle_rotor (uint8_t id, uint8_t action)
     return;
   }
 
-  /* debug_0 (DEBUG_MENU, 22); */
-
   if (action == ROTOR_PUSH) {
-    /* debug_0 (DEBUG_MENU, 33); */
     at_cancel (AT_MENU);
     stop ();
     return;
@@ -555,7 +526,6 @@ void menu_handle_rotor (uint8_t id, uint8_t action)
   at_postpone (AT_MENU);
 
   if (way == WAY_SIMPLE) {
-    /* debug_0 (DEBUG_MENU, 44); */
     uint8_t new_param = (id == VOLUME_ROTOR) ? PARAM_VOLUME : PARAM_TRACK;
     if (new_param != param)
       change_param_set (new_param);
@@ -572,7 +542,6 @@ void menu_handle_rotor (uint8_t id, uint8_t action)
 
 void menu_init ()
 {
-  /* rotor_register (&start); */
   backup_mode = MODE_MENU;
 
   param_min[PARAM_ALARM_HOUR] = 0;
