@@ -46,9 +46,11 @@ enum {
   FONT_m,
   FONT_n,
   FONT_o,
+  FONT_p,
   FONT_r,
   FONT_s,
   FONT_t,
+  FONT_y,
   FONT_AT,                    /* "21:10 @07:00" => 60 bytes, less than 64*/
   FONT_COLON,
   FONT_EQUAL,
@@ -56,6 +58,7 @@ enum {
   FONT_MORE,
   FONT_PLUS,
   FONT_SPACE,
+  FONT_STAR,
   FONT_MAX_SYMBOL,            /* Keep last */
 };
 

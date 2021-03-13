@@ -37,7 +37,7 @@ void flush_stable_display (struct buf_t *buf);
 /*
  * Brightness
  */
-void flush_brightness_get (uint8_t *brightness);
+uint8_t flush_brightness_get ();
 void flush_brightness_set (uint8_t brightness);
 
 #endif

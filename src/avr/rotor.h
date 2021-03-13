@@ -20,9 +20,4 @@ enum {
   ROTOR_PUSH,
 };
 
-/* register callback to handle rotor events */
-/* typedef void (*rotor_callback) (uint8_t id, uint8_t action); */
-
-/* void rotor_register (rotor_callback cb); */
-
 #endif
