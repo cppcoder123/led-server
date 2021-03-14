@@ -66,8 +66,8 @@ enum {
 };
 static uint8_t param_max[VALUE_MAX];
 static uint8_t param_min[VALUE_MAX];
-static uint8_t param_old_value[VALUE_MAX];
-static uint8_t param_new_value[VALUE_MAX];
+static uint8_t param_old[VALUE_MAX];
+static uint8_t param_new[VALUE_MAX];
 
 static const uint8_t param_array_radio[] =
   {PARAM_TRACK, PARAM_VOLUME, PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER_OFF};
@@ -179,10 +179,10 @@ static void reset ()
   param_max[VALUE_VOLUME] = param_min[VALUE_VOLUME] = 0;
   param_max[VALUE_BRIGHTNESS] = 0xF;
   param_min[VALUE_BRIGHTNESS] = 0;
-  param_old_value[VALUE_TRACK] = param_new_value[VALUE_TRACK] = 0;
-  param_old_value[VALUE_VOLUME] = param_new_value[VALUE_VOLUME] = 0;
-  param_old_value[VALUE_BRIGHTNESS]
-    = param_new_value[VALUE_BRIGHTNESS] = flush_brightness_get ();
+  param_old[VALUE_TRACK] = param_new[VALUE_TRACK] = 0;
+  param_old[VALUE_VOLUME] = param_new[VALUE_VOLUME] = 0;
+  param_old[VALUE_BRIGHTNESS]
+    = param_new[VALUE_BRIGHTNESS] = flush_brightness_get ();
 
   param_flag = FLAG_MASK_BRIGNHTNESS;
 
@@ -236,22 +236,21 @@ static void stop ()
     break;
   case PARAM_TRACK:
     if ((param_flag & FLAG_MASK_TRACK) == FLAG_MASK_TRACK) {
-      get_sign_abs (param_old_value[VALUE_TRACK],
-                    param_new_value[VALUE_TRACK], &sign, &abs);
+      get_sign_abs (param_old[VALUE_TRACK],
+                    param_new[VALUE_TRACK], &sign, &abs);
       send_message_3 (PARAMETER_TRACK, sign, abs);
     }
     break;
   case PARAM_VOLUME:
     if ((param_flag & FLAG_MASK_VOLUME) == FLAG_MASK_VOLUME) {
-      get_sign_abs (param_old_value[VALUE_VOLUME],
-                    param_new_value[VALUE_VOLUME], &sign, &abs);
+      get_sign_abs (param_old[VALUE_VOLUME],
+                    param_new[VALUE_VOLUME], &sign, &abs);
       send_message_3 (PARAMETER_VOLUME, sign, abs);
     }
     break;
   case PARAM_BRIGHTNESS:
-    if (param_old_value[VALUE_BRIGHTNESS]
-        != param_new_value[VALUE_BRIGHTNESS]) {
-      flush_brightness_set (param_new_value[VALUE_BRIGHTNESS]);
+    if (param_old[VALUE_BRIGHTNESS] != param_new[VALUE_BRIGHTNESS]) {
+      flush_brightness_set (param_new[VALUE_BRIGHTNESS]);
     }
     break;
   case PARAM_POWER_OFF:
@@ -316,11 +315,11 @@ static void select_value (uint8_t action)
     :  VALUE_BRIGHTNESS;
 
   if (action == ROTOR_CLOCKWISE) {
-    if (param_new_value[id] < param_max[id])
-      ++(param_new_value[id]);
+    if (param_new[id] < param_max[id])
+      ++(param_new[id]);
   } else {                      /* counter-clockwise */
-    if (param_new_value[id] > param_min[id])
-      --(param_new_value[id]);
+    if (param_new[id] > param_min[id])
+      --(param_new[id]);
   }
 }
 
@@ -408,7 +407,7 @@ static void render_source (struct buf_t *buf, uint8_t param)
     const uint8_t id = (param == PARAM_BRIGHTNESS) ? VALUE_BRIGHTNESS
       : (param == PARAM_TRACK) ? VALUE_TRACK
       : VALUE_VOLUME;
-    render_number (buf, param_old_value[id], RENDER_LEADING_DISABLE);
+    render_number (buf, param_old[id], RENDER_LEADING_DISABLE);
   }
 }
 
@@ -432,7 +431,7 @@ static void render_destination (struct buf_t *buf, uint8_t param)
   const uint8_t id = (param == PARAM_TRACK) ? VALUE_TRACK
     : (param == PARAM_VOLUME) ? VALUE_VOLUME
     : VALUE_BRIGHTNESS;
-  render_number (buf, param_new_value[id], RENDER_LEADING_DISABLE);
+  render_number (buf, param_new[id], RENDER_LEADING_DISABLE);
 }
 
 static void render ()
@@ -516,8 +515,8 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
     return 0;
 
   uint8_t id = (parameter == PARAMETER_VOLUME) ? VALUE_VOLUME : VALUE_TRACK;
-  param_old_value[id] = value;
-  param_new_value[id] = value;
+  param_old[id] = value;
+  param_new[id] = value;
   param_min[id] = min;
   param_max[id] = max;
 
