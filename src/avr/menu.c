@@ -26,11 +26,16 @@
 #define PARAM_ROTOR ROTOR_1
 #define APPLY_ROTOR PARAM_ROTOR
 
-#define PARAM_FLAG_BRIGNHTNESS (1 << 1)
-#define PARAM_FLAG_VOLUME (1 << 2)
-#define PARAM_FLAG_TRACK (1 << 3)
-#define PARAM_FLAG_VOLUME_SENT (1 << 4)
-#define PARAM_FLAG_TRACK_SENT (1 << 5)
+#define FLAG_BRIGNHTNESS (1 << 0)
+#define FLAG_BRIGNHTNESS_SENT (1 << 1)
+#define FLAG_TRACK (1 << 2)
+#define FLAG_TRACK_SENT (1 << 3)
+#define FLAG_VOLUME (1 << 4)
+#define FLAG_VOLUME_SENT (1 << 5)
+
+#define FLAG_MASK_BRIGNHTNESS (FLAG_BRIGNHTNESS | FLAG_BRIGNHTNESS_SENT)
+#define FLAG_MASK_TRACK (FLAG_TRACK | FLAG_TRACK_SENT)
+#define FLAG_MASK_VOLUME (FLAG_VOLUME | FLAG_VOLUME_SENT)
 
 enum {
   PARAM_APPLY,
@@ -107,11 +112,8 @@ static void query_source ()
       && (param != PARAM_VOLUME))
     return;
 
-  /* debug_1 (DEBUG_MENU, 21, param); */
-
   const uint8_t mask = (param == PARAM_TRACK)
-    ? (PARAM_FLAG_TRACK | PARAM_FLAG_TRACK_SENT)
-    : (PARAM_FLAG_VOLUME | PARAM_FLAG_VOLUME_SENT);
+    ? FLAG_MASK_TRACK : FLAG_MASK_VOLUME;
 
   if ((param_flag & mask) != 0)
     return;
@@ -119,12 +121,10 @@ static void query_source ()
   const uint8_t msg_body = (param == PARAM_TRACK)
     ? PARAMETER_TRACK : PARAMETER_VOLUME;
 
-  /* debug_1 (DEBUG_MENU, 19, msg_body); */
-
   send_message_1 (MSG_ID_PARAM_QUERY, msg_body);
 
   param_flag |= (param == PARAM_TRACK)
-    ? PARAM_FLAG_TRACK_SENT : PARAM_FLAG_VOLUME_SENT;
+    ? FLAG_TRACK_SENT : FLAG_VOLUME_SENT;
 }
 
 static void state_set (uint8_t new_state)
@@ -174,17 +174,17 @@ static void state_set (uint8_t new_state)
 static void reset ()
 {
   backup_mode = MODE_MENU;
-  param_flag = 0;
 
   param_max[VALUE_TRACK] = param_min[VALUE_TRACK] = 0;
   param_max[VALUE_VOLUME] = param_min[VALUE_VOLUME] = 0;
   param_max[VALUE_BRIGHTNESS] = 0xF;
   param_min[VALUE_BRIGHTNESS] = 0;
-
   param_old_value[VALUE_TRACK] = param_new_value[VALUE_TRACK] = 0;
   param_old_value[VALUE_VOLUME] = param_new_value[VALUE_VOLUME] = 0;
   param_old_value[VALUE_BRIGHTNESS]
     = param_new_value[VALUE_BRIGHTNESS] = flush_brightness_get ();
+
+  param_flag = FLAG_MASK_BRIGNHTNESS;
 
   param_array = param_array_apply;
   param_id = PARAM_ID_CANCEL;
@@ -221,16 +221,12 @@ static void get_sign_abs (uint8_t src, uint8_t dst, uint8_t *sign, uint8_t *abs)
 /* exit from menu handling */
 static void stop ()
 {
-  /* debug_2 (DEBUG_MENU, 15, state, param_id); */
-
   const uint8_t param =
     ((state == STATE_IDLE)
      || ((state == STATE_APPLY)
          && (param_id == PARAM_ID_CANCEL))) ? PARAM_CANCEL
     : (state == STATE_APPLY) ? secondary_param
     : param_array[param_id];
-
-  /* debug_1 (DEBUG_MENU, 17, param); */
 
   uint8_t abs = 0;
   uint8_t sign = PARAMETER_POSITIVE;
@@ -239,17 +235,14 @@ static void stop ()
   case PARAM_CANCEL:
     break;
   case PARAM_TRACK:
-    if ((param_flag & PARAM_FLAG_TRACK_SENT)
-        && (param_flag & PARAM_FLAG_TRACK)) {
+    if ((param_flag & FLAG_MASK_TRACK) == FLAG_MASK_TRACK) {
       get_sign_abs (param_old_value[VALUE_TRACK],
                     param_new_value[VALUE_TRACK], &sign, &abs);
-      /* debug_2 (DEBUG_MENU, 11, sign, abs); */
       send_message_3 (PARAMETER_TRACK, sign, abs);
     }
     break;
   case PARAM_VOLUME:
-    if ((param_flag & PARAM_FLAG_VOLUME_SENT)
-        && (param_flag & PARAM_FLAG_VOLUME)) {
+    if ((param_flag & FLAG_MASK_VOLUME) == FLAG_MASK_VOLUME) {
       get_sign_abs (param_old_value[VALUE_VOLUME],
                     param_new_value[VALUE_VOLUME], &sign, &abs);
       send_message_3 (PARAMETER_VOLUME, sign, abs);
@@ -310,16 +303,17 @@ static void select_value (uint8_t action)
       && (param != PARAM_BRIGHTNESS))
     return;
 
-  /* range is invalid */
-  if (((param == PARAM_TRACK)
-       && ((param_flag & PARAM_FLAG_TRACK) == 0))
-      || ((param == PARAM_VOLUME)
-          && ((param_flag & PARAM_FLAG_VOLUME) == 0)))
+  const uint8_t mask = (param == PARAM_TRACK) ? FLAG_TRACK
+    : (param == PARAM_VOLUME) ? FLAG_VOLUME
+    : FLAG_BRIGNHTNESS;
+
+  if ((param_flag & mask) == 0)
+    /* range is invalid */
     return;
 
-  const uint8_t id = (param == PARAM_BRIGHTNESS) ? VALUE_BRIGHTNESS
-    : (param == PARAM_TRACK) ? VALUE_TRACK : VALUE_VOLUME;
-
+  const uint8_t id = (param == PARAM_TRACK) ? VALUE_TRACK
+    : (param == PARAM_VOLUME) ? VALUE_VOLUME
+    :  VALUE_BRIGHTNESS;
 
   if (action == ROTOR_CLOCKWISE) {
     if (param_new_value[id] < param_max[id])
@@ -404,20 +398,18 @@ static void render_source (struct buf_t *buf, uint8_t param)
 
   render_symbol (buf, FONT_COLON);
 
-  if (param == PARAM_BRIGHTNESS) {
-    render_number (buf,
-                   param_old_value[VALUE_BRIGHTNESS], RENDER_LEADING_DISABLE);
-    return;
-  }
+  const uint8_t mask = (param == PARAM_BRIGHTNESS) ? FLAG_BRIGNHTNESS
+    : (param == PARAM_TRACK) ? FLAG_TRACK
+    : FLAG_VOLUME;
 
-  if (((param == PARAM_TRACK) && ((param_flag & PARAM_FLAG_TRACK) == 0))
-      || ((param == PARAM_VOLUME) && ((param_flag & PARAM_FLAG_VOLUME) == 0))) {
+  if ((param_flag & mask) == 0)
     render_symbol (buf, FONT_STAR);
-    return;
+  else {
+    const uint8_t id = (param == PARAM_BRIGHTNESS) ? VALUE_BRIGHTNESS
+      : (param == PARAM_TRACK) ? VALUE_TRACK
+      : VALUE_VOLUME;
+    render_number (buf, param_old_value[id], RENDER_LEADING_DISABLE);
   }
-
-  const uint8_t id = (param == PARAM_TRACK) ? VALUE_TRACK : VALUE_VOLUME;
-  render_number (buf, param_old_value[id], RENDER_LEADING_DISABLE);
 }
 
 static void render_destination (struct buf_t *buf, uint8_t param)
@@ -427,8 +419,12 @@ static void render_destination (struct buf_t *buf, uint8_t param)
       && (param != PARAM_BRIGHTNESS))
     return;
 
-  if (((param == PARAM_TRACK) && ((param_flag & PARAM_FLAG_TRACK) == 0))
-      || ((param == PARAM_VOLUME) && ((param_flag & PARAM_FLAG_VOLUME) == 0)))
+  const uint8_t mask = (param == PARAM_BRIGHTNESS) ? FLAG_BRIGNHTNESS
+    : (param == PARAM_TRACK) ? FLAG_TRACK
+    : FLAG_VOLUME;
+
+  if ((param_flag & mask) == 0)
+    /* destination is invalid */
     return;
 
   render_symbol (buf, FONT_COLON);
@@ -526,7 +522,7 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
   param_max[id] = max;
 
   param_flag |= (parameter == PARAMETER_VOLUME)
-    ? PARAM_FLAG_VOLUME : PARAM_FLAG_TRACK;
+    ? FLAG_VOLUME : FLAG_TRACK;
 
   schedule (SELECT_DELAY);
 
