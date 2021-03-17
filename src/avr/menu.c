@@ -77,8 +77,8 @@ static uint8_t param_old[VALUE_MAX];
 static uint8_t param_new[VALUE_MAX];
 
 static const uint8_t param_array_radio[] =
-  {PARAM_TRACK, PARAM_VOLUME, PARAM_PLAYLIST, PARAM_NEXT,
-   PARAM_PREVIOUS, PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER_OFF};
+  {PARAM_TRACK, PARAM_VOLUME, PARAM_NEXT,
+   PARAM_PREVIOUS, PARAM_PLAYLIST, PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER_OFF};
 static const uint8_t param_array_watch[] = {PARAM_BRIGHTNESS, PARAM_POWER_ON};
 static const uint8_t param_array_apply[] = {PARAM_CANCEL, PARAM_APPLY};
 /* ! see param_array_apply */
