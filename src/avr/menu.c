@@ -396,8 +396,7 @@ static void render_label (struct buf_t *buf, uint8_t param)
     break;
   case PARAM_PREVIOUS:
     {
-      uint8_t tag[] = {FONT_P, FONT_r, FONT_e,
-                       FONT_v, FONT_i, FONT_o, FONT_u, FONT_s};
+      uint8_t tag[] = {FONT_P, FONT_r, FONT_e, FONT_v};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
