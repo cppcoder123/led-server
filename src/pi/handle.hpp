@@ -5,6 +5,7 @@
 #define HANDLE_HPP
 
 #include <atomic>
+#include <cstdint>
 #include <condition_variable>
 #include <list>
 #include <memory>
@@ -19,7 +20,6 @@
 #include "content.hpp"
 #include "mcu-queue.hpp"
 #include "mcu-msg.hpp"
-// #include "menu.hpp"
 #include "render.hpp"
 #include "status.hpp"
 #include "status-queue.hpp"
@@ -84,6 +84,8 @@ namespace led_d
     render_t m_render;
 
     std::atomic_bool m_go;
+
+    uint8_t m_playlist_id;
   };
 
 } // namespace led_d

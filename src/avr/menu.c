@@ -28,21 +28,27 @@
 
 #define FLAG_BRIGNHTNESS (1 << 0)
 #define FLAG_BRIGNHTNESS_SENT (1 << 1)
-#define FLAG_TRACK (1 << 2)
-#define FLAG_TRACK_SENT (1 << 3)
-#define FLAG_VOLUME (1 << 4)
-#define FLAG_VOLUME_SENT (1 << 5)
+#define FLAG_PLAYLIST (1 << 2)
+#define FLAG_PLAYLIST_SENT (1 << 3)
+#define FLAG_TRACK (1 << 4)
+#define FLAG_TRACK_SENT (1 << 5)
+#define FLAG_VOLUME (1 << 6)
+#define FLAG_VOLUME_SENT (1 << 7)
 
 #define FLAG_MASK_BRIGNHTNESS (FLAG_BRIGNHTNESS | FLAG_BRIGNHTNESS_SENT)
+#define FLAG_MASK_PLAYLIST (FLAG_PLAYLIST | FLAG_PLAYLIST_SENT)
 #define FLAG_MASK_TRACK (FLAG_TRACK | FLAG_TRACK_SENT)
 #define FLAG_MASK_VOLUME (FLAG_VOLUME | FLAG_VOLUME_SENT)
 
 enum {
   PARAM_APPLY,
-  PARAM_BRIGHTNESS,
+  PARAM_BRIGHTNESS,             /* select brightness */
   PARAM_CANCEL,                 /* cancel param change */
+  PARAM_NEXT,                   /* next track */
+  PARAM_PLAYLIST,               /* select/load playlist */
   PARAM_POWER_OFF,              /* 'Off' */
   PARAM_POWER_ON,               /* 'On' */
+  PARAM_PREVIOUS,               /* previous track */
   PARAM_REBOOT,                 /* reboot pi */
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
@@ -60,6 +66,7 @@ static uint8_t param_flag = 0;
 
 enum {
   VALUE_BRIGHTNESS,
+  VALUE_PLAYLIST,
   VALUE_TRACK,
   VALUE_VOLUME,
   VALUE_MAX,                    /* keep last! */
@@ -70,7 +77,8 @@ static uint8_t param_old[VALUE_MAX];
 static uint8_t param_new[VALUE_MAX];
 
 static const uint8_t param_array_radio[] =
-  {PARAM_TRACK, PARAM_VOLUME, PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER_OFF};
+  {PARAM_TRACK, PARAM_VOLUME, PARAM_PLAYLIST, PARAM_NEXT,
+   PARAM_PREVIOUS, PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER_OFF};
 static const uint8_t param_array_watch[] = {PARAM_BRIGHTNESS, PARAM_POWER_ON};
 static const uint8_t param_array_apply[] = {PARAM_CANCEL, PARAM_APPLY};
 /* ! see param_array_apply */
@@ -109,22 +117,23 @@ static void query_source ()
 {
   const uint8_t param = param_array[param_id];
   if ((param != PARAM_TRACK)
-      && (param != PARAM_VOLUME))
+      && (param != PARAM_VOLUME)
+      && (param != PARAM_PLAYLIST))
     return;
 
-  const uint8_t mask = (param == PARAM_TRACK)
-    ? FLAG_MASK_TRACK : FLAG_MASK_VOLUME;
+  const uint8_t mask = (param == PARAM_TRACK) ? FLAG_MASK_TRACK
+    : (param == PARAM_VOLUME) ? FLAG_MASK_VOLUME : FLAG_MASK_PLAYLIST;
 
   if ((param_flag & mask) != 0)
     return;
 
-  const uint8_t msg_body = (param == PARAM_TRACK)
-    ? PARAMETER_TRACK : PARAMETER_VOLUME;
+  const uint8_t msg_body = (param == PARAM_TRACK) ? PARAMETER_TRACK
+    : (param == PARAM_VOLUME) ? PARAMETER_VOLUME : PARAMETER_PLAYLIST;
 
   send_message_1 (MSG_ID_PARAM_QUERY, msg_body);
 
-  param_flag |= (param == PARAM_TRACK)
-    ? FLAG_TRACK_SENT : FLAG_VOLUME_SENT;
+  param_flag |= (param == PARAM_TRACK) ? FLAG_TRACK_SENT
+    : (param == PARAM_VOLUME) ? FLAG_VOLUME_SENT : FLAG_PLAYLIST_SENT;
 }
 
 static void state_set (uint8_t new_state)
@@ -175,14 +184,17 @@ static void reset ()
 {
   backup_mode = MODE_MENU;
 
-  param_max[VALUE_TRACK] = param_min[VALUE_TRACK] = 0;
-  param_max[VALUE_VOLUME] = param_min[VALUE_VOLUME] = 0;
   param_max[VALUE_BRIGHTNESS] = 0xF;
   param_min[VALUE_BRIGHTNESS] = 0;
-  param_old[VALUE_TRACK] = param_new[VALUE_TRACK] = 0;
-  param_old[VALUE_VOLUME] = param_new[VALUE_VOLUME] = 0;
+  param_max[VALUE_PLAYLIST] = param_min[VALUE_PLAYLIST] = 0;
+  param_max[VALUE_TRACK] = param_min[VALUE_TRACK] = 0;
+  param_max[VALUE_VOLUME] = param_min[VALUE_VOLUME] = 0;
+
   param_old[VALUE_BRIGHTNESS]
     = param_new[VALUE_BRIGHTNESS] = flush_brightness_get ();
+  param_old[VALUE_PLAYLIST] = param_new[VALUE_PLAYLIST] = 0;
+  param_old[VALUE_TRACK] = param_new[VALUE_TRACK] = 0;
+  param_old[VALUE_VOLUME] = param_new[VALUE_VOLUME] = 0;
 
   param_flag = FLAG_MASK_BRIGNHTNESS;
 
@@ -232,7 +244,26 @@ static void stop ()
   uint8_t sign = PARAMETER_POSITIVE;
 
   switch (param) {
+  case PARAM_BRIGHTNESS:
+    if (param_old[VALUE_BRIGHTNESS] != param_new[VALUE_BRIGHTNESS]) {
+      flush_brightness_set (param_new[VALUE_BRIGHTNESS]);
+    }
+    break;
   case PARAM_CANCEL:
+    break;
+  case PARAM_NEXT:
+    send_message_3 (PARAMETER_TRACK, PARAMETER_POSITIVE, 1);
+    break;
+  case PARAM_PLAYLIST:
+    if ((param_flag & FLAG_MASK_PLAYLIST) == FLAG_MASK_PLAYLIST) {
+      get_sign_abs (param_old[VALUE_PLAYLIST],
+                    param_new[VALUE_PLAYLIST], &sign, &abs);
+      if (abs != 0)
+        send_message_3 (PARAMETER_PLAYLIST, sign, abs);
+    }
+    break;
+  case PARAM_PREVIOUS:
+    send_message_3 (PARAMETER_TRACK, PARAMETER_NEGATIVE, 1);
     break;
   case PARAM_TRACK:
     if ((param_flag & FLAG_MASK_TRACK) == FLAG_MASK_TRACK) {
@@ -246,11 +277,6 @@ static void stop ()
       get_sign_abs (param_old[VALUE_VOLUME],
                     param_new[VALUE_VOLUME], &sign, &abs);
       send_message_3 (PARAMETER_VOLUME, sign, abs);
-    }
-    break;
-  case PARAM_BRIGHTNESS:
-    if (param_old[VALUE_BRIGHTNESS] != param_new[VALUE_BRIGHTNESS]) {
-      flush_brightness_set (param_new[VALUE_BRIGHTNESS]);
     }
     break;
   case PARAM_POWER_OFF:
@@ -299,12 +325,14 @@ static void select_value (uint8_t action)
 
   if ((param != PARAM_TRACK)
       && (param != PARAM_VOLUME)
-      && (param != PARAM_BRIGHTNESS))
+      && (param != PARAM_BRIGHTNESS)
+      && (param != PARAM_PLAYLIST))
     return;
 
   const uint8_t mask = (param == PARAM_TRACK) ? FLAG_TRACK
     : (param == PARAM_VOLUME) ? FLAG_VOLUME
-    : FLAG_BRIGNHTNESS;
+    : (param == PARAM_BRIGHTNESS) ? FLAG_BRIGNHTNESS
+    : FLAG_PLAYLIST;
 
   if ((param_flag & mask) == 0)
     /* range is invalid */
@@ -312,7 +340,8 @@ static void select_value (uint8_t action)
 
   const uint8_t id = (param == PARAM_TRACK) ? VALUE_TRACK
     : (param == PARAM_VOLUME) ? VALUE_VOLUME
-    :  VALUE_BRIGHTNESS;
+    : (param == PARAM_BRIGHTNESS) ? VALUE_BRIGHTNESS
+    : VALUE_PLAYLIST;
 
   if (action == ROTOR_CLOCKWISE) {
     if (param_new[id] < param_max[id])
@@ -350,6 +379,25 @@ static void render_label (struct buf_t *buf, uint8_t param)
   case PARAM_VOLUME:
     {
       uint8_t tag[] = {FONT_V, FONT_o};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_NEXT:
+    {
+      uint8_t tag[] = {FONT_N, FONT_e, FONT_x, FONT_t};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_PLAYLIST:
+    {
+      uint8_t tag[] = {FONT_P, FONT_L};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_PREVIOUS:
+    {
+      uint8_t tag[] = {FONT_P, FONT_r, FONT_e,
+                       FONT_v, FONT_i, FONT_o, FONT_u, FONT_s};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
@@ -392,21 +440,24 @@ static void render_source (struct buf_t *buf, uint8_t param)
 {
   if ((param != PARAM_TRACK)
       && (param != PARAM_VOLUME)
-      && (param != PARAM_BRIGHTNESS))
+      && (param != PARAM_BRIGHTNESS)
+      && (param != PARAM_PLAYLIST))
     return;
 
   render_symbol (buf, FONT_COLON);
 
   const uint8_t mask = (param == PARAM_BRIGHTNESS) ? FLAG_BRIGNHTNESS
     : (param == PARAM_TRACK) ? FLAG_TRACK
-    : FLAG_VOLUME;
+    : (param == PARAM_VOLUME) ? FLAG_VOLUME
+    : FLAG_PLAYLIST;
 
   if ((param_flag & mask) == 0)
     render_symbol (buf, FONT_STAR);
   else {
     const uint8_t id = (param == PARAM_BRIGHTNESS) ? VALUE_BRIGHTNESS
       : (param == PARAM_TRACK) ? VALUE_TRACK
-      : VALUE_VOLUME;
+      : (param == PARAM_VOLUME) ? VALUE_VOLUME
+      : VALUE_PLAYLIST;
     render_number (buf, param_old[id], RENDER_LEADING_DISABLE);
   }
 }
@@ -415,12 +466,14 @@ static void render_destination (struct buf_t *buf, uint8_t param)
 {
   if ((param != PARAM_TRACK)
       && (param != PARAM_VOLUME)
-      && (param != PARAM_BRIGHTNESS))
+      && (param != PARAM_BRIGHTNESS)
+      && (param != PARAM_PLAYLIST))
     return;
 
   const uint8_t mask = (param == PARAM_BRIGHTNESS) ? FLAG_BRIGNHTNESS
     : (param == PARAM_TRACK) ? FLAG_TRACK
-    : FLAG_VOLUME;
+    : (param == PARAM_VOLUME) ? FLAG_VOLUME
+    : FLAG_PLAYLIST;
 
   if ((param_flag & mask) == 0)
     /* destination is invalid */
@@ -430,7 +483,8 @@ static void render_destination (struct buf_t *buf, uint8_t param)
 
   const uint8_t id = (param == PARAM_TRACK) ? VALUE_TRACK
     : (param == PARAM_VOLUME) ? VALUE_VOLUME
-    : VALUE_BRIGHTNESS;
+    : (param == PARAM_BRIGHTNESS) ? VALUE_BRIGHTNESS
+    : VALUE_PLAYLIST;
   render_number (buf, param_new[id], RENDER_LEADING_DISABLE);
 }
 
@@ -511,21 +565,27 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
                               uint8_t min, uint8_t max)
 {
   if ((parameter != PARAMETER_VOLUME)
-      && (parameter != PARAMETER_TRACK))
+      && (parameter != PARAMETER_TRACK)
+      && (parameter != PARAMETER_PLAYLIST))
     return 0;
 
-  uint8_t id = (parameter == PARAMETER_VOLUME) ? VALUE_VOLUME : VALUE_TRACK;
+  uint8_t id = (parameter == PARAMETER_VOLUME) ? VALUE_VOLUME
+    : (parameter == PARAMETER_TRACK) ? VALUE_TRACK
+    : VALUE_PLAYLIST;
   param_old[id] = value;
   param_new[id] = value;
   param_min[id] = min;
   param_max[id] = max;
 
-  param_flag |= (parameter == PARAMETER_VOLUME)
-    ? FLAG_VOLUME : FLAG_TRACK;
+  param_flag |= (parameter == PARAMETER_VOLUME) ? FLAG_VOLUME
+    : (parameter == PARAMETER_TRACK) ? FLAG_TRACK
+    : FLAG_PLAYLIST;
 
   schedule (SELECT_DELAY);
 
-  id = (parameter == PARAMETER_VOLUME) ? PARAM_VOLUME : PARAM_TRACK;
+  id = (parameter == PARAMETER_VOLUME) ? PARAM_VOLUME
+    : (parameter == PARAMETER_TRACK) ? PARAM_TRACK
+    : PARAM_PLAYLIST;
 
   if (id == param_array[param_id])
     render ();

@@ -15,6 +15,15 @@ case $1 in
     play)
         mpc play
         ;;
+    playlist-get)
+        max=`mpc lsplaylists | wc -l`
+        if [ "$max" -eq 0 ]
+        then
+            echo "0-0-0"
+        else
+            echo "0-1-"$max
+        fi
+        ;;
     track-get)
         get_track_id
         get_track_num
@@ -28,6 +37,19 @@ case $1 in
     volume-get)
         VOLUME_LEVEL=`mpc volume | sed 's/volume://; s/%//'`
         echo $VOLUME_LEVEL"-"0"-"100
+        ;;
+    playlist-set)
+        if [ $2 -ne 0 ]
+        then
+            name=`mpc lsplaylists | sed "$2q;d"`
+            if [ -n "$name" ]
+            then
+                mpc stop
+                mpc clear
+                mpc load $name
+                mpc play 1
+            fi
+        fi
         ;;
     track-set)
         max=`mpc playlist | wc -l`
