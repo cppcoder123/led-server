@@ -45,11 +45,13 @@ enum {
   PARAM_BRIGHTNESS,             /* select brightness */
   PARAM_CANCEL,                 /* cancel param change */
   PARAM_NEXT,                   /* next track */
+  PARAM_PLAY,                   /* 'mpc play' */
   PARAM_PLAYLIST,               /* select/load playlist */
   PARAM_POWER_OFF,              /* 'Off' */
   PARAM_POWER_ON,               /* 'On' */
   PARAM_PREVIOUS,               /* previous track */
   PARAM_REBOOT,                 /* reboot pi */
+  PARAM_STOP,                   /* 'mpc stop' */
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
 };
@@ -77,8 +79,9 @@ static uint8_t param_old[VALUE_MAX];
 static uint8_t param_new[VALUE_MAX];
 
 static const uint8_t param_array_radio[] =
-  {PARAM_TRACK, PARAM_VOLUME, PARAM_NEXT, PARAM_PREVIOUS,
-   PARAM_PLAYLIST, PARAM_BRIGHTNESS, PARAM_REBOOT, PARAM_POWER_OFF};
+  {PARAM_TRACK, PARAM_VOLUME, PARAM_STOP, PARAM_PLAY,
+   PARAM_NEXT, PARAM_PREVIOUS, PARAM_PLAYLIST, PARAM_BRIGHTNESS,
+   PARAM_REBOOT, PARAM_CANCEL, PARAM_POWER_OFF};
 static const uint8_t param_array_watch[] = {PARAM_BRIGHTNESS, PARAM_POWER_ON};
 static const uint8_t param_array_apply[] = {PARAM_CANCEL, PARAM_APPLY};
 /* ! see param_array_apply */
@@ -254,6 +257,9 @@ static void stop ()
   case PARAM_NEXT:
     send_message_3 (PARAMETER_TRACK, PARAMETER_POSITIVE, 1);
     break;
+  case PARAM_PLAY:
+    send_message_3 (PARAMETER_GO_AHEAD, PARAMETER_POSITIVE, PARAMETER_POSITIVE);
+    break;
   case PARAM_PLAYLIST:
     if ((param_flag & FLAG_MASK_PLAYLIST) == FLAG_MASK_PLAYLIST) {
       get_sign_abs (param_old[VALUE_PLAYLIST],
@@ -264,6 +270,9 @@ static void stop ()
     break;
   case PARAM_PREVIOUS:
     send_message_3 (PARAMETER_TRACK, PARAMETER_NEGATIVE, 1);
+    break;
+  case PARAM_STOP:
+    send_message_3 (PARAMETER_GO_AHEAD, PARAMETER_NEGATIVE, PARAMETER_NEGATIVE);
     break;
   case PARAM_TRACK:
     if ((param_flag & FLAG_MASK_TRACK) == FLAG_MASK_TRACK) {
@@ -364,27 +373,33 @@ static void select_apply (uint8_t action)
 static void render_label (struct buf_t *buf, uint8_t param)
 {
   switch (param) {
+  case PARAM_APPLY:
+    {
+      uint8_t tag[] = {FONT_A, FONT_p, FONT_p, FONT_l, FONT_y};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+     }
+    break;
   case PARAM_BRIGHTNESS:
     {
       uint8_t tag[] = {FONT_B, FONT_r};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
-  case PARAM_TRACK:
+  case PARAM_CANCEL:
     {
-      uint8_t tag[] = {FONT_C, FONT_h};
-      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
-    }
-    break;
-  case PARAM_VOLUME:
-    {
-      uint8_t tag[] = {FONT_V, FONT_o};
+      uint8_t tag[] = {FONT_C, FONT_a, FONT_n, FONT_c, FONT_e, FONT_l};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_NEXT:
     {
       uint8_t tag[] = {FONT_N, FONT_e, FONT_x, FONT_t};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_PLAY:
+    {
+      uint8_t tag[] = {FONT_P, FONT_l, FONT_a, FONT_y};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
@@ -418,15 +433,21 @@ static void render_label (struct buf_t *buf, uint8_t param)
       render_word (buf, on, sizeof (on) / sizeof (uint8_t));
     }
     break;
-  case PARAM_APPLY:
+  case PARAM_STOP:
     {
-      uint8_t tag[] = {FONT_A, FONT_p, FONT_p, FONT_l, FONT_y};
+      uint8_t tag[] = {FONT_S, FONT_t, FONT_o, FONT_p};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
-     }
+    }
     break;
-  case PARAM_CANCEL:
+  case PARAM_TRACK:
     {
-      uint8_t tag[] = {FONT_C, FONT_a, FONT_n, FONT_c, FONT_e, FONT_l};
+      uint8_t tag[] = {FONT_C, FONT_h};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_VOLUME:
+    {
+      uint8_t tag[] = {FONT_V, FONT_o};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
@@ -555,8 +576,6 @@ void menu_handle_rotor (uint8_t id, uint8_t action)
 
 void menu_init ()
 {
-  backup_mode = MODE_MENU;
-
   reset ();
 }
 

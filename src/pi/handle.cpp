@@ -23,6 +23,7 @@ namespace led_d
   constexpr auto MPC_PLAY = "led-mpc.sh play";
   constexpr auto MPC_PLAYLIST_GET = "led-mpc.sh playlist-get";
   constexpr auto MPC_PLAYLIST_SET = "led-mpc.sh playlist-set ";
+  constexpr auto MPC_STOP = "led-mpc.sh stop";
   constexpr auto MPC_TRACK_GET = "led-mpc.sh track-get";
   constexpr auto MPC_TRACK_SET = "led-mpc.sh track-set ";
   constexpr auto MPC_VOLUME_GET = "led-mpc.sh volume-get";
@@ -181,7 +182,9 @@ namespace led_d
            (mcu_id::get (), MSG_ID_PARAM_QUERY, param, value, min, max));
       }
       break;
+    case command_id_t::MPC_PLAY:
     case command_id_t::MPC_PLAYLIST_SET:
+    case command_id_t::MPC_STOP:
     case command_id_t::MPC_TRACK_SET:
     case command_id_t::MPC_VOLUME_SET:
       // ignore
@@ -246,9 +249,9 @@ namespace led_d
       log_t::error ("handle: Failed to decode param-query message");
       return;
     }
-    if ((param != PARAMETER_VOLUME)
+    if ((param != PARAMETER_PLAYLIST)
         && (param != PARAMETER_TRACK)
-        && (param != PARAMETER_PLAYLIST)) {
+        && (param != PARAMETER_VOLUME)) {
       log_t::error ("handle: Bad parameter in param-query message");
       return;
     }
@@ -278,13 +281,10 @@ namespace led_d
       return;
     }
 
-    if (delta == 0)
-      // is it an error? do we need to report?
-      return;
-
     if (((param != PARAMETER_VOLUME)
          && (param != PARAMETER_TRACK)
-         && (param != PARAMETER_PLAYLIST))
+         && (param != PARAMETER_PLAYLIST)
+         && (param != PARAMETER_GO_AHEAD))
         || ((positive != PARAMETER_POSITIVE)
             && (positive != PARAMETER_NEGATIVE))) {
       log_t::error ("handle: Bad value(s) in param-set message");
@@ -293,11 +293,15 @@ namespace led_d
 
     std::string cmd = (param == PARAMETER_VOLUME) ? MPC_VOLUME_SET
       : (param == PARAMETER_TRACK) ? MPC_TRACK_SET
-      : MPC_PLAYLIST_SET;
-    if (param != PARAMETER_PLAYLIST) {
+      : (param == PARAMETER_PLAYLIST) ? MPC_PLAYLIST_SET
+      : (positive == PARAMETER_POSITIVE) ? MPC_PLAY /* go-ahead or stop */
+      : MPC_STOP;
+
+    if ((param != PARAMETER_GO_AHEAD)
+        && (param != PARAMETER_PLAYLIST)) {
       cmd += (positive == PARAMETER_POSITIVE) ? "+ " : "- ";
       cmd += from_uint8 (delta);
-    } else {
+    } else if (param == PARAMETER_PLAYLIST) {
       const uint8_t new_id = (positive == PARAMETER_POSITIVE)
         ? m_playlist_id + delta
         : (m_playlist_id > delta) ? m_playlist_id - delta
@@ -310,7 +314,9 @@ namespace led_d
     command_id_t cmd_id
       = (param == PARAMETER_VOLUME) ? command_id_t::MPC_VOLUME_SET
       : (param == PARAMETER_TRACK) ? command_id_t::MPC_TRACK_SET
-      : command_id_t::MPC_PLAYLIST_SET;
+      : (param == PARAMETER_PLAYLIST) ? command_id_t::MPC_PLAYLIST_SET
+      : (positive == PARAMETER_POSITIVE) ? command_id_t::MPC_PLAY
+      : command_id_t::MPC_STOP;
 
     command_t::issue (cmd_id, cmd,
                       command_t::three_seconds (), m_command_queue);

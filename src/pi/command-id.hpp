@@ -12,6 +12,7 @@ namespace led_d
     MPC_PLAY,           // mpc play
     MPC_PLAYLIST_GET,   // get playlist info
     MPC_PLAYLIST_SET,   // load playlist
+    MPC_STOP,           // stop
     MPC_TRACK_GET,      // current track
     MPC_TRACK_SET,
     MPC_VOLUME_GET,
@@ -41,6 +42,9 @@ namespace led_d
       break;
     case command_id_t::MPC_PLAYLIST_SET:
       return "mpc-playlist-set";
+      break;
+    case command_id_t::MPC_STOP:
+      return "mpc-stop";
       break;
     case command_id_t::MPC_TRACK_GET:
       return "mpc-track-get";

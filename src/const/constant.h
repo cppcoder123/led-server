@@ -107,6 +107,7 @@ enum {
 
 /* try to tune params */
 enum {
+  PARAMETER_GO_AHEAD,
   PARAMETER_NEGATIVE,
   PARAMETER_POSITIVE,
   PARAMETER_PLAYLIST,

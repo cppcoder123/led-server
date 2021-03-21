@@ -51,6 +51,9 @@ case $1 in
             fi
         fi
         ;;
+    stop)
+        mpc stop
+        ;;
     track-set)
         max=`mpc playlist | wc -l`
         get_track_id

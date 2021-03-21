@@ -32,6 +32,7 @@ enum {
   FONT_O,
   FONT_P,
   FONT_R,
+  FONT_S,
   FONT_T,
   FONT_V,
   FONT_X,
