@@ -40,6 +40,10 @@ enum {
   /* pi=>avr, confirm the version was ok */
   MSG_ID_HANDSHAKE,
 
+  /*pi=>avr: No response from avr is expected, SERIAL_ID_TO_IGNORE should be used*/
+  /*aux message to enable spi slave (avr) to master (pi) transfer*/
+  MSG_ID_IDLE,
+
   /*pi=>avr: one column as payload,*/
   /*avr=>pi: STATUS*/
   /* MSG_ID_LED, */
@@ -54,10 +58,6 @@ enum {
 
   /* avr=>pi, shutdown pi*/
   MSG_ID_POWEROFF,
-
-  /*pi=>avr: No response from avr is expected, SERIAL_ID_TO_IGNORE should be used*/
-  /*aux message to enable spi slave (avr) to master (pi) transfer*/
-  MSG_ID_QUERY,
 
   /*avr=>pi: Reboot pi*/
   MSG_ID_REBOOT,

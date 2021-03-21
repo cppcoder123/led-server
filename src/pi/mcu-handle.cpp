@@ -44,7 +44,7 @@ namespace led_d
     while (m_go.load () == true) {
       // 1. if we have an interrupt, try to handle it first
       if (m_interrupt_rised == true)
-        write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_QUERY));
+        write_msg (mcu::encode::join (SERIAL_ID_TO_IGNORE, MSG_ID_IDLE));
       auto bool_opt = m_interrupt_queue.pop<false>();
       if (bool_opt)
         m_interrupt_rised = *bool_opt;

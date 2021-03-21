@@ -67,7 +67,7 @@ static void decode ()
         encode_msg_2 (MSG_ID_STATUS, msg_serial, status, msg_id);
     }
     break;
-  case MSG_ID_QUERY:
+  case MSG_ID_IDLE:
     /* just ignore, other party tries to read smth */
     break;
   case MSG_ID_SYNC_CLOCK:
