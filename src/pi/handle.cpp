@@ -206,7 +206,7 @@ namespace led_d
 
     switch (msg_id) {
     case MSG_ID_QUERY_NUMBER:
-      mcu_param_query (msg);
+      mcu_query_number (msg);
       break;
     case MSG_ID_PARAM_SET:
       mcu_param_set (msg);
@@ -242,7 +242,7 @@ namespace led_d
     }
   }
 
-  void handle_t::mcu_param_query (const mcu_msg_t &msg)
+  void handle_t::mcu_query_number (const mcu_msg_t &msg)
   {
     uint8_t param = 0;
     if (mcu::decode::split_payload (msg, param) == false) {
