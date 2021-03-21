@@ -58,7 +58,7 @@ static void decode ()
       /*debug*/
     }
     break;
-  case MSG_ID_PARAM_QUERY:
+  case MSG_ID_QUERY_NUMBER:
     {
         status = (menu_parameter_value
                   (in_buf[0], in_buf[1], in_buf[2], in_buf[3]) != 0)

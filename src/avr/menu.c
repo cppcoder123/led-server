@@ -133,7 +133,7 @@ static void query_source ()
   const uint8_t msg_body = (param == PARAM_TRACK) ? PARAMETER_TRACK
     : (param == PARAM_VOLUME) ? PARAMETER_VOLUME : PARAMETER_PLAYLIST;
 
-  send_message_1 (MSG_ID_PARAM_QUERY, msg_body);
+  send_message_1 (MSG_ID_QUERY_NUMBER, msg_body);
 
   param_flag |= (param == PARAM_TRACK) ? FLAG_TRACK_SENT
     : (param == PARAM_VOLUME) ? FLAG_VOLUME_SENT : FLAG_PLAYLIST_SENT;

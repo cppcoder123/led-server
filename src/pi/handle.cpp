@@ -179,7 +179,7 @@ namespace led_d
           value = m_playlist_id;
         m_to_mcu_queue->push
           (mcu::encode::join
-           (mcu_id::get (), MSG_ID_PARAM_QUERY, param, value, min, max));
+           (mcu_id::get (), MSG_ID_QUERY_NUMBER, param, value, min, max));
       }
       break;
     case command_id_t::MPC_PLAY:
@@ -205,7 +205,7 @@ namespace led_d
     }
 
     switch (msg_id) {
-    case MSG_ID_PARAM_QUERY:
+    case MSG_ID_QUERY_NUMBER:
       mcu_param_query (msg);
       break;
     case MSG_ID_PARAM_SET:

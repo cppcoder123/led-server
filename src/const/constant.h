@@ -49,15 +49,15 @@ enum {
   /* MSG_ID_LED, */
   MSG_ID_LED_ARRAY,
 
-  /*avr=>pi, query param value*/
-  /*pi=>avr, param value*/
-  MSG_ID_PARAM_QUERY,
-
   /*avr=>pi, set param value*/
   MSG_ID_PARAM_SET,
 
   /* avr=>pi, shutdown pi*/
   MSG_ID_POWEROFF,
+
+  /*avr=>pi, query param value*/
+  /*pi=>avr, param value*/
+  MSG_ID_QUERY_NUMBER,
 
   /*avr=>pi: Reboot pi*/
   MSG_ID_REBOOT,
