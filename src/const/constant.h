@@ -55,6 +55,9 @@ enum {
   /* avr=>pi, shutdown pi*/
   MSG_ID_POWEROFF,
 
+  /* avr<=>pi, avr asks pi about track/playlist name */
+  MSG_ID_QUERY_NAME,
+
   /*avr=>pi, query param value*/
   /*pi=>avr, param value*/
   MSG_ID_QUERY_NUMBER,

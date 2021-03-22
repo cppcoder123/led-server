@@ -6,7 +6,7 @@
 
 #include "at.h"
 #include "buf.h"
-#include "buzz.h"
+/* #include "buzz.h" */
 #include "debug.h"
 #include "flush.h"
 #include "font.h"
@@ -149,14 +149,14 @@ void watch_alarm_control (uint8_t engage)
   alarm_engaged = (engage == 0) ? 0 : 1;
 }
 
-static void alarm_check (uint8_t hour, uint8_t minute)
-{
-  if ((alarm_hour != hour) || (alarm_minute != minute))
-    return;
+/* static void alarm_check (uint8_t hour, uint8_t minute) */
+/* { */
+/*   if ((alarm_hour != hour) || (alarm_minute != minute)) */
+/*     return; */
 
-  buzz_start ();
-  at_schedule (AT_WATCH, ALARM_DURATION, &buzz_stop);
-}
+/*   /\* buzz_start (); *\/ */
+/*   /\* at_schedule (AT_WATCH, ALARM_DURATION, &buzz_stop); *\/ */
+/* } */
 
 static void render () /* send watch value into display */
 {
@@ -192,10 +192,10 @@ static void read_callback (uint8_t tag, uint8_t status, uint8_t len,
 
   buffer[tag] = value[0];
 
-  if ((tag == BUFFER_SECOND)
-      && (buffer[BUFFER_SECOND] == 0)
-      && (watch_alarm_state ()))
-    alarm_check (buffer[BUFFER_HOUR], buffer[BUFFER_MINUTE]);
+  /* if ((tag == BUFFER_SECOND) */
+  /*     && (buffer[BUFFER_SECOND] == 0) */
+  /*     && (watch_alarm_state ())) */
+  /*   alarm_check (buffer[BUFFER_HOUR], buffer[BUFFER_MINUTE]); */
 
   render ();
 }

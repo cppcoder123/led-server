@@ -47,6 +47,10 @@ namespace led_d
   void content_t::in (status_ptr_t status)
   {
     switch (status->id ()) {
+    case command_id_t::MPC_PLAYLIST_NAME:
+    case command_id_t::MPC_TRACK_NAME:
+      m_top_info = status->out ();
+      break;
     case command_id_t::POWEROFF:
       m_top_info = "Goodbye";
       break;
@@ -98,6 +102,11 @@ namespace led_d
     }
 
     return info_t ("Content is empty, nothing to display ", format);
+  }
+
+  void content_t::clear_top ()
+  {
+    m_top_info.clear ();
   }
 
   std::string content_t::replace (const std::string &src)

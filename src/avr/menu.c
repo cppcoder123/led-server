@@ -17,8 +17,9 @@
 #include "render.h"
 #include "rotor.h"
 
-#define SELECT_DELAY 3
 #define APPLY_DELAY 1
+#define SELECT_DELAY 3
+#define TAG_DELAY 2
 
 #define APPLY_INDENT 7
 
@@ -57,10 +58,11 @@ enum {
 };
 
 enum {
+  STATE_APPLY,
   STATE_IDLE,
   STATE_PARAM,
+  STATE_TAG,
   STATE_VALUE,
-  STATE_APPLY,
 };
 
 static uint8_t backup_mode = MODE_MENU;
@@ -96,6 +98,9 @@ static uint8_t secondary_param = PARAM_CANCEL;
 
 static uint8_t state = STATE_IDLE;
 
+static uint8_t tag_param = PARAM_CANCEL;
+static uint8_t tag_value = 0;
+
 static void send_message_0 (uint8_t msg_id)
 {
   if (mode_is_connnected () != 0)
@@ -106,6 +111,13 @@ static void send_message_1 (uint8_t msg_id, uint8_t payload_1)
 {
   if (mode_is_connnected () != 0)
     encode_msg_1 (msg_id, SERIAL_ID_TO_IGNORE, payload_1);
+}
+
+static void send_message_2 (uint8_t msg_id,
+                            uint8_t payload_1, uint8_t payload_2)
+{
+  if (mode_is_connnected () != 0)
+    encode_msg_2 (msg_id, SERIAL_ID_TO_IGNORE, payload_1, payload_2);
 }
 
 static void send_message_3 (uint8_t parameter, uint8_t sign, uint8_t abs)
@@ -139,8 +151,19 @@ static void query_source ()
     : (param == PARAM_VOLUME) ? FLAG_VOLUME_SENT : FLAG_PLAYLIST_SENT;
 }
 
-static void state_set (uint8_t new_state)
+static void set_state (uint8_t new_state)
 {
+  if (state == new_state)
+    return;
+
+  if (state == STATE_TAG) {
+    send_message_0 (MSG_ID_SUSPEND);
+    flush_shift_drain_start ();
+  } else if (new_state == STATE_TAG) {
+    flush_shift_drain_stop ();
+    send_message_0 (MSG_ID_RESUME);
+  }
+
   /*
    * we need to adjust param_array if we are moving
    *  a. from idle => param/value
@@ -206,17 +229,9 @@ static void reset ()
   secondary_param = PARAM_CANCEL;
 
   state = STATE_IDLE;
-}
 
-static void start (uint8_t rotor_id)
-{
-  reset ();
-  backup_mode = mode_get ();
-  mode_set (MODE_MENU);
-  send_message_0 (MSG_ID_SUSPEND);
-  flush_shift_drain_start ();
-
-  state_set ((rotor_id == PARAM_ROTOR) ? STATE_PARAM : STATE_VALUE);
+  tag_param = PARAM_CANCEL;
+  tag_value = 0;
 }
 
 static void get_sign_abs (uint8_t src, uint8_t dst, uint8_t *sign, uint8_t *abs)
@@ -233,9 +248,23 @@ static void get_sign_abs (uint8_t src, uint8_t dst, uint8_t *sign, uint8_t *abs)
   }
 }
 
+static void start (uint8_t rotor_id)
+{
+  reset ();
+  backup_mode = mode_get ();
+  mode_set (MODE_MENU);
+  send_message_0 (MSG_ID_SUSPEND);
+  flush_shift_drain_start ();
+
+  set_state ((rotor_id == PARAM_ROTOR) ? STATE_PARAM : STATE_VALUE);
+}
+
 /* exit from menu handling */
 static void stop ()
 {
+  if (state == STATE_TAG)
+    set_state (STATE_VALUE);
+
   const uint8_t param =
     ((state == STATE_IDLE)
      || ((state == STATE_APPLY)
@@ -312,6 +341,41 @@ static void schedule (uint8_t delay)
 {
   at_cancel (AT_MENU);
   at_schedule (AT_MENU, delay, &stop);
+}
+
+static void tag_request ()
+{
+  if (state != STATE_VALUE)
+    return;
+  uint8_t param = param_array[param_id];
+  if (param != tag_param)
+    return;
+  uint8_t value_id = (param == PARAM_PLAYLIST) ? VALUE_PLAYLIST : VALUE_TRACK;
+  if (tag_value != param_new[value_id])
+    return;
+
+  uint8_t parameter = (param == PARAM_PLAYLIST)
+    ? PARAMETER_PLAYLIST : PARAMETER_TRACK;
+  send_message_2 (MSG_ID_QUERY_NAME, parameter, tag_value);
+}
+
+static void schedule_tag ()
+{
+  if (state != STATE_VALUE)
+    return;
+
+  uint8_t param = param_array[param_id];
+  if ((param != PARAM_PLAYLIST)
+      && (param != PARAM_TRACK))
+    return;
+
+  at_cancel (AT_MENU_TAG);
+
+  tag_param = param;
+  uint8_t value_id = (param == PARAM_PLAYLIST) ? VALUE_PLAYLIST : VALUE_TRACK;
+  tag_value = param_new[value_id];
+
+  at_schedule (AT_MENU_TAG, TAG_DELAY, &tag_request);
 }
 
 static void select_param (uint8_t action)
@@ -537,6 +601,16 @@ void menu_handle_rotor (uint8_t id, uint8_t action)
     return;
 
   switch (state) {
+  case STATE_APPLY:
+    if (id == APPLY_ROTOR) {
+      select_apply (action);
+      schedule (APPLY_DELAY);
+    } else {
+      set_state (STATE_VALUE);
+      schedule (SELECT_DELAY);
+      schedule_tag ();
+    }
+    break;
   case STATE_IDLE:
     start (id);
     schedule (SELECT_DELAY);
@@ -545,26 +619,29 @@ void menu_handle_rotor (uint8_t id, uint8_t action)
     if (id == PARAM_ROTOR) {
       select_param (action);
     } else {
-      state_set (STATE_VALUE);
+      set_state (STATE_VALUE);
     }
     schedule (SELECT_DELAY);
+    break;
+  case STATE_TAG:
+    set_state (STATE_VALUE);
+    if (id == VALUE_ROTOR) {
+      select_value (action);
+      schedule (SELECT_DELAY);
+      schedule_tag ();
+    } else {
+      set_state (STATE_APPLY);
+      schedule (APPLY_DELAY);
+    }
     break;
   case STATE_VALUE:
     if (id == VALUE_ROTOR) {
       select_value (action);
       schedule (SELECT_DELAY);
+      schedule_tag ();
     } else {
-      state_set (STATE_APPLY);
+      set_state (STATE_APPLY);
       schedule (APPLY_DELAY);
-    }
-    break;
-  case STATE_APPLY:
-    if (id == APPLY_ROTOR) {
-      select_apply (action);
-      schedule (APPLY_DELAY);
-    } else {
-      state_set (STATE_VALUE);
-      schedule (SELECT_DELAY);
     }
     break;
   default:
@@ -607,6 +684,27 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
 
   if (id == param_array[param_id])
     render ();
+
+  return 1;
+}
+
+uint8_t menu_parameter_name (uint8_t parameter, uint8_t id)
+{
+  if ((parameter != PARAMETER_PLAYLIST)
+      && (parameter != PARAMETER_TRACK))
+    return 0;
+
+  uint8_t param = (parameter == PARAMETER_PLAYLIST)
+    ? PARAM_PLAYLIST : PARAM_TRACK;
+  if ((param != param_array[param_id])
+      || (param != tag_param)
+      || (id != tag_value))
+    /* too late */
+    return 1;
+
+  schedule (SELECT_DELAY);
+
+  set_state (STATE_TAG);
 
   return 1;
 }

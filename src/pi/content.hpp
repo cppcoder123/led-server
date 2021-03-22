@@ -39,8 +39,9 @@ namespace led_d
 
     void in (status_ptr_t status);
 
-    // using out_info_t = std::pair<std::string/*info*/, std::string/*format*/>;
     info_t out ();
+
+    void clear_top ();
 
   private:
 

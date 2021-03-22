@@ -11,7 +11,6 @@ OBJECT_LIST = \
   boot.o \
   buf.o \
   buffer.o \
-  buzz.o \
   counter.o \
   cron.o \
   debug.o \

@@ -58,6 +58,13 @@ static void decode ()
       /*debug*/
     }
     break;
+  case MSG_ID_QUERY_NAME:
+    {
+      status = (menu_parameter_name (in_buf[0], in_buf[1]) != 0)
+        ? STATUS_SUCCESS : STATUS_FAIL;
+      encode_msg_2 (MSG_ID_STATUS, msg_serial, status, msg_id);
+    }
+    break;
   case MSG_ID_QUERY_NUMBER:
     {
         status = (menu_parameter_value

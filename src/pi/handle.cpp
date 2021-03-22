@@ -22,9 +22,11 @@ namespace led_d
   constexpr auto MPC_PLAY_PREFIX = "mpc play";
   constexpr auto MPC_PLAY = "led-mpc.sh play";
   constexpr auto MPC_PLAYLIST_GET = "led-mpc.sh playlist-get";
+  constexpr auto MPC_PLAYLIST_NAME = "led-mpc.sh playlist-name ";
   constexpr auto MPC_PLAYLIST_SET = "led-mpc.sh playlist-set ";
   constexpr auto MPC_STOP = "led-mpc.sh stop";
   constexpr auto MPC_TRACK_GET = "led-mpc.sh track-get";
+  constexpr auto MPC_TRACK_NAME = "led-mpc.sh track-name ";
   constexpr auto MPC_TRACK_SET = "led-mpc.sh track-set ";
   constexpr auto MPC_VOLUME_GET = "led-mpc.sh volume-get";
   constexpr auto MPC_VOLUME_SET = "led-mpc.sh volume-set ";
@@ -182,6 +184,26 @@ namespace led_d
            (mcu_id::get (), MSG_ID_QUERY_NUMBER, param, value, min, max));
       }
       break;
+    case command_id_t::MPC_PLAYLIST_NAME:
+    case command_id_t::MPC_TRACK_NAME:
+      {
+        uint8_t parameter = (status->id () == command_id_t::MPC_PLAYLIST_NAME)
+          ? PARAMETER_PLAYLIST : PARAMETER_TRACK;
+        std::size_t pos = 0;
+        uint8_t id = 0;
+        if (split_to_uint8 (status->out (), pos, id) == false) {
+          log_t::buffer_t buf;
+          buf << "handle: Failed to split playlist/track name \""
+              << status->out () << "\" into id-name";
+          log_t::error (buf);
+          return;
+        }
+        m_content.in (status);
+        m_to_mcu_queue->push
+          (mcu::encode::join
+           (mcu_id::get (), MSG_ID_QUERY_NAME, parameter, id));
+      }
+      break;
     case command_id_t::MPC_PLAY:
     case command_id_t::MPC_PLAYLIST_SET:
     case command_id_t::MPC_STOP:
@@ -205,14 +227,17 @@ namespace led_d
     }
 
     switch (msg_id) {
-    case MSG_ID_QUERY_NUMBER:
-      mcu_query_number (msg);
-      break;
     case MSG_ID_PARAM_SET:
       mcu_param_set (msg);
       break;
     case MSG_ID_POWEROFF:
       mcu_poweroff ();
+      break;
+    case MSG_ID_QUERY_NAME:
+      mcu_query_name (msg);
+      break;
+    case MSG_ID_QUERY_NUMBER:
+      mcu_query_number (msg);
       break;
     case MSG_ID_REBOOT:
       mcu_reboot ();
@@ -242,33 +267,49 @@ namespace led_d
     }
   }
 
+  void handle_t::mcu_query_name (const mcu_msg_t &msg)
+  {
+    uint8_t param = 0;          // playlist or track
+    uint8_t id = 0;             // playlist/track id
+    if (mcu::decode::split_payload (msg, param, id) == false) {
+      log_t::error ("handle: Failed to decode query-name message");
+      return;
+    }
+
+    if ((param != PARAMETER_PLAYLIST)
+        && (param != PARAMETER_TRACK)) {
+      log_t::error ("handle: Bad parameter in query-name message");
+      return;
+    }
+
+    auto [cmd_id, text] = (param == PARAMETER_PLAYLIST)
+      ? std::make_tuple (command_id_t::MPC_PLAYLIST_NAME, MPC_PLAYLIST_NAME)
+      : std::make_tuple (command_id_t::MPC_TRACK_NAME, MPC_TRACK_NAME);
+
+    std::string cmd = text + from_uint8 (id);
+
+    command_t::issue (cmd_id, cmd, command_t::three_seconds (), m_command_queue);
+  }
+
   void handle_t::mcu_query_number (const mcu_msg_t &msg)
   {
     uint8_t param = 0;
     if (mcu::decode::split_payload (msg, param) == false) {
-      log_t::error ("handle: Failed to decode param-query message");
+      log_t::error ("handle: Failed to decode query-number message");
       return;
     }
     if ((param != PARAMETER_PLAYLIST)
         && (param != PARAMETER_TRACK)
         && (param != PARAMETER_VOLUME)) {
-      log_t::error ("handle: Bad parameter in param-query message");
+      log_t::error ("handle: Bad parameter in query-number message");
       return;
     }
 
-    command_id_t id = command_id_t::MPC_PLAYLIST_GET;
-    std::string cmd = MPC_PLAYLIST_GET;
-
-    if (param == PARAMETER_PLAYLIST) {
-      id = command_id_t::MPC_PLAYLIST_GET;
-      cmd = MPC_PLAYLIST_GET;
-    } else if (param == PARAMETER_TRACK) {
-      id = command_id_t::MPC_TRACK_GET;
-      cmd = MPC_TRACK_GET;
-    } else {
-      id = command_id_t::MPC_VOLUME_GET;
-      cmd = MPC_VOLUME_GET;
-    }
+    auto [id, cmd] = (param == PARAMETER_PLAYLIST)
+      ? std::make_tuple (command_id_t::MPC_PLAYLIST_GET, MPC_PLAYLIST_GET)
+      : (param == PARAMETER_TRACK)
+      ? std::make_tuple (command_id_t::MPC_TRACK_GET, MPC_TRACK_GET)
+      : std::make_tuple (command_id_t::MPC_VOLUME_GET, MPC_VOLUME_GET);
 
     command_t::issue (id, cmd, command_t::three_seconds (), m_command_queue);
   }
@@ -349,6 +390,7 @@ namespace led_d
   void handle_t::mcu_suspend ()
   {
     m_suspend = true;
+    m_content.clear_top ();
   }
 
   void handle_t::mcu_reboot ()

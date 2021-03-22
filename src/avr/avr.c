@@ -6,7 +6,6 @@
 #include <avr/io.h>
 
 #include "at.h"
-#include "buzz.h"
 #include "counter.h"
 #include "cron.h"
 #include "decode.h"
@@ -44,7 +43,7 @@ static void init ()
 
   at_init ();
   /* check buzz */
-  buzz_init ();
+  /* buzz_init (); */
   decode_init ();
   flush_init ();
   heartbeat_init ();

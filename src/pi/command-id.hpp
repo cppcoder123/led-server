@@ -11,9 +11,11 @@ namespace led_d
   enum class command_id_t {
     MPC_PLAY,           // mpc play
     MPC_PLAYLIST_GET,   // get playlist info
+    MPC_PLAYLIST_NAME,  // get playlist name
     MPC_PLAYLIST_SET,   // load playlist
     MPC_STOP,           // stop
     MPC_TRACK_GET,      // current track
+    MPC_TRACK_NAME,     // get track name
     MPC_TRACK_SET,
     MPC_VOLUME_GET,
     MPC_VOLUME_SET,
@@ -40,6 +42,9 @@ namespace led_d
     case command_id_t::MPC_PLAYLIST_GET:
       return "mpc-playlist-get";
       break;
+    case command_id_t::MPC_PLAYLIST_NAME:
+      return "mpc-playlist-name";
+      break;
     case command_id_t::MPC_PLAYLIST_SET:
       return "mpc-playlist-set";
       break;
@@ -48,6 +53,9 @@ namespace led_d
       break;
     case command_id_t::MPC_TRACK_GET:
       return "mpc-track-get";
+      break;
+    case command_id_t::MPC_TRACK_NAME:
+      return "mpc-track-name";
       break;
     case command_id_t::MPC_TRACK_SET:
       return "mpc-track-set";
