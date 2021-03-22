@@ -18,7 +18,7 @@
 #include "rotor.h"
 
 #define APPLY_DELAY 1
-#define SELECT_DELAY 3
+#define SELECT_DELAY 5
 #define TAG_DELAY 2
 
 #define APPLY_INDENT 7
@@ -159,9 +159,11 @@ static void set_state (uint8_t new_state)
   if (state == STATE_TAG) {
     send_message_0 (MSG_ID_SUSPEND);
     flush_shift_drain_start ();
+    mode_set (MODE_MENU);
   } else if (new_state == STATE_TAG) {
     flush_shift_drain_stop ();
     send_message_0 (MSG_ID_RESUME);
+    mode_set (MODE_RADIO);
   }
 
   /*
