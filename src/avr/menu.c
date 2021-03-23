@@ -18,6 +18,7 @@
 #include "rotor.h"
 
 #define APPLY_DELAY 1
+#define READ_DELAY 8
 #define SELECT_DELAY 5
 #define TAG_DELAY 2
 
@@ -704,7 +705,7 @@ uint8_t menu_parameter_name (uint8_t parameter, uint8_t id)
     /* too late */
     return 1;
 
-  schedule (SELECT_DELAY);
+  schedule (READ_DELAY);
 
   set_state (STATE_TAG);
 
