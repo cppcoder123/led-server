@@ -6,9 +6,16 @@ get_track_id () {
     TRACK_ID=`mpc -f %position% current`
 }
 
-get_track_num ()
-{
+get_track_num () {
     TRACK_NUM=`mpc playlist | wc -l`
+}
+
+playlist_name () {
+    PLAYLIST_NAME=""
+    if [ ! -z "$PLAYLIST_ID" ]
+    then
+        PLAYLIST_NAME=`mpc lsplaylists | sort | sed "${PLAYLIST_ID}q;d"`
+    fi
 }
 
 case $1 in
@@ -27,24 +34,21 @@ case $1 in
     playlist-name)
         if [ ! -z $2 ]
         then
-            name=`mpc lsplaylists | sed "$2q;d"`
-            if [ -n "$name" ]
-            then
-                echo "$2-"$name
-            else
-                echo "$2-n/a"
-            fi
+            PLAYLIST_ID=$2
+            playlist_name
+            echo "$2-"${PLAYLIST_NAME}
         fi
         ;;
     playlist-set)
         if [ $2 -ne 0 ]
         then
-            name=`mpc lsplaylists | sed "$2q;d"`
-            if [ -n "$name" ]
+            PLAYLIST_ID=$2
+            playlist_name
+            if [ ! -z "${PLAYLIST_NAME}" ]
             then
                 mpc stop
                 mpc clear
-                mpc load $name
+                mpc load ${PLAYLIST_NAME}
                 mpc play 1
             fi
         fi
