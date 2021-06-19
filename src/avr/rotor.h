@@ -14,6 +14,9 @@ enum {
   /* knob ids */
   ROTOR_0,
   ROTOR_1,
+  ROTOR_2,
+  ROTOR_3,
+  ROTOR_4,
   /* actions */
   ROTOR_CLOCKWISE,
   ROTOR_COUNTER_CLOCKWISE,

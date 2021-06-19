@@ -600,6 +600,13 @@ static void render ()
 
 void menu_handle_rotor (uint8_t id, uint8_t action)
 {
+  debug_2 (DEBUG_MENU, 123, id, action);
+  return;
+
+  /* fixme */
+
+
+
   if (action == ROTOR_PUSH)
     return;
 
