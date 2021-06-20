@@ -24,9 +24,15 @@
 
 #define APPLY_INDENT 7
 
-#define VALUE_ROTOR ROTOR_0
+/* #define VALUE_ROTOR ROTOR_0 */
+/* #define PARAM_ROTOR ROTOR_1 */
+/* #define APPLY_ROTOR PARAM_ROTOR */
+
+#define VOLUME_ROTOR ROTOR_4
+#define TRACK_ROTOR ROTOR_3
+#define TRACKLIST_ROTOR ROTOR_2
 #define PARAM_ROTOR ROTOR_1
-#define APPLY_ROTOR PARAM_ROTOR
+#define APPLY_ROTOR ROTOR_0
 
 #define FLAG_BRIGNHTNESS (1 << 0)
 #define FLAG_BRIGNHTNESS_SENT (1 << 1)
@@ -178,7 +184,7 @@ static void set_state (uint8_t new_state)
 
   if ((state == STATE_IDLE)
       && ((new_state == STATE_PARAM) || (new_state == STATE_VALUE))) {
-    param_id = 0;
+    /* param_id = 0; */
     if (connected != 0) {
       param_array = param_array_radio;
       param_id_max = sizeof (param_array_radio) / sizeof (uint8_t);
@@ -253,13 +259,42 @@ static void get_sign_abs (uint8_t src, uint8_t dst, uint8_t *sign, uint8_t *abs)
 
 static void start (uint8_t rotor_id)
 {
+  /* current state is idle we can't use 'APPLY' ignore it */
+  if (rotor_id == APPLY_ROTOR)
+    return;
+
   reset ();
   backup_mode = mode_get ();
   mode_set (MODE_MENU);
   send_message_0 (MSG_ID_SUSPEND);
   flush_shift_drain_start ();
 
-  set_state ((rotor_id == PARAM_ROTOR) ? STATE_PARAM : STATE_VALUE);
+  if (rotor_id == PARAM_ROTOR) {
+    set_state (STATE_PARAM);
+    return;
+  }
+
+  /* 3 rotors are left: VOLUME, TRACK, TRACKLIST */
+  if (mode_is_connnected () == 0) {
+    param_id = PARAM_BRIGHTNESS;
+    return;
+  }
+
+  switch (rotor_id) {
+  case VOLUME_ROTOR:
+    param_id = PARAM_VOLUME;
+    break;
+  case TRACK_ROTOR:
+    param_id = PARAM_TRACK;
+    break;
+  case TRACKLIST_ROTOR:
+    param_id = PARAM_PLAYLIST;
+    break;
+  default:
+    break;
+  }
+
+  set_state (STATE_VALUE);
 }
 
 /* exit from menu handling */
@@ -600,16 +635,6 @@ static void render ()
 
 void menu_handle_rotor (uint8_t id, uint8_t action)
 {
-  debug_2 (DEBUG_MENU, 123, id, action);
-  return;
-
-  /* fixme */
-
-
-
-  if (action == ROTOR_PUSH)
-    return;
-
   switch (state) {
   case STATE_APPLY:
     if (id == APPLY_ROTOR) {
@@ -635,23 +660,23 @@ void menu_handle_rotor (uint8_t id, uint8_t action)
     break;
   case STATE_TAG:
     set_state (STATE_VALUE);
-    if (id == VALUE_ROTOR) {
+    if (id == APPLY_ROTOR) {
+      set_state (STATE_APPLY);
+      schedule (APPLY_DELAY);
+    } else {
       select_value (action);
       schedule (SELECT_DELAY);
       schedule_tag ();
-    } else {
-      set_state (STATE_APPLY);
-      schedule (APPLY_DELAY);
     }
     break;
   case STATE_VALUE:
-    if (id == VALUE_ROTOR) {
+    if (id == APPLY_ROTOR) {
+      set_state (STATE_APPLY);
+      schedule (APPLY_DELAY);
+    } else {
       select_value (action);
       schedule (SELECT_DELAY);
       schedule_tag ();
-    } else {
-      set_state (STATE_APPLY);
-      schedule (APPLY_DELAY);
     }
     break;
   default:

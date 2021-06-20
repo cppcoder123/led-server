@@ -3,10 +3,10 @@
 ROOT=/sys/class/gpio
 
 ENABLE=27
-RESET=22
+RESET=24
 
 GPIO_ENABLE=${ROOT}/gpio${ENABLE}
-GPIO_RESET=${ROOT}/gpio${RESET}
+#GPIO_RESET=${ROOT}/gpio${RESET}
 
 if [ $# == 0 ]; then
     echo "Please add argument: enable/disable"
@@ -22,12 +22,12 @@ function open () {
 
 function close () {
     # set reset high
-    echo ${RESET} > ${ROOT}/export
-    echo out > ${GPIO_RESET}/direction
-    echo 1 > ${GPIO_RESET}/value
+    #echo ${RESET} > ${ROOT}/export
+    #echo out > ${GPIO_RESET}/direction
+    #echo 1 > ${GPIO_RESET}/value
     # release pins
     echo ${ENABLE} > ${ROOT}/unexport
-    echo ${RESET} > ${ROOT}/unexport
+    #echo ${RESET} > ${ROOT}/unexport
 }
 
 if [ $1 == "enable" ]; then

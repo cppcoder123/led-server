@@ -20,7 +20,6 @@ enum {
   /* actions */
   ROTOR_CLOCKWISE,
   ROTOR_COUNTER_CLOCKWISE,
-  ROTOR_PUSH,
 };
 
 #endif
