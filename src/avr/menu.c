@@ -17,22 +17,18 @@
 #include "render.h"
 #include "rotor.h"
 
-#define APPLY_DELAY 1
-#define READ_DELAY 8
-#define SELECT_DELAY 5
-#define TAG_DELAY 2
+#define DELAY_APPLY 1
+#define DELAY_READ 8
+#define DELAY_SELECT 5
+#define DELAY_TAG 2
 
 #define APPLY_INDENT 7
 
-/* #define VALUE_ROTOR ROTOR_0 */
-/* #define PARAM_ROTOR ROTOR_1 */
-/* #define APPLY_ROTOR PARAM_ROTOR */
-
-#define VOLUME_ROTOR ROTOR_4
-#define TRACK_ROTOR ROTOR_3
-#define TRACKLIST_ROTOR ROTOR_2
-#define PARAM_ROTOR ROTOR_1
-#define APPLY_ROTOR ROTOR_0
+#define ROTOR_VOLUME ROTOR_4
+#define ROTOR_TRACK ROTOR_3
+#define ROTOR_PLAYLIST ROTOR_2
+#define ROTOR_PARAM ROTOR_1
+#define ROTOR_APPLY ROTOR_0
 
 #define FLAG_BRIGNHTNESS (1 << 0)
 #define FLAG_BRIGNHTNESS_SENT (1 << 1)
@@ -49,20 +45,45 @@
 #define FLAG_MASK_VOLUME (FLAG_VOLUME | FLAG_VOLUME_SENT)
 
 enum {
-  PARAM_APPLY,
-  PARAM_BRIGHTNESS,             /* select brightness */
-  PARAM_CANCEL,                 /* cancel param change */
-  PARAM_NEXT,                   /* next track */
-  PARAM_PLAY,                   /* 'mpc play' */
-  PARAM_PLAYLIST,               /* select/load playlist */
-  PARAM_POWER_OFF,              /* 'Off' */
-  PARAM_POWER_ON,               /* 'On' */
-  PARAM_PREVIOUS,               /* previous track */
-  PARAM_REBOOT,                 /* reboot pi */
-  PARAM_STOP,                   /* 'mpc stop' */
+  /* designated rotor knob */
   PARAM_TRACK,                  /* select radio station (or mp3) */
   PARAM_VOLUME,                 /* tune volume */
+  PARAM_PLAYLIST,               /* select/load playlist */
+  /* param list in radio mode*/
+  PARAM_POWER_OFF,              /* 'Off' */
+  PARAM_PREVIOUS,               /* previous track */
+  PARAM_NEXT,                   /* next track */
+  PARAM_STOP,                   /* 'mpc stop' */
+  PARAM_PLAY,                   /* 'mpc play' */
+  PARAM_REBOOT,                 /* reboot pi */
+  /* all rotors in watch mode*/
+  PARAM_BRIGHTNESS,             /* select brightness */
+  /* param list in watch mode*/
+  PARAM_POWER_ON,               /* 'On' */
+  /* param values in 'apply' */
+  PARAM_CANCEL,                 /* cancel param change */
+  PARAM_APPLY,
 };
+
+/* adjustable params in radio mode */
+#define PARAM_VALUE_START PARAM_TRACK
+#define PARAM_VALUE_FINISH PARAM_PLAYLIST
+
+/* boolean params in radio mode */
+#define PARAM_LIST_START PARAM_POWER_OFF
+#define PARAM_LIST_FINISH PARAM_REBOOT
+
+/* adjustable params in watch mode */
+#define PARAM_WATCH_START PARAM_BRIGHTNESS
+#define PARAM_WATCH_FINISH PARAM_BRIGHTNESS
+
+/* boolean params in watch mode */
+#define PARAM_ON_START PARAM_POWER_ON
+#define PARAM_ON_FINISH PARAM_POWER_ON
+
+/* boolean apply/cancel */
+#define PARAM_APPLY_START PARAM_CANCEL
+#define PARAM_APPLY_FINISH PARAM_APPLY
 
 enum {
   STATE_APPLY,
@@ -87,19 +108,9 @@ static uint8_t param_min[VALUE_MAX];
 static uint8_t param_old[VALUE_MAX];
 static uint8_t param_new[VALUE_MAX];
 
-static const uint8_t param_array_radio[] =
-  {PARAM_TRACK, PARAM_VOLUME, PARAM_STOP, PARAM_PLAY,
-   PARAM_NEXT, PARAM_PREVIOUS, PARAM_PLAYLIST, PARAM_BRIGHTNESS,
-   PARAM_REBOOT, PARAM_CANCEL, PARAM_POWER_OFF};
-static const uint8_t param_array_watch[] = {PARAM_BRIGHTNESS, PARAM_POWER_ON};
-static const uint8_t param_array_apply[] = {PARAM_CANCEL, PARAM_APPLY};
-/* ! see param_array_apply */
-#define PARAM_ID_CANCEL 0
-#define PARAM_ID_APPLY 1
-
-static const uint8_t *param_array = param_array_watch;
-static uint8_t param_id = 0;
-static uint8_t param_id_max = sizeof (param_array_watch) / sizeof (uint8_t);
+static uint8_t param_id = PARAM_WATCH_START;
+static uint8_t param_id_min = PARAM_WATCH_START;
+static uint8_t param_id_max = PARAM_WATCH_FINISH;
 /* primary param is param_array[param_id] */
 static uint8_t secondary_param = PARAM_CANCEL;
 
@@ -137,25 +148,44 @@ static void send_message_3 (uint8_t parameter, uint8_t sign, uint8_t abs)
 
 static void query_source ()
 {
-  const uint8_t param = param_array[param_id];
-  if ((param != PARAM_TRACK)
-      && (param != PARAM_VOLUME)
-      && (param != PARAM_PLAYLIST))
+  /* const uint8_t param = param_array[param_id]; */
+  if ((param_id != PARAM_TRACK)
+      && (param_id != PARAM_VOLUME)
+      && (param_id != PARAM_PLAYLIST))
     return;
 
-  const uint8_t mask = (param == PARAM_TRACK) ? FLAG_MASK_TRACK
-    : (param == PARAM_VOLUME) ? FLAG_MASK_VOLUME : FLAG_MASK_PLAYLIST;
+  const uint8_t mask = (param_id == PARAM_TRACK) ? FLAG_MASK_TRACK
+    : (param_id == PARAM_VOLUME) ? FLAG_MASK_VOLUME : FLAG_MASK_PLAYLIST;
 
   if ((param_flag & mask) != 0)
     return;
 
-  const uint8_t msg_body = (param == PARAM_TRACK) ? PARAMETER_TRACK
-    : (param == PARAM_VOLUME) ? PARAMETER_VOLUME : PARAMETER_PLAYLIST;
+  const uint8_t msg_body = (param_id == PARAM_TRACK) ? PARAMETER_TRACK
+    : (param_id == PARAM_VOLUME) ? PARAMETER_VOLUME : PARAMETER_PLAYLIST;
 
   send_message_1 (MSG_ID_QUERY_NUMBER, msg_body);
 
-  param_flag |= (param == PARAM_TRACK) ? FLAG_TRACK_SENT
-    : (param == PARAM_VOLUME) ? FLAG_VOLUME_SENT : FLAG_PLAYLIST_SENT;
+  param_flag |= (param_id == PARAM_TRACK) ? FLAG_TRACK_SENT
+    : (param_id == PARAM_VOLUME) ? FLAG_VOLUME_SENT : FLAG_PLAYLIST_SENT;
+}
+
+static void set_param_range (uint8_t new_state)
+{
+  uint8_t is_connected = mode_is_connnected ();
+
+  switch (new_state) {
+  case STATE_APPLY:
+    param_id_min = PARAM_APPLY_START;
+    param_id_max = PARAM_APPLY_FINISH;
+    break;
+  case STATE_PARAM:
+  case STATE_VALUE:
+    param_id_min = (is_connected != 0) ? PARAM_LIST_START : PARAM_ON_START;
+    param_id_max = (is_connected != 0) ? PARAM_LIST_FINISH : PARAM_ON_FINISH;
+    break;
+  default:
+    break;
+  }
 }
 
 static void set_state (uint8_t new_state)
@@ -174,42 +204,19 @@ static void set_state (uint8_t new_state)
   }
 
   /*
-   * we need to adjust param_array if we are moving
-   *  a. from idle => param/value
+   * we need to adjust param_id_min/max if we are moving
+   *  a. from idle/apply => param/value
    *  b. param/value => apply
-   *  c. apply => param/value
    */
-
-  const uint8_t connected = mode_is_connnected ();
-
-  if ((state == STATE_IDLE)
+  if (((state == STATE_IDLE) || (state == STATE_APPLY))
       && ((new_state == STATE_PARAM) || (new_state == STATE_VALUE))) {
     /* param_id = 0; */
-    if (connected != 0) {
-      param_array = param_array_radio;
-      param_id_max = sizeof (param_array_radio) / sizeof (uint8_t);
-      query_source ();
-    } else {
-      param_array = param_array_watch;
-      param_id_max = sizeof (param_array_watch) / sizeof (uint8_t);
-    }
+    set_param_range (new_state);
   } else if (((state == STATE_PARAM) || (state == STATE_VALUE))
              && (new_state == STATE_APPLY)) {
-    secondary_param = param_array[param_id];
-    param_id = PARAM_ID_APPLY;
-    param_array = param_array_apply;
-    param_id_max = sizeof (param_array_apply) / sizeof (uint8_t);
-  } else if ((state == STATE_APPLY)
-             && ((new_state == STATE_PARAM) || (new_state == STATE_VALUE))) {
-    /* param_id should have right value */
-    if (connected != 0) {
-      param_array = param_array_radio;
-      param_id_max = sizeof (param_array_radio) / sizeof (uint8_t);
-      query_source ();
-    } else {
-      param_array = param_array_watch;
-      param_id_max = sizeof (param_array_watch) / sizeof (uint8_t);
-    }
+    set_param_range (new_state);
+    secondary_param = param_id;
+    param_id = PARAM_APPLY;
   }
 
   state = new_state;
@@ -233,13 +240,12 @@ static void reset ()
 
   param_flag = FLAG_MASK_BRIGNHTNESS;
 
-  param_array = param_array_apply;
-  param_id = PARAM_ID_CANCEL;
-  secondary_param = PARAM_CANCEL;
+  param_id = PARAM_TRACK;
+  secondary_param = PARAM_TRACK;
 
   state = STATE_IDLE;
 
-  tag_param = PARAM_CANCEL;
+  tag_param = PARAM_TRACK;
   tag_value = 0;
 }
 
@@ -260,7 +266,7 @@ static void get_sign_abs (uint8_t src, uint8_t dst, uint8_t *sign, uint8_t *abs)
 static void start (uint8_t rotor_id)
 {
   /* current state is idle we can't use 'APPLY' ignore it */
-  if (rotor_id == APPLY_ROTOR)
+  if (rotor_id == ROTOR_APPLY)
     return;
 
   reset ();
@@ -268,33 +274,6 @@ static void start (uint8_t rotor_id)
   mode_set (MODE_MENU);
   send_message_0 (MSG_ID_SUSPEND);
   flush_shift_drain_start ();
-
-  if (rotor_id == PARAM_ROTOR) {
-    set_state (STATE_PARAM);
-    return;
-  }
-
-  /* 3 rotors are left: VOLUME, TRACK, TRACKLIST */
-  if (mode_is_connnected () == 0) {
-    param_id = PARAM_BRIGHTNESS;
-    return;
-  }
-
-  switch (rotor_id) {
-  case VOLUME_ROTOR:
-    param_id = PARAM_VOLUME;
-    break;
-  case TRACK_ROTOR:
-    param_id = PARAM_TRACK;
-    break;
-  case TRACKLIST_ROTOR:
-    param_id = PARAM_PLAYLIST;
-    break;
-  default:
-    break;
-  }
-
-  set_state (STATE_VALUE);
 }
 
 /* exit from menu handling */
@@ -305,10 +284,9 @@ static void stop ()
 
   const uint8_t param =
     ((state == STATE_IDLE)
-     || ((state == STATE_APPLY)
-         && (param_id == PARAM_ID_CANCEL))) ? PARAM_CANCEL
+     || ((state == STATE_APPLY) && (param_id == PARAM_CANCEL))) ? PARAM_CANCEL
     : (state == STATE_APPLY) ? secondary_param
-    : param_array[param_id];
+    : param_id;
 
   uint8_t abs = 0;
   uint8_t sign = PARAMETER_POSITIVE;
@@ -385,14 +363,13 @@ static void tag_request ()
 {
   if (state != STATE_VALUE)
     return;
-  uint8_t param = param_array[param_id];
-  if (param != tag_param)
+  if (param_id != tag_param)
     return;
-  uint8_t value_id = (param == PARAM_PLAYLIST) ? VALUE_PLAYLIST : VALUE_TRACK;
+  uint8_t value_id = (param_id == PARAM_PLAYLIST) ? VALUE_PLAYLIST : VALUE_TRACK;
   if (tag_value != param_new[value_id])
     return;
 
-  uint8_t parameter = (param == PARAM_PLAYLIST)
+  uint8_t parameter = (param_id == PARAM_PLAYLIST)
     ? PARAMETER_PLAYLIST : PARAMETER_TRACK;
   send_message_2 (MSG_ID_QUERY_NAME, parameter, tag_value);
 }
@@ -402,74 +379,68 @@ static void schedule_tag ()
   if (state != STATE_VALUE)
     return;
 
-  uint8_t param = param_array[param_id];
-  if ((param != PARAM_PLAYLIST)
-      && (param != PARAM_TRACK))
+  if ((param_id != PARAM_PLAYLIST)
+      && (param_id != PARAM_TRACK))
     return;
 
   at_cancel (AT_MENU_TAG);
 
-  tag_param = param;
-  uint8_t value_id = (param == PARAM_PLAYLIST) ? VALUE_PLAYLIST : VALUE_TRACK;
+  tag_param = param_id;
+  uint8_t value_id = (param_id == PARAM_PLAYLIST) ? VALUE_PLAYLIST : VALUE_TRACK;
   tag_value = param_new[value_id];
 
-  at_schedule (AT_MENU_TAG, TAG_DELAY, &tag_request);
+  at_schedule (AT_MENU_TAG, DELAY_TAG, &tag_request);
 }
 
 static void select_param (uint8_t action)
 {
-  if (action == ROTOR_CLOCKWISE) {
-    if (param_id < param_id_max - 1) {
-      ++param_id;
-    }
-  } else {                      /* counter-clockwise */
-    if (param_id > 0) {
-      --param_id;
-    }
-  }
-  query_source ();
+  if ((action == ROTOR_CLOCKWISE)
+      && (param_id < param_id_max))
+    ++param_id;
+  else if ((action == ROTOR_COUNTER_CLOCKWISE)
+           && (param_id > param_id_min))
+    --param_id;
+
+  /* query_source (); */
 }
 
 static void select_value (uint8_t action)
 {
-  const uint8_t param = param_array[param_id];
-
-  if ((param != PARAM_TRACK)
-      && (param != PARAM_VOLUME)
-      && (param != PARAM_BRIGHTNESS)
-      && (param != PARAM_PLAYLIST))
+  if ((param_id != PARAM_TRACK)
+      && (param_id != PARAM_VOLUME)
+      && (param_id != PARAM_BRIGHTNESS)
+      && (param_id != PARAM_PLAYLIST))
     return;
 
-  const uint8_t mask = (param == PARAM_TRACK) ? FLAG_TRACK
-    : (param == PARAM_VOLUME) ? FLAG_VOLUME
-    : (param == PARAM_BRIGHTNESS) ? FLAG_BRIGNHTNESS
+  const uint8_t mask = (param_id == PARAM_TRACK) ? FLAG_TRACK
+    : (param_id == PARAM_VOLUME) ? FLAG_VOLUME
+    : (param_id == PARAM_BRIGHTNESS) ? FLAG_BRIGNHTNESS
     : FLAG_PLAYLIST;
 
   if ((param_flag & mask) == 0)
     /* range is invalid */
     return;
 
-  const uint8_t id = (param == PARAM_TRACK) ? VALUE_TRACK
-    : (param == PARAM_VOLUME) ? VALUE_VOLUME
-    : (param == PARAM_BRIGHTNESS) ? VALUE_BRIGHTNESS
+  const uint8_t id = (param_id == PARAM_TRACK) ? VALUE_TRACK
+    : (param_id == PARAM_VOLUME) ? VALUE_VOLUME
+    : (param_id == PARAM_BRIGHTNESS) ? VALUE_BRIGHTNESS
     : VALUE_PLAYLIST;
 
-  if (action == ROTOR_CLOCKWISE) {
-    if (param_new[id] < param_max[id])
-      ++(param_new[id]);
-  } else {                      /* counter-clockwise */
-    if (param_new[id] > param_min[id])
-      --(param_new[id]);
-  }
+  if ((action == ROTOR_CLOCKWISE)
+      && (param_new[id] < param_max[id]))
+    ++(param_new[id]);
+  else if ((action == ROTOR_COUNTER_CLOCKWISE)
+           && (param_new[id] > param_min[id]))
+    --(param_new[id]);
 }
 
 static void select_apply (uint8_t action)
 {
   /* clockwise => apply, counter-clockwise cancel */
   if (action == ROTOR_CLOCKWISE)
-    param_id = PARAM_ID_APPLY;
+    param_id = PARAM_APPLY;
   else
-    param_id = PARAM_ID_CANCEL;
+    param_id = PARAM_CANCEL;
 }
 
 static void render_label (struct buf_t *buf, uint8_t param)
@@ -620,68 +591,83 @@ static void render ()
 
   buf_byte_fill (&buf, 0);
 
-  uint8_t param = param_array[param_id];
-  render_label (&buf, param);
+  render_label (&buf, param_id);
 
   if ((state == STATE_PARAM)
       || (state == STATE_VALUE)) {
-    render_source (&buf, param);
-    render_destination (&buf, param);
+    render_source (&buf, param_id);
+    render_destination (&buf, param_id);
   }
 
   render_tail (&buf);
   flush_stable_display (&buf);
 }
 
+static uint8_t rotor_to_state (uint8_t id)
+{
+  if (id == ROTOR_APPLY)
+    return STATE_APPLY;
+  else if (id == ROTOR_PARAM)
+    return STATE_PARAM;
+
+  return STATE_VALUE;
+}
+
+static uint8_t rotor_to_param (uint8_t id)
+{
+  if (id == ROTOR_APPLY)
+    return PARAM_APPLY;
+
+  if (mode_is_connnected () == 0)
+    return (id == ROTOR_PARAM) ? PARAM_POWER_ON : PARAM_BRIGHTNESS;
+
+  return (id == ROTOR_VOLUME) ? PARAM_VOLUME
+    : (id == ROTOR_TRACK) ? PARAM_TRACK
+    : (id == ROTOR_PLAYLIST) ? PARAM_PLAYLIST
+    : PARAM_POWER_OFF;          /* ??? bad value should be here */
+}
+
 void menu_handle_rotor (uint8_t id, uint8_t action)
 {
-  switch (state) {
-  case STATE_APPLY:
-    if (id == APPLY_ROTOR) {
+  uint8_t rotor_state = rotor_to_state (id);
+  if ((rotor_state == STATE_APPLY)
+      && (state == STATE_IDLE))
+    return;
+
+  if (state == rotor_state) {
+    if (state == STATE_APPLY)
       select_apply (action);
-      schedule (APPLY_DELAY);
-    } else {
-      set_state (STATE_VALUE);
-      schedule (SELECT_DELAY);
-      schedule_tag ();
-    }
-    break;
-  case STATE_IDLE:
-    start (id);
-    schedule (SELECT_DELAY);
-    break;
-  case STATE_PARAM:
-    if (id == PARAM_ROTOR) {
+    else if (state == STATE_PARAM)
       select_param (action);
-    } else {
-      set_state (STATE_VALUE);
-    }
-    schedule (SELECT_DELAY);
-    break;
-  case STATE_TAG:
-    set_state (STATE_VALUE);
-    if (id == APPLY_ROTOR) {
-      set_state (STATE_APPLY);
-      schedule (APPLY_DELAY);
-    } else {
+    else if (state == STATE_VALUE) {
+      if (param_id != rotor_to_param (id)) {
+        param_id = rotor_to_param (id);
+        query_source ();
+      }
       select_value (action);
-      schedule (SELECT_DELAY);
       schedule_tag ();
     }
-    break;
-  case STATE_VALUE:
-    if (id == APPLY_ROTOR) {
-      set_state (STATE_APPLY);
-      schedule (APPLY_DELAY);
-    } else {
-      select_value (action);
-      schedule (SELECT_DELAY);
-      schedule_tag ();
-    }
-    break;
-  default:
-    break;
+    schedule ((state == STATE_APPLY) ? DELAY_APPLY : DELAY_SELECT);
+    render ();
+    return;
   }
+
+  if (state == STATE_IDLE)
+    start (id);
+
+  set_state (rotor_state);
+
+  if (rotor_state == STATE_APPLY)
+    select_apply (action);
+  else if (rotor_state == STATE_PARAM)
+    select_param (action);
+  else if (rotor_state == STATE_VALUE) {
+    param_id = rotor_to_param (id);
+    select_value (action);
+    query_source ();
+  }
+  
+  schedule ((rotor_state == STATE_APPLY) ? DELAY_APPLY : DELAY_SELECT);
 
   render ();
 }
@@ -711,13 +697,13 @@ uint8_t menu_parameter_value (uint8_t parameter, uint8_t value,
     : (parameter == PARAMETER_TRACK) ? FLAG_TRACK
     : FLAG_PLAYLIST;
 
-  schedule (SELECT_DELAY);
+  schedule (DELAY_SELECT);
 
   id = (parameter == PARAMETER_VOLUME) ? PARAM_VOLUME
     : (parameter == PARAMETER_TRACK) ? PARAM_TRACK
     : PARAM_PLAYLIST;
 
-  if (id == param_array[param_id])
+  if (id == param_id)
     render ();
 
   return 1;
@@ -731,13 +717,13 @@ uint8_t menu_parameter_name (uint8_t parameter, uint8_t id)
 
   uint8_t param = (parameter == PARAMETER_PLAYLIST)
     ? PARAM_PLAYLIST : PARAM_TRACK;
-  if ((param != param_array[param_id])
+  if ((param != param_id)
       || (param != tag_param)
       || (id != tag_value))
     /* too late */
     return 1;
 
-  schedule (READ_DELAY);
+  schedule (DELAY_READ);
 
   set_state (STATE_TAG);
 

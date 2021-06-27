@@ -19,10 +19,6 @@
 /*0,1 bits of J*/
 #define MASK_J ((1 << 0) | (1 << 1))
 
-/*clockwise & counter clockwise*/
-#define MASK_CLOCKWISE (1 << 0)
-#define MASK_COUNTER_CLOCKWISE (1 << 1)
-
 /* a & b inputs */
 #define MASK_A (1 << 0)
 #define MASK_B (1 << 1)
@@ -64,28 +60,28 @@ void rotor_init ()
 
 static uint8_t handle_event (uint8_t source, uint8_t event, uint8_t prev_event)
 {
-  uint8_t mask_a = MASK_A;
-  uint8_t mask_b = MASK_B;
-  uint8_t mask_both = (mask_a | mask_b);
+  uint8_t mask_counter_clockwise = MASK_A;
+  uint8_t mask_clockwise = MASK_B;
+  uint8_t mask_both = (mask_counter_clockwise | mask_clockwise);
 
   const uint8_t shift = (source == ID_J) ? ROTOR_4 : ROTOR_0;
   uint8_t status = 0;
 
   for (uint8_t i = ROTOR_0; i < ROTOR_4; ++i) {
     if ((event & mask_both) == 0) {
-      if (prev_event & mask_a) {
-        menu_handle_rotor (i + shift, ROTOR_CLOCKWISE);
-        status = 1;
-      } else if (prev_event & mask_b) {
+      if (prev_event & mask_counter_clockwise) {
         menu_handle_rotor (i + shift, ROTOR_COUNTER_CLOCKWISE);
+        status = 1;
+      } else if (prev_event & mask_clockwise) {
+        menu_handle_rotor (i + shift, ROTOR_CLOCKWISE);
         status = 1;
       }
       if (source == ID_J)
         break;
     }
-    mask_a <<= STEP;
-    mask_b <<= STEP;
-    mask_both = mask_a | mask_b;
+    mask_counter_clockwise <<= STEP;
+    mask_clockwise <<= STEP;
+    mask_both = mask_counter_clockwise | mask_clockwise;
   }
 
   return status;
