@@ -12,7 +12,7 @@ namespace
 {
   auto chip_name = "gpiochip0";
   auto enable_offset = 27;      // check
-  // auto confirm_offset = 12;     // check
+  auto confirm_offset = 12;     // check
 } // anonymous
 
 namespace led_d
@@ -48,18 +48,18 @@ namespace led_d
         ("spi-enable: Failed to set enable line to 1");
 
     // 2. check confirm line. Is avr alive?
-    // auto confirm_line = gpiod_chip_get_line (m_chip, confirm_offset);
-    // if (confirm_line == NULL)
-    //   log_t::info ("spi-enable: Failed to get confirm line");
-    // if (gpiod_line_request_input (confirm_line, consumer ()) != 0)
-    //   log_t::info ("spi-enable: Failed to configure confirm line as input");
-    // auto status = gpiod_line_get_value (confirm_line);
-    // if (status != 1)
-    //   throw std::runtime_error
-    //     ("spi-enable: Spi confirm line has a bad value!");
-    // else
-    //   log_t::info ("spi-enable: Spi confirm line is OK!");
-    // gpiod_line_release (confirm_line);
+    auto confirm_line = gpiod_chip_get_line (m_chip, confirm_offset);
+    if (confirm_line == NULL)
+      log_t::info ("spi-enable: Failed to get confirm line");
+    if (gpiod_line_request_input (confirm_line, consumer ()) != 0)
+      log_t::info ("spi-enable: Failed to configure confirm line as input");
+    auto status = gpiod_line_get_value (confirm_line);
+    if (status != 1)
+      throw std::runtime_error
+        ("spi-enable: Spi confirm line has a bad value!");
+    else
+      log_t::info ("spi-enable: Spi confirm line is OK!");
+    gpiod_line_release (confirm_line);
   }
 
   void spi_enable_t::stop ()
