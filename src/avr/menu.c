@@ -186,6 +186,9 @@ static void set_param_range (uint8_t new_state)
   default:
     break;
   }
+
+  if (new_state != STATE_VALUE)
+    param_id = param_id_min;
 }
 
 static void set_state (uint8_t new_state)
@@ -214,9 +217,9 @@ static void set_state (uint8_t new_state)
     set_param_range (new_state);
   } else if (((state == STATE_PARAM) || (state == STATE_VALUE))
              && (new_state == STATE_APPLY)) {
-    set_param_range (new_state);
     secondary_param = param_id;
-    param_id = PARAM_APPLY;
+    set_param_range (new_state);
+    /* param_id = PARAM_APPLY; */
   }
 
   state = new_state;
@@ -441,6 +444,8 @@ static void select_apply (uint8_t action)
     param_id = PARAM_APPLY;
   else
     param_id = PARAM_CANCEL;
+
+  /* debug_2 (DEBUG_MENU, 100, action, param_id); */
 }
 
 static void render_label (struct buf_t *buf, uint8_t param)
@@ -633,6 +638,8 @@ void menu_handle_rotor (uint8_t id, uint8_t action)
   if ((rotor_state == STATE_APPLY)
       && (state == STATE_IDLE))
     return;
+
+  /* debug_2 (DEBUG_MENU, 111, id, action); */
 
   if (state == rotor_state) {
     if (state == STATE_APPLY)
