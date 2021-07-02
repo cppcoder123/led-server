@@ -58,57 +58,79 @@ void rotor_init ()
   PORTJ |= MASK_J;
 }
 
-static uint8_t handle_event (uint8_t source, uint8_t event, uint8_t prev_event)
+static uint8_t handle_event (uint8_t source, uint8_t modern, uint8_t old, uint8_t oldest)
 {
-  uint8_t mask_counter_clockwise = MASK_A;
-  uint8_t mask_clockwise = MASK_B;
-  uint8_t mask_both = (mask_counter_clockwise | mask_clockwise);
+  uint8_t mask_a = MASK_A;
+  uint8_t mask_b = MASK_B;
+  uint8_t mask_both = (mask_a | mask_b);
 
   const uint8_t shift = (source == ID_J) ? ROTOR_4 : ROTOR_0;
   uint8_t status = 0;
 
   for (uint8_t i = ROTOR_0; i < ROTOR_4; ++i) {
-    if ((event & mask_both) == 0) {
-      if (prev_event & mask_counter_clockwise) {
+    if ((modern & mask_both) == 0) {
+      if ((old & mask_a)
+          && (oldest & mask_b)) {
         menu_handle_rotor (i + shift, ROTOR_COUNTER_CLOCKWISE);
         status = 1;
-      } else if (prev_event & mask_clockwise) {
+      } else if ((old & mask_b)
+                 && (oldest & mask_a)) {
         menu_handle_rotor (i + shift, ROTOR_CLOCKWISE);
         status = 1;
       }
       if (source == ID_J)
         break;
     }
-    mask_counter_clockwise <<= STEP;
-    mask_clockwise <<= STEP;
-    mask_both = mask_counter_clockwise | mask_clockwise;
+    mask_a <<= STEP;
+    mask_b <<= STEP;
+    mask_both = mask_a | mask_b;
   }
 
   return status;
 }
 
-static uint8_t drain_queue (struct buf_t *buf,
-                            uint8_t *event, uint8_t *prev_event)
+static uint8_t queue_head (struct buf_t *buf,
+                           uint8_t *modern, uint8_t *old, uint8_t *oldest)
 {
-  if (buf_size (buf) < 2)
+  if (buf_size (buf) < 3)
     return 0;
 
-  return ((buf_byte_drain (buf, prev_event) != 0)
-          && (buf_byte_drain (buf, event) != 0)) ? 1 : 0;
+  return ((buf_byte_get (buf, 0, oldest))
+          && (buf_byte_get (buf, 1, old))
+          && (buf_byte_get (buf, 2, modern)));
+}
+
+static void queue_drain (struct buf_t *buf, uint8_t drain_size)
+{
+  uint8_t dummy = 0;
+  for (uint8_t i = 0; i < drain_size; ++i)
+    buf_byte_drain (buf, &dummy);
+}
+
+static void try_queue (struct buf_t *buf, uint8_t queue_id)
+{
+  /* current, previous and before previous events*/
+  uint8_t modern = 0, old = 0, oldest = 0;
+  if (queue_head (buf, &modern, &old, &oldest)) {
+      if (handle_event (queue_id, modern, old, oldest))
+        /*
+         * Succeded to drain  the queue,
+         * and succeded to handle it, drain all 3 events
+         */
+        queue_drain (buf, 3);
+      else
+        /*        
+         * Queue handling is failed => bouncing ?
+         * Discard the oldest event
+         */
+        queue_drain (buf, 1);
+  }
 }
 
 void rotor_try ()
 {
-  uint8_t event = 0;
-  uint8_t prev_event = 0;
-  if ((drain_queue (&j_event_buf, &event, &prev_event)) /* succeded to drain */
-      && (handle_event (ID_J, event, prev_event) == 0)) /* failed to handle */
-    /* we need to keep event as prev event for next cycle */
-    buf_byte_fill (&j_event_buf, event);
-
-  if ((drain_queue (&k_event_buf, &event, &prev_event))
-      && (handle_event (ID_K, event, prev_event) == 0))
-    buf_byte_fill (&k_event_buf, event);
+  try_queue (&j_event_buf, ID_J);
+  try_queue (&k_event_buf, ID_K);
 }
 
 ISR (PCINT1_vect)
