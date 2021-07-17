@@ -485,7 +485,7 @@ static void render_label (struct buf_t *buf, uint8_t param)
     break;
   case PARAM_BRIGHTNESS_MIN:
     {
-      uint8_t tag[] = {FONT_B, FONT_r, FONT_MINUS, FONT_M, FONT_a, FONT_x};
+      uint8_t tag[] = {FONT_B, FONT_r, FONT_MINUS, FONT_M, FONT_i, FONT_n};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
