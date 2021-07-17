@@ -52,7 +52,10 @@ enum {
   /* param list in radio mode*/
   PARAM_POWER_OFF,              /* 'Off' */
   PARAM_POWER_OFF_15,           /* 'Off' after 15 minutes */
-  PARAM_POWER_OFF_30,              /* 'Off' after 30 minutes */
+  PARAM_POWER_OFF_30,           /* 'Off' after 30 minutes */
+  PARAM_BRIGHTNESS_MIN,         /* min brightness */
+  PARAM_BRIGHTNESS_MIDDLE,      /* middle brightness */
+  PARAM_BRIGHTNESS_MAX,         /* max brightness */
   PARAM_NEXT,                   /* next track */
   PARAM_PREVIOUS,               /* previous track */
   PARAM_STOP,                   /* 'mpc stop' */
@@ -302,6 +305,15 @@ static void stop ()
       flush_brightness_set (param_new[VALUE_BRIGHTNESS]);
     }
     break;
+  case PARAM_BRIGHTNESS_MIN:
+      flush_brightness_set (FLUSH_BRIGHTNESS_MIN);
+    break;
+  case PARAM_BRIGHTNESS_MIDDLE:
+      flush_brightness_set (FLUSH_BRIGHTNESS_MIDDLE);
+    break;
+  case PARAM_BRIGHTNESS_MAX:
+    flush_brightness_set (FLUSH_BRIGHTNESS_MAX);
+    break;
   case PARAM_CANCEL:
     break;
   case PARAM_NEXT:
@@ -468,6 +480,25 @@ static void render_label (struct buf_t *buf, uint8_t param)
   case PARAM_BRIGHTNESS:
     {
       uint8_t tag[] = {FONT_B, FONT_r};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_BRIGHTNESS_MIN:
+    {
+      uint8_t tag[] = {FONT_B, FONT_r, FONT_MINUS, FONT_M, FONT_a, FONT_x};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_BRIGHTNESS_MIDDLE:
+    {
+      uint8_t tag[] = {FONT_B, FONT_r, FONT_MINUS, FONT_M,
+                       FONT_i, FONT_d, FONT_d, FONT_l, FONT_e};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_BRIGHTNESS_MAX:
+    {
+      uint8_t tag[] = {FONT_B, FONT_r, FONT_MINUS, FONT_M, FONT_a, FONT_x};
       render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;

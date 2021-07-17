@@ -9,6 +9,7 @@
 #include "buf.h"
 
 #define FLUSH_BRIGHTNESS_MIN 0
+#define FLUSH_BRIGHTNESS_MIDDLE 7
 #define FLUSH_BRIGHTNESS_MAX 15
 
 void flush_init ();

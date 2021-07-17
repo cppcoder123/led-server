@@ -40,6 +40,7 @@ enum {
   FONT_a,
   FONT_b,
   FONT_c,
+  FONT_d,
   FONT_e,
   FONT_f,
   FONT_g,
