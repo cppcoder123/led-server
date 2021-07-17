@@ -51,8 +51,8 @@ enum {
   PARAM_PLAYLIST,               /* select/load playlist */
   /* param list in radio mode*/
   PARAM_POWER_OFF,              /* 'Off' */
-  PARAM_PREVIOUS,               /* previous track */
   PARAM_NEXT,                   /* next track */
+  PARAM_PREVIOUS,               /* previous track */
   PARAM_STOP,                   /* 'mpc stop' */
   PARAM_PLAY,                   /* 'mpc play' */
   PARAM_REBOOT,                 /* reboot pi */
