@@ -3,7 +3,8 @@
  */
 
 #include <cstdint>
-#include <functional>
+#include <cstdlib>
+//#include <functional>
 #include <thread>
 
 #include "const/constant.h"
@@ -130,13 +131,18 @@ namespace led_d
         log_t::error ("mcu-handle: Failed to decode mcu message");
         continue;
       }
-      m_block.relax (serial);
+      auto status = m_block.relax (serial);
       if ((m_show_msg == true)
-          /*&& (serial != SERIAL_ID_TO_IGNORE)*/) {
+          || (status == false)) {
         log_t::buffer_t buf;
         buf << "serial in: " << (int) serial;
         log_t::info (buf);
       }
+
+
+      if (status == false)
+        std::exit (EXIT_FAILURE);
+
       m_from_queue.push (msg);
     }
   }

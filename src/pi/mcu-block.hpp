@@ -18,7 +18,7 @@ namespace led_d
     bool is_engaged () const;
 
     void engage (uint8_t id); // error if already tightened with other id
-    void relax (uint8_t id);  // error here if id mismatch
+    bool relax (uint8_t id);  // error if id mismatch and return false
 
   private:
 

@@ -38,12 +38,12 @@ namespace led_d
     m_pending_id = id;
   }
 
-  void mcu_block_t::relax (uint8_t id)
+  bool mcu_block_t::relax (uint8_t id)
   {
     if ((id == SERIAL_ID_TO_IGNORE)
         || (is_engaged () == false))
       // not an error
-      return;
+      return true;
 
     if (m_pending_id != id) {
       log_t::buffer_t buf;
@@ -51,10 +51,12 @@ namespace led_d
           << (int) id << "\" while expecting \""
           << (int) m_pending_id << "\"";
       log_t::error (buf);
-      return;
+      return false;
     }
 
     m_pending_id = SERIAL_ID_TO_IGNORE;
+
+    return true;
   }
 } // namespace led_d
 

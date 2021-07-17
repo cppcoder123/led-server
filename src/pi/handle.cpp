@@ -32,6 +32,7 @@ namespace led_d
   constexpr auto MPC_VOLUME_SET = "led-mpc.sh volume-set ";
   //
   constexpr auto POWEROFF = "sudo poweroff";
+  constexpr auto SHUTDOWN = "sudo /sbin/shutdown ";
   constexpr auto REBOOT = "sudo reboot";
   //
   const std::regex system_regex ("\\s*([^:]+):(.*)");
@@ -231,7 +232,7 @@ namespace led_d
       mcu_param_set (msg);
       break;
     case MSG_ID_POWEROFF:
-      mcu_poweroff ();
+      mcu_poweroff (msg);
       break;
     case MSG_ID_QUERY_NAME:
       mcu_query_name (msg);
@@ -363,9 +364,22 @@ namespace led_d
                       command_t::three_seconds (), m_command_queue);
   }
 
-  void handle_t::mcu_poweroff ()
+  void handle_t::mcu_poweroff (const mcu_msg_t &msg)
   {
-    command_t::issue (command_id_t::POWEROFF, POWEROFF,
+    uint8_t delay = 0;
+    if (mcu::decode::split_payload (msg, delay) == false) {
+      log_t::error ("handle: Failed to decode poweroff message");
+      return;
+    }
+
+    if (delay == 0) {
+      command_t::issue (command_id_t::POWEROFF, POWEROFF,
+                        command_t::ten_seconds (), m_command_queue);
+      return;
+    }
+
+    auto cmd_text = std::string (SHUTDOWN) + std::to_string (delay);
+    command_t::issue (command_id_t::SHUTDOWN, cmd_text,
                       command_t::ten_seconds (), m_command_queue);
   }
 

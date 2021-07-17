@@ -52,7 +52,7 @@ enum {
   /*avr=>pi, set param value*/
   MSG_ID_PARAM_SET,
 
-  /* avr=>pi, shutdown pi*/
+  /* avr=>pi, shutdown pi, param is delay in minutes */
   MSG_ID_POWEROFF,
 
   /* avr<=>pi, avr asks pi about track/playlist name */

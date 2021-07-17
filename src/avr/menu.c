@@ -51,6 +51,8 @@ enum {
   PARAM_PLAYLIST,               /* select/load playlist */
   /* param list in radio mode*/
   PARAM_POWER_OFF,              /* 'Off' */
+  PARAM_POWER_OFF_15,           /* 'Off' after 15 minutes */
+  PARAM_POWER_OFF_30,              /* 'Off' after 30 minutes */
   PARAM_NEXT,                   /* next track */
   PARAM_PREVIOUS,               /* previous track */
   PARAM_STOP,                   /* 'mpc stop' */
@@ -337,7 +339,13 @@ static void stop ()
     }
     break;
   case PARAM_POWER_OFF:
-    send_message_0 (MSG_ID_POWEROFF);
+    send_message_1 (MSG_ID_POWEROFF, 0);
+    break;
+  case PARAM_POWER_OFF_15:
+    send_message_1 (MSG_ID_POWEROFF, 15);
+    break;
+  case PARAM_POWER_OFF_30:
+    send_message_1 (MSG_ID_POWEROFF, 30);
     break;
   case PARAM_POWER_ON:
     boot_pi ();
@@ -503,6 +511,18 @@ static void render_label (struct buf_t *buf, uint8_t param)
     {
       uint8_t off[]  = {FONT_O, FONT_f, FONT_f};
       render_word (buf, off, sizeof (off) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_POWER_OFF_15:
+    {
+      uint8_t tag[]  = {FONT_O, FONT_f, FONT_f, FONT_MINUS, FONT_1, FONT_5};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
+    }
+    break;
+  case PARAM_POWER_OFF_30:
+    {
+      uint8_t tag[]  = {FONT_O, FONT_f, FONT_f, FONT_MINUS, FONT_3, FONT_0};
+      render_word (buf, tag, sizeof (tag) / sizeof (uint8_t));
     }
     break;
   case PARAM_POWER_ON:

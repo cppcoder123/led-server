@@ -54,7 +54,7 @@ namespace led_d
 
     // handle mcu messages
     void mcu_param_set (const mcu_msg_t &msg);
-    void mcu_poweroff ();
+    void mcu_poweroff (const mcu_msg_t &msg);
     void mcu_query_name (const mcu_msg_t &msg);
     void mcu_query_number (const mcu_msg_t &msg);
     void mcu_reboot ();
