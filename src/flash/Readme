@@ -1,4 +1,4 @@
-Last used fuses valuea are:
+Last used fuses values are:
 
 High: 0xd9
 Low: 0xff
@@ -8,3 +8,7 @@ sudo avrdude -c linuxspi -P /dev/spidev0.0 -v -p m2560 -U lfuse:r:low_fuse_val.h
 
 To write fuses, this command can be used:
 sudo avrdude -c linuxspi -P /dev/spidev0.0 -v -p m2560 -U lfuse:w:0xff:m -U hfuse:w:0xd9:m
+
+To write hex file, this command can be used:
+sudo avrdude -c linuxspi -P /dev/spidev0.0 -v -p m2560 \
+  -U flash:w:../avr/avr.hex
