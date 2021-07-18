@@ -3,8 +3,7 @@
  */
 
 #include <cstdint>
-#include <cstdlib>
-//#include <functional>
+#include <stdexcept>
 #include <thread>
 
 #include "const/constant.h"
@@ -139,9 +138,9 @@ namespace led_d
         log_t::info (buf);
       }
 
-
       if (status == false)
-        std::exit (EXIT_FAILURE);
+        throw std::runtime_error
+          ("Incoming/outcoming message id mismatch, can't continue...");
 
       m_from_queue.push (msg);
     }
