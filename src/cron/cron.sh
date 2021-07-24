@@ -1,23 +1,13 @@
 #!/bin/bash
 
-IS_RUNNING="0"
-status () {
-    sudo systemctl status led | egrep "active \(running\)" >& /dev/null
-    IS_RUNNING=$?
-}
+SYSTEM_CTL="sudo systemctl"
+APP="led"
 
-status ()
-
-if [! ${IS_RUNNING} -eq 0]
+${SYSTEM_CTL} status ${APP} | egrep "active \(running\)" >& /dev/null
+if [ ! $? -eq 0 ]
 then
-    sudo systemctl stop led
-    sudo systemctl start led
-fi
-
-status ()
-if [! ${IS_RUNNING} -eq 0]
-then
-    exit
+    ${SYSTEM_CTL} stop ${APP}
+    ${SYSTEM_CTL} start ${APP}
 fi
 
 # check bt connection
