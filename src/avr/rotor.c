@@ -71,11 +71,11 @@ static uint8_t handle_event (uint8_t source, uint8_t modern, uint8_t old, uint8_
     if ((modern & mask_both) == 0) {
       if ((old & mask_a)
           && (oldest & mask_b)) {
-        menu_handle_rotor (i + shift, ROTOR_COUNTER_CLOCKWISE);
+        menu_handle_rotor (i + shift, ROTOR_CLOCKWISE);
         status = 1;
       } else if ((old & mask_b)
                  && (oldest & mask_a)) {
-        menu_handle_rotor (i + shift, ROTOR_CLOCKWISE);
+        menu_handle_rotor (i + shift, ROTOR_COUNTER_CLOCKWISE);
         status = 1;
       }
       if (source == ID_J)
