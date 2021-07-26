@@ -2,7 +2,9 @@
  *
  */
 
+#include <chrono>
 #include <stdexcept>
+#include <thread>
 
 #include "util/log.hpp"
 
@@ -54,6 +56,10 @@ namespace led_d
     if (gpiod_line_request_input (confirm_line, consumer ()) != 0)
       log_t::info ("spi-enable: Failed to configure confirm line as input");
     auto status = gpiod_line_get_value (confirm_line);
+    if (status != 1) {
+      std::this_thread::sleep_for (std::chrono::milliseconds (100));
+      status = gpiod_line_get_value (confirm_line);
+    }
     if (status != 1)
       throw std::runtime_error
         ("spi-enable: Spi confirm line has a bad value!");
