@@ -57,7 +57,7 @@ int main (int argc, char **argv)
       (std::bind (&signal_handler, std::ref (context),
                   std::placeholders::_1, std::placeholders::_2));
 
-    auto cleanup = util::make_final_action
+    util::final_action_t cleanup
       ([&base, &signal_set] () {base.stop (); signal_set.cancel ();});
 
     context.run ();

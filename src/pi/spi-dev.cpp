@@ -86,7 +86,7 @@ namespace led_d
 
     // the only purpose of this object is to free memory
     // allocated for the r/w buffers at the end of app execution
-    static auto remove_buf = util::make_final_action
+    static util::final_action_t remove_buf
       ([&] ()
        {
          delete [] write_buf;
