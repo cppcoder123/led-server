@@ -66,6 +66,8 @@ namespace led_d
     else
       log_t::info ("spi-enable: Spi confirm line is OK!");
     gpiod_line_release (confirm_line);
+    // Let's give mcu sometime to prepare for connection handling
+    std::this_thread::sleep_for (std::chrono::milliseconds (500));
   }
 
   void spi_enable_t::stop ()
