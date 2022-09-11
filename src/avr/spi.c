@@ -9,6 +9,7 @@
 
 #include "at.h"
 #include "buffer.h"
+#include "decode.h"
 #include "encode.h"
 #include "spi.h"
 
@@ -145,6 +146,7 @@ ISR (INT3_vect)
 {
   buffer_clear (&read_buf);
   buffer_clear (&write_buf);
+  decode_init ();
 
   SPI_PORT |= (1 << CONFIRM);
 
